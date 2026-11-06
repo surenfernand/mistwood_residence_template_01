@@ -135,6 +135,7 @@ export default function Home() {
           </div>
         </section>
 
+        <div className="mh-strip-overlap">
         <section className="mh-strip" id="highlights" aria-label="Highland highlights">
           <ul data-reveal="stagger">
             <li>
@@ -155,6 +156,7 @@ export default function Home() {
             </li>
           </ul>
         </section>
+        </div>
 
         <section className="mh-about" id="about">
           <div className="mh-sprig sprig-left" aria-hidden="true" />
