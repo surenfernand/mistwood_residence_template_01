@@ -56,6 +56,76 @@ export function MotionBoot() {
   return <div className="mv-progress" aria-hidden="true" />;
 }
 
+function pageImagesReady(root) {
+  const view = window.innerHeight * 1.2;
+  const images = [...root.querySelectorAll("img")].filter((img) => {
+    if (!img.getAttribute("src")) return false;
+    if (img.loading !== "lazy") return true;
+    const top = img.getBoundingClientRect().top;
+    return top < view && top > -200;
+  });
+  return Promise.all(images.map((img) => {
+    if (img.complete) return Promise.resolve();
+    return new Promise((resolve) => {
+      img.addEventListener("load", resolve, { once: true });
+      img.addEventListener("error", resolve, { once: true });
+    });
+  }));
+}
+
+export function RouteLoader() {
+  const { pathname } = useLocation();
+  const seen = useRef(pathname);
+  const [phase, setPhase] = useState("off");
+
+  useEffect(() => {
+    if (seen.current === pathname) return undefined;
+    seen.current = pathname;
+
+    let cancelled = false;
+    setPhase("on");
+    const started = performance.now();
+
+    const frame = requestAnimationFrame(() => {
+      const root = document.querySelector(".page-enter") || document.body;
+      const images = pageImagesReady(root);
+      const fonts = document.fonts?.ready ?? Promise.resolve();
+      const cap = new Promise((resolve) => window.setTimeout(resolve, 2200));
+      Promise.race([Promise.all([images, fonts]), cap]).then(() => {
+        if (cancelled) return;
+        const wait = Math.max(0, 420 - (performance.now() - started));
+        window.setTimeout(() => {
+          if (cancelled) return;
+          setPhase("leave");
+        }, wait);
+      });
+    });
+
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(frame);
+    };
+  }, [pathname]);
+
+  useEffect(() => {
+    if (phase !== "leave") return undefined;
+    const timer = window.setTimeout(() => setPhase("off"), 420);
+    return () => window.clearTimeout(timer);
+  }, [phase]);
+
+  if (phase === "off") return null;
+
+  return (
+    <div className={phase === "leave" ? "route-loader is-leave" : "route-loader"} role="status" aria-live="polite">
+      <span className="sr-only">Loading page</span>
+      <svg className="route-spin" viewBox="0 0 150 150" aria-hidden="true">
+        <circle className="route-spin-track" cx="75" cy="75" r="72" />
+        <circle className="route-spin-arc" cx="75" cy="75" r="72" />
+      </svg>
+    </div>
+  );
+}
+
 export function IntroLoader() {
   const [phase, setPhase] = useState("off");
 

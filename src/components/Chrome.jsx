@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
-import { ThemeSwitch } from "../theme.jsx";
 
 const links = [
   { to: "/", label: "Home", end: true },
@@ -22,7 +21,6 @@ export function SiteHeader() {
         Mistwood Residence
         <small>NUWARA ELIYA · SRI LANKA</small>
       </NavLink>
-      <ThemeSwitch />
       <button aria-label="Toggle navigation" className="menu-btn" type="button" onClick={() => setOpen((value) => !value)}>☰</button>
       <nav className={open ? "nav open" : "nav"}>
         {links.map((link) => (

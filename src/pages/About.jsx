@@ -21,13 +21,273 @@ const qualities = [
   },
 ];
 
+const guestNotes = [
+    {
+      id: "amaya",
+      name: "Amaya Perera",
+      when: "3 days ago",
+      kind: "review",
+      stars: 5,
+      color: "#163628",
+      text: "Came up from Colombo for three nights and wished we had booked five. The living room stays warm in the evening, and you can hear almost nothing except the wind in the trees.",
+      likes: 46,
+      comments: 8,
+      tilt: -4.2,
+      shift: 22,
+      tape: -8,
+      bob: "0s",
+      sink: false,
+      replies: [{ name: "Kavindi", color: "#8a6a32", text: "That balcony view at breakfast was the best part." }],
+    },
+    {
+      id: "james",
+      name: "James Whitfield",
+      when: "1 week ago",
+      kind: "post",
+      color: "#1b4f8a",
+      text: "First morning in Nuwara Eliya. Coffee at the dining table, mist still sitting on the hills. This apartment feels more like a home than a hotel room.",
+      image: "/assets/living-wide.jpg",
+      imageAlt: "The living room at Mistwood Residence in the morning light",
+      likes: 62,
+      comments: 4,
+      tilt: 3.1,
+      shift: 0,
+      tape: 7,
+      bob: "-1.4s",
+      sink: true,
+      replies: [{ name: "Elena Whitfield", color: "#6b3a4a", text: "Already planning to come back in April." }],
+    },
+    {
+      id: "nethmi",
+      name: "Nethmi Fernando",
+      when: "5 days ago",
+      kind: "comment",
+      color: "#6b3a4a",
+      text: "Booked it for my parents’ anniversary. They said the kitchen was easy to use and the walk into town was short. Thank you for looking after them.",
+      likes: 19,
+      comments: 3,
+      tilt: -1.8,
+      shift: 34,
+      tape: -14,
+      bob: "-2.6s",
+      sink: false,
+    },
+    {
+      id: "hiroshi",
+      name: "Hiroshi Tanaka",
+      when: "2 weeks ago",
+      kind: "review",
+      stars: 5,
+      color: "#3d5c45",
+      text: "Clean, quiet, and exactly as the photographs show. We walked to the lake after breakfast and were back before the rain.",
+      likes: 31,
+      comments: 2,
+      tilt: 5.2,
+      shift: 8,
+      tape: 11,
+      bob: "-3.8s",
+      sink: true,
+      replies: [{ name: "Yuna Tanaka", color: "#2f4f6f", text: "The kettle and the good blankets were a relief after the train." }],
+    },
+    {
+      id: "sanduni",
+      name: "Sanduni Jayawardena",
+      when: "6 days ago",
+      kind: "post",
+      color: "#8b4518",
+      text: "Family weekend sorted. The children took the sofa, we took the balcony, and nobody argued about it.",
+      image: "/assets/stay-balcony.jpg",
+      imageAlt: "The balcony at Mistwood Residence looking out over the hills",
+      likes: 54,
+      comments: 6,
+      tilt: -3.6,
+      shift: 26,
+      tape: -6,
+      bob: "-0.7s",
+      sink: false,
+      replies: [{ name: "Ravi", color: "#163628", text: "The parking made the drive up much easier." }],
+    },
+    {
+      id: "claire",
+      name: "Claire Moreau",
+      when: "4 days ago",
+      kind: "review",
+      stars: 5,
+      color: "#2f4f6f",
+      text: "A calm apartment in the middle of the hills. We cooked one night and ate in town the next. Both felt easy from here.",
+      image: "/assets/dining-table.jpg",
+      imageAlt: "The dining table set beside the kitchen",
+      likes: 27,
+      comments: 1,
+      tilt: 2.8,
+      shift: 10,
+      tape: 9,
+      bob: "-1.1s",
+      sink: true,
+    },
+    {
+      id: "ruwan",
+      name: "Ruwan Silva",
+      when: "1 day ago",
+      kind: "comment",
+      color: "#1b4f8a",
+      text: "Stayed with two friends from Kandy. The bedrooms were comfortable and the hot water never ran out. We will send the next group here.",
+      likes: 22,
+      comments: 5,
+      tilt: -5.1,
+      shift: 30,
+      tape: -10,
+      bob: "-2.2s",
+      sink: false,
+      replies: [{ name: "Dilan", color: "#8a6a32", text: "Adding this to the Kandy weekend list." }],
+    },
+    {
+      id: "omar",
+      name: "Omar Haddad",
+      when: "8 days ago",
+      kind: "post",
+      color: "#6b3a4a",
+      text: "Shared this with my sisters before we drove down. Long table, late dinner, rain on the windows. Nuwara Eliya did what it always does.",
+      image: "/assets/lounge-chairs.jpg",
+      imageAlt: "Lounge chairs in the living room",
+      likes: 41,
+      comments: 7,
+      tilt: 4.4,
+      shift: 0,
+      tape: 6,
+      bob: "-3.3s",
+      sink: true,
+      replies: [{ name: "Leila", color: "#3d5c45", text: "Save me a seat next time." }],
+    },
+    {
+      id: "priya",
+      name: "Priya Menon",
+      when: "3 weeks ago",
+      kind: "review",
+      stars: 5,
+      color: "#8a6a32",
+      text: "We came for Gregory Lake and stayed in for the weather. The apartment was warm, the Wi-Fi held for a morning of work, and the hills were right outside.",
+      likes: 38,
+      comments: 4,
+      tilt: -2.4,
+      shift: 24,
+      tape: -12,
+      bob: "-4.4s",
+      sink: false,
+    },
+    {
+      id: "lukas",
+      name: "Lukas Berger",
+      when: "2 days ago",
+      kind: "post",
+      color: "#163628",
+      text: "Last light on the tea fields, from the road just above the apartment. This is the Nuwara Eliya I wanted to show my parents.",
+      image: "/assets/mistwood/backgrounds/tea-sunset.png",
+      imageAlt: "Sunset over the tea hills near Nuwara Eliya",
+      likes: 73,
+      comments: 9,
+      tilt: 5.6,
+      shift: 14,
+      tape: 13,
+      bob: "-0.4s",
+      sink: true,
+      replies: [{ name: "Anja Berger", color: "#6b3a4a", text: "They have not stopped talking about the train ride." }],
+    },
+];
+
+function FacebookGlyph() {
+  return (
+    <svg className="fb-glyph" viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="12" r="12" fill="#1877F2" />
+      <path fill="#fff" d="M15.4 12.5h-2.1V20h-2.6v-7.5H9.2v-2.2h1.5V8.7c0-1.8 1-2.8 2.6-2.8.8 0 1.5.1 1.5.1v1.9h-.9c-.9 0-1.1.5-1.1 1.1v1.3h2.2l-.3 2.2z" />
+    </svg>
+  );
+}
+
+function FacebookCard({ item, hidden }) {
+  const initials = item.name.split(" ").map((part) => part[0]).slice(0, 2).join("");
+  return (
+    <article
+      className={item.sink ? "fb-card sink" : "fb-card"}
+      style={{ "--tilt": `${item.tilt}deg`, "--shift": `${item.shift}px`, "--tape": `${item.tape}deg`, "--bob": item.bob }}
+      aria-hidden={hidden || undefined}
+    >
+      <header className="fb-top">
+        <span className="fb-avatar" style={{ background: item.color }} aria-hidden="true">{initials}</span>
+        <div>
+          <p className="fb-name">
+            <strong>{item.name}</strong>
+            {item.kind === "review" ? <span> recommends Mistwood Residence</span> : null}
+            {item.kind === "comment" ? <span> commented on Mistwood Residence</span> : null}
+          </p>
+          <p className="fb-meta">{item.when} <FacebookGlyph /></p>
+        </div>
+      </header>
+      {item.stars ? (
+        <p className="fb-stars" aria-label={`${item.stars} out of 5 stars`}>
+          {Array.from({ length: 5 }, (_, index) => (
+            <span key={index} className={index < item.stars ? "on" : ""}>★</span>
+          ))}
+        </p>
+      ) : null}
+      <p className="fb-text">{item.text}</p>
+      {item.image ? <img className="fb-photo" src={item.image} alt={hidden ? "" : item.imageAlt} /> : null}
+      <p className="fb-counts"><span>♥ {item.likes}</span><span>{item.comments} {item.comments === 1 ? "comment" : "comments"}</span></p>
+      <p className="fb-actions"><span>Like</span><span>Comment</span><span>Share</span></p>
+      {item.replies?.map((reply) => (
+        <div className="fb-reply" key={reply.name}>
+          <span className="fb-avatar sm" style={{ background: reply.color }} aria-hidden="true">{reply.name[0]}</span>
+          <p><strong>{reply.name}</strong> {reply.text}</p>
+        </div>
+      ))}
+    </article>
+  );
+}
+
+function VoiceRow({ items, direction }) {
+  const cards = [...items, ...items];
+  return (
+    <div className={`fb-row ${direction}`}>
+      <div className="fb-track">
+        {cards.map((item, index) => (
+          <FacebookCard key={`${item.id}-${index}`} item={item} hidden={index >= items.length} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 const facilities = [
-  { label: "Spacious Living Area", icon: <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 26v10h32V26" fill="none" stroke="currentColor" strokeWidth="1.5" /><path d="M10 26c0-6 3.4-9 9-9h10c5.6 0 9 3 9 9" fill="none" stroke="currentColor" strokeWidth="1.5" /><path d="M8 36v3M40 36v3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg> },
-  { label: "Comfortable Bedrooms", icon: <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 28v10h32v-8" fill="none" stroke="currentColor" strokeWidth="1.5" /><path d="M8 28h22c4.4 0 8-3 8-7.5V14" fill="none" stroke="currentColor" strokeWidth="1.5" /><path d="M12 28V14h12v14" fill="none" stroke="currentColor" strokeWidth="1.5" /></svg> },
-  { label: "Fully Equipped Kitchen", icon: <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M16 8v12c0 3 2 4.5 4.5 4.5V40M28 8c3 3 4.5 6 4.5 9 0 3-1.5 4.5-4.5 4.5V40" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg> },
-  { label: "Free Wi-Fi", icon: <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 22c8-8 24-8 32 0" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /><path d="M14 28c5-5 15-5 20 0" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /><circle cx="24" cy="34" r="2" fill="currentColor" /></svg> },
-  { label: "Private Parking", icon: <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 30V18h22l6 6v6H8Z" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" /><circle cx="16" cy="32" r="2.2" fill="none" stroke="currentColor" strokeWidth="1.5" /><circle cx="32" cy="32" r="2.2" fill="none" stroke="currentColor" strokeWidth="1.5" /></svg> },
-  { label: "Scenic Balcony", icon: <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 38V16h32v22" fill="none" stroke="currentColor" strokeWidth="1.5" /><path d="M8 22h32M14 22v16M24 22v16M34 22v16" fill="none" stroke="currentColor" strokeWidth="1.5" /></svg> },
+  {
+    label: "Spacious Living Area",
+    image: "/assets/living-sofa.jpg",
+    icon: <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M12 26V20c0-3 2-5 5-5h14c3 0 5 2 5 5v6" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /><path d="M8 26h32v7a4 4 0 0 1-4 4H12a4 4 0 0 1-4-4v-7Z" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" /><path d="M14 37v3M34 37v3" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>,
+  },
+  {
+    label: "Comfortable Bedrooms",
+    image: "/assets/lounge.jpg",
+    icon: <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 30v8h32v-8" fill="none" stroke="currentColor" strokeWidth="1.6" /><path d="M8 30h20c5 0 8-3 12-8v-2" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" /><path d="M14 30V18h8v12" fill="none" stroke="currentColor" strokeWidth="1.6" /><path d="M8 38v3M40 38v3" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>,
+  },
+  {
+    label: "Fully Equipped Kitchen",
+    image: "/assets/dining-kitchen.jpg",
+    icon: <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M18 8v9c0 2.4 1.6 3.6 3.2 3.6V40" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /><path d="M15.5 8v7M20.5 8v7" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /><path d="M31 8c2.4 3.2 3.4 6.2 3.4 9.2 0 2.6-1.4 4-3.4 4V40" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>,
+  },
+  {
+    label: "Free Wi-Fi",
+    image: "/assets/living-wide.jpg",
+    icon: <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 22c8-8 24-8 32 0" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /><path d="M14 28c5-5 15-5 20 0" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /><circle cx="24" cy="34" r="2" fill="currentColor" /></svg>,
+  },
+  {
+    label: "Private Parking",
+    image: "/assets/entry.jpg",
+    icon: <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M10 28h28l-2.5-7-4-4.5H16.5L12.5 21 10 28Z" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" /><path d="M8 28h32v6H8v-6Z" fill="none" stroke="currentColor" strokeWidth="1.6" /><circle cx="16" cy="34" r="2.2" fill="none" stroke="currentColor" strokeWidth="1.6" /><circle cx="32" cy="34" r="2.2" fill="none" stroke="currentColor" strokeWidth="1.6" /></svg>,
+  },
+  {
+    label: "Scenic Balcony",
+    image: "/assets/stay-balcony.jpg",
+    icon: <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M10 16h28v18H10V16Z" fill="none" stroke="currentColor" strokeWidth="1.6" /><path d="M10 22h28M17 22v12M24 22v12M31 22v12" stroke="currentColor" strokeWidth="1.6" /></svg>,
+  },
 ];
 
 export default function About() {
@@ -59,13 +319,19 @@ export default function About() {
           </ul>
         </section>
 
-        <section className="ab-facilities">
+        <section className="ab-facilities" aria-label="Our facilities">
           <div className="mh-wrap">
             <p className="mh-kicker light">Our Facilities</p>
             <h2>Everything You Need for a Relaxing Stay</h2>
+            <svg className="ab-swoosh" viewBox="0 0 88 16" aria-hidden="true"><path d="M4 11c16-9 30-9 42-2 8 5 20 6 38-5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
+            <p className="ab-facilities-lead">Thoughtfully equipped amenities to make your time at Mistwood Residence comfortable and hassle-free.</p>
             <ul data-reveal="stagger">
               {facilities.map((item) => (
-                <li key={item.label}>{item.icon}<span>{item.label}</span></li>
+                <li key={item.label} tabIndex={0}>
+                  <img alt="" src={item.image} />
+                  {item.icon}
+                  <span>{item.label}</span>
+                </li>
               ))}
             </ul>
           </div>
@@ -93,19 +359,49 @@ export default function About() {
           </div>
         </section>
 
+        <section className="ab-voices" id="voices" aria-label="Guest posts and reviews from Facebook">
+          <div className="mh-wrap ab-voices-head">
+            <p className="mh-kicker gold">From Facebook</p>
+            <h2>What guests have been sharing</h2>
+            <p>Reviews, posts, and comments from people who have stayed.</p>
+          </div>
+          <VoiceRow items={guestNotes} direction="to-left" />
+        </section>
+
         <section className="ab-notes" id="meals">
-          <div className="mh-wrap ab-notes-grid" data-reveal="stagger">
-            <article>
+          <div className="mh-wrap ab-board">
+            <div className="ab-meals" data-reveal="left">
               <p className="mh-kicker gold ab-kicker">Meals</p>
-              <h2>Cook here, or eat in town</h2>
-              <p>The apartment has a kitchen, with a refrigerator and a counter beside the dining table. Breakfast, a cook, and groceries are not included unless the owner arranges them. Afternoon tea is something you go into town for.</p>
-            </article>
-            <article>
-              <p className="mh-kicker gold ab-kicker">Photographs</p>
-              <h2>The rooms you can see</h2>
-              <p>The pictures show the living room, the dining table, the balcony, and the entrance. Bedroom and bathroom photographs will be added when the owner provides them.</p>
-              <Link className="ab-outline" to="/photos">Open the hotel photos <span aria-hidden="true">→</span></Link>
-            </article>
+              <h2>Cook, Dine, or Explore Local Flavors</h2>
+              <p className="ab-lead">The apartment includes a fully equipped kitchen with a refrigerator and counter beside the dining table. Breakfast, a cook, and groceries are not included unless arranged by the owner. Enjoy a relaxed meal or try the local cafés in town.</p>
+              <ul className="ab-meal-cards">
+                <li>
+                  <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M18 8v14c0 2.4 1.6 3.6 3.4 3.6V40M29 8c2.4 2.6 3.6 5 3.6 7.6 0 2.4-1.2 3.6-3.6 3.6V40" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
+                  <span>Equipped Kitchen</span>
+                </li>
+                <li>
+                  <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M18 8v32M14 8c0 6 8 6 8 0M30 8v14c2.8 0 5-2 5-5.2V8M30 16v24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
+                  <span>Dining Area</span>
+                </li>
+                <li>
+                  <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M14 18h20c2 4 2 8 0 12H14c-2-4-2-8 0-12Z" fill="none" stroke="currentColor" strokeWidth="1.6" /><path d="M24 14v4M24 30v6" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
+                  <span>Local Dining Nearby</span>
+                </li>
+              </ul>
+            </div>
+            <div className="ab-shots" data-reveal="right">
+              <div>
+                <p className="mh-kicker gold ab-kicker">Photographs</p>
+                <h2>Explore the Rooms Through Photos</h2>
+                <p className="ab-lead">Get a closer look at the living room, dining area, balcony, and entrance. Bedroom and bathroom photos will be added when provided by the owner.</p>
+                <Link className="ab-photo-btn" to="/photos">Open the hotel photos <span aria-hidden="true">→</span></Link>
+              </div>
+              <div className="ab-polaroids">
+                <img className="p1" alt="The balcony looking over the hills" src="/assets/stay-balcony.jpg" />
+                <img className="p2" alt="The living room with blue chairs and a sofa" src="/assets/room.jpg" />
+                <img className="p3" alt="The dining table beside the kitchen" src="/assets/dining-table.jpg" />
+              </div>
+            </div>
           </div>
         </section>
       </main>

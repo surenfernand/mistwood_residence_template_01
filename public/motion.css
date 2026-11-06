@@ -55,6 +55,55 @@ html.motion .page-enter {
   to { opacity: 0; }
 }
 
+.route-loader {
+  position: fixed;
+  z-index: 90;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--bg) 42%, transparent);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+}
+.route-loader.is-leave {
+  animation: route-loader-out .4s ease forwards;
+  pointer-events: none;
+}
+.route-spin {
+  width: 140px;
+  height: 140px;
+  color: var(--gold);
+  animation: route-spin .9s linear infinite;
+}
+.route-spin-track,
+.route-spin-arc {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+}
+.route-spin-track { opacity: .22; }
+.route-spin-arc {
+  stroke-linecap: round;
+  stroke-dasharray: 92 362;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+@keyframes route-spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes route-loader-out {
+  to { opacity: 0; }
+}
+
 html.motion .mh-hero-photo,
 html.motion .ab-hero-photo {
   animation: mv-hero 1.5s cubic-bezier(.22, .8, .3, 1) both;
@@ -89,14 +138,9 @@ html.motion .mh-hero-copy .mh-lead,
 html.motion .ab-hero .ab-sub { animation-delay: .38s; animation-duration: .75s; }
 html.motion .mh-hero-copy .mh-btn,
 html.motion .ab-hero .ab-crumb { animation-delay: .52s; animation-duration: .6s; }
-html.motion .mh-scroll { animation: mv-fade .6s .7s both; }
 @keyframes mv-rise {
   from { opacity: 0; transform: translate3d(0, 22px, 0); }
   to { opacity: 1; transform: none; }
-}
-@keyframes mv-fade {
-  from { opacity: 0; }
-  to { opacity: 1; }
 }
 
 html.motion .mh-hero.is-settled .mh-hero-copy h1 {
@@ -224,28 +268,31 @@ html[data-theme="dark"] body.home .switch-icon.moon { transform: rotate(-18deg);
 .ab-facilities li svg,
 .ab-qualities li svg,
 .mh-perks svg,
-.ct-details img {
+.ct-ico {
   transition: transform .3s ease;
 }
 .ab-facilities li:hover svg,
 .ab-qualities li:hover svg,
-.mh-perks li:hover svg,
-.ct-details li:hover img { transform: translateY(-2px); }
+.mh-perks li:hover svg { transform: translateY(-2px); }
+.ct-details li:hover .ct-ico { transform: translateY(-2px); }
 
-.ct-form input,
-.ct-form textarea,
+.ct-card input,
+.ct-card select,
+.ct-card textarea,
 .field input,
 .field select,
 .field textarea {
   transition: border-color .2s ease, background-color .2s ease, box-shadow .2s ease;
 }
-.ct-form input:focus,
-.ct-form textarea:focus,
+.ct-card input:focus,
+.ct-card select:focus,
+.ct-card textarea:focus,
 .field input:focus,
 .field select:focus,
 .field textarea:focus {
-  border-color: #c9a45f;
-  box-shadow: 0 0 0 3px rgba(201, 164, 95, .2);
+  border-color: #1c3d2c;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(28, 61, 44, .12);
 }
 
 .mh-hero-leaf,
@@ -297,6 +344,7 @@ html.motion .mh-footer-leaf { animation: mv-sway 12s ease-in-out infinite altern
     animation: none !important;
   }
   .mv-loader { display: none; }
+  .route-spin { animation: none; }
   [data-parallax] .mh-hero-shift,
   [data-parallax] .ab-hero-shift { transform: none !important; }
 }

@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
-import { ThemeSwitch } from "../theme.jsx";
 
 const nav = [
   ["/", "Home"],
@@ -42,7 +41,6 @@ export function HighlandHeader() {
         ))}
       </nav>
       <div className="mh-tools">
-        <ThemeSwitch />
         <Link className="mh-book" to="/contact#booking">Book Your Stay</Link>
         <button aria-label="Toggle navigation" className="menu-btn" type="button" onClick={() => setMenu((value) => !value)}>
           <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg>

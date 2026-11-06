@@ -84,15 +84,6 @@ export default function Home() {
     window.scrollTo({ top: top + (total * index) / (heroFrames.length - 1), behavior: "smooth" });
   };
 
-  const explore = () => {
-    const next = frameRef.current + 1;
-    if (next >= heroFrames.length) {
-      document.querySelector("#highlights")?.scrollIntoView({ behavior: "smooth" });
-      return;
-    }
-    goToFrame(next);
-  };
-
   return (
     <>
       <div className="progress" />
@@ -118,53 +109,37 @@ export default function Home() {
             </div>
             <nav className="mh-journey" aria-label="Hero photographs">
               {heroFrames.map((item, index) => (
-                <button key={item.src} type="button" className={index === frame ? "is-active" : undefined} onClick={() => goToFrame(index)}><span>{item.journey}</span><i /></button>
+                <button key={item.src} type="button" className={index === frame ? "is-active" : undefined} aria-label={item.journey} onClick={() => goToFrame(index)}><i /></button>
               ))}
             </nav>
-            <div className="mh-scroll">
-              <button className="mh-scroll-go" type="button" onClick={explore}>
-                <span className="mh-mouse" aria-hidden="true"><span /></span>
-                Scroll to explore
-              </button>
-              <div className="mh-hero-dots" role="tablist" aria-label="Highland photographs">
-                {heroFrames.map((item, index) => (
-                  <button key={item.src} type="button" role="tab" aria-label={item.label} aria-selected={index === frame} className={index === frame ? "is-on" : undefined} onClick={() => goToFrame(index)} />
-                ))}
-              </div>
-            </div>
+            <section className="mh-strip" id="highlights" aria-label="Highland highlights">
+              <ul data-reveal="stagger">
+                <li>
+                  <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M3 35 14 18l5 6 4-5 8 16" fill="none" stroke="currentColor" strokeWidth="1.35" strokeLinejoin="round" strokeLinecap="round" /><path d="M23 35 33 14l12 21" fill="none" stroke="currentColor" strokeWidth="1.35" strokeLinejoin="round" strokeLinecap="round" /></svg>
+                  <span>Breathtaking Views<br />of Nuwara Eliya</span>
+                </li>
+                <li>
+                  <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M22 42c1.2-9 3-16 9-24" fill="none" stroke="currentColor" strokeWidth="1.35" strokeLinecap="round" /><path d="M31 18c8 0 14 4 13 11-8 0-12-4-13-11Z" fill="none" stroke="currentColor" strokeWidth="1.35" strokeLinejoin="round" /><path d="M31 18c2 4.5 1 8-1.2 11" fill="none" stroke="currentColor" strokeWidth="1.15" strokeLinecap="round" /><path d="M26 28c-9 1-15 7-14 14 9-.4 13-5.5 14-14Z" fill="none" stroke="currentColor" strokeWidth="1.35" strokeLinejoin="round" /><path d="M26 28c-1.2 5 .2 8.5 3.2 11.5" fill="none" stroke="currentColor" strokeWidth="1.15" strokeLinecap="round" /></svg>
+                  <span>Tea Plantation<br />Experiences</span>
+                </li>
+                <li>
+                  <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M7 30V16h7.5A5.5 5.5 0 0 1 20 21.5V30" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" strokeLinecap="round" /><path d="M7 24h34v8H7Z" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" /><path d="M16 24v-1.5A3.5 3.5 0 0 1 19.5 19h7A3.5 3.5 0 0 1 30 22.5V24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" /><path d="M12 32v4M36 32v4" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" /></svg>
+                  <span>Modern<br />Apartments</span>
+                </li>
+                <li>
+                  <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 34 14 18l6 16Z" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" /><path d="M14 26v8" fill="none" stroke="currentColor" strokeWidth="1.15" strokeLinecap="round" /><path d="M18 36 26 12l8 24Z" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" /><path d="M26 22v14" fill="none" stroke="currentColor" strokeWidth="1.15" strokeLinecap="round" /><path d="M32 34 37 22l5 12Z" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" /><path d="M4 38c8-2.5 12-3 18-1.5 7 1.6 12 1.2 22-2.5" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" /></svg>
+                  <span>Peaceful<br />Highland Living</span>
+                </li>
+              </ul>
+            </section>
           </div>
         </section>
-
-        <div className="mh-strip-overlap">
-        <section className="mh-strip" id="highlights" aria-label="Highland highlights">
-          <ul data-reveal="stagger">
-            <li>
-              <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M3 35 14 18l5 6 4-5 8 16" fill="none" stroke="currentColor" strokeWidth="1.35" strokeLinejoin="round" strokeLinecap="round" /><path d="M23 35 33 14l12 21" fill="none" stroke="currentColor" strokeWidth="1.35" strokeLinejoin="round" strokeLinecap="round" /></svg>
-              <span>Breathtaking Views<br />of Nuwara Eliya</span>
-            </li>
-            <li>
-              <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M22 42c1.2-9 3-16 9-24" fill="none" stroke="currentColor" strokeWidth="1.35" strokeLinecap="round" /><path d="M31 18c8 0 14 4 13 11-8 0-12-4-13-11Z" fill="none" stroke="currentColor" strokeWidth="1.35" strokeLinejoin="round" /><path d="M31 18c2 4.5 1 8-1.2 11" fill="none" stroke="currentColor" strokeWidth="1.15" strokeLinecap="round" /><path d="M26 28c-9 1-15 7-14 14 9-.4 13-5.5 14-14Z" fill="none" stroke="currentColor" strokeWidth="1.35" strokeLinejoin="round" /><path d="M26 28c-1.2 5 .2 8.5 3.2 11.5" fill="none" stroke="currentColor" strokeWidth="1.15" strokeLinecap="round" /></svg>
-              <span>Tea Plantation<br />Experiences</span>
-            </li>
-            <li>
-              <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M7 30V16h7.5A5.5 5.5 0 0 1 20 21.5V30" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" strokeLinecap="round" /><path d="M7 24h34v8H7Z" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" /><path d="M16 24v-1.5A3.5 3.5 0 0 1 19.5 19h7A3.5 3.5 0 0 1 30 22.5V24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" /><path d="M12 32v4M36 32v4" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" /></svg>
-              <span>Modern<br />Apartments</span>
-            </li>
-            <li>
-              <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 34 14 18l6 16Z" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" /><path d="M14 26v8" fill="none" stroke="currentColor" strokeWidth="1.15" strokeLinecap="round" /><path d="M18 36 26 12l8 24Z" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" /><path d="M26 22v14" fill="none" stroke="currentColor" strokeWidth="1.15" strokeLinecap="round" /><path d="M32 34 37 22l5 12Z" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" /><path d="M4 38c8-2.5 12-3 18-1.5 7 1.6 12 1.2 22-2.5" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" /></svg>
-              <span>Peaceful<br />Highland Living</span>
-            </li>
-          </ul>
-        </section>
-        </div>
 
         <section className="mh-about" id="about">
           <div className="mh-sprig sprig-left" aria-hidden="true" />
           <div className="mh-wrap mh-about-grid">
             <figure className="mh-about-photo" data-reveal="image">
               <img alt="The living room at Mistwood Residence, open toward the hills" src="/assets/room.jpg" />
-              <span className="sprig-corner a" aria-hidden="true" />
-              <span className="sprig-corner b" aria-hidden="true" />
             </figure>
             <div className="mh-about-copy" data-reveal="right">
               <p className="mh-kicker gold">About Mistwood</p>
@@ -195,12 +170,14 @@ export default function Home() {
         </section>
 
         <section className="mh-deals" id="offers">
-          <div className="mh-sprig sprig-right" aria-hidden="true" />
-          <div className="mh-sprig sprig-left soft" aria-hidden="true" />
+          <img className="mh-deal-leaf tl" alt="" src="/assets/mistwood/decorations/leaf-branch.png" />
+          <img className="mh-deal-leaf tr" alt="" src="/assets/mistwood/decorations/leaf-branch.png" />
+          <img className="mh-deal-leaf bl" alt="" src="/assets/mistwood/decorations/leaf-branch.png" />
+          <img className="mh-deal-leaf br" alt="" src="/assets/mistwood/decorations/leaf-branch.png" />
           <div className="mh-wrap" data-reveal="up">
             <p className="mh-kicker gold">Seasonal stays</p>
-            <h2>Ask for the dates you want</h2>
-            <p className="mh-intro">No discount is published on this website. Tell us the nights, and the owner confirms the rate before anything is held.</p>
+            <h2>Handpicked stays for every occasion</h2>
+            <p className="mh-intro">Seasonal packages for a highland getaway. Each offer has its own dates and a minimum stay.</p>
             <Link className="mh-btn center" to="/deals">See offers <span aria-hidden="true">→</span></Link>
           </div>
         </section>

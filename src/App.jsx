@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { Route, Routes, useLocation } from "react-router-dom";
-import { IntroLoader, MotionBoot } from "./motion.jsx";
+import { IntroLoader, MotionBoot, RouteLoader } from "./motion.jsx";
 import { PhotoModal } from "./photos.jsx";
 import { PageShell } from "./components/Chrome.jsx";
 import Home from "./pages/Home.jsx";
@@ -61,6 +61,7 @@ export default function App() {
       <MotionBoot />
       <IntroLoader />
       <AnimatedRoutes />
+      <RouteLoader />
       <PhotoModal />
     </>
   );

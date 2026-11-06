@@ -564,17 +564,29 @@ html:not([data-theme="light"]) .switch-icon.moon { display: block; }
 }
 .modal.open { display: flex; }
 .modal img { width: auto; max-width: min(1100px, 92vw); max-height: 86vh; border-radius: 12px; }
-.modal button {
+.modal-close,
+.modal-nav {
   position: absolute;
-  top: 18px;
-  right: 22px;
   width: 46px;
   height: 46px;
   border: 1px solid rgba(255, 255, 255, .3);
   border-radius: 50%;
-  background: transparent;
+  background: rgba(8, 14, 11, .35);
   color: white;
   font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+}
+.modal-close { top: 18px; right: 22px; }
+.modal-nav { top: 50%; transform: translateY(-50%); }
+.modal-nav.prev { left: 18px; }
+.modal-nav.next { right: 18px; }
+.modal-figure { margin: 0; text-align: center; }
+.modal-figure figcaption {
+  margin-top: 10px;
+  color: rgba(255, 255, 255, .82);
+  font: 500 13px/1 Outfit, sans-serif;
+  letter-spacing: .12em;
 }
 
 .map-card { overflow: hidden; border: 1px solid var(--line); border-radius: 18px; background: var(--panel); }
