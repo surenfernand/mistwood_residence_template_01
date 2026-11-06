@@ -1,32 +1,97 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { HighlandFooter, HighlandHeader } from "../components/Highland.jsx";
 
-const journey = [
-  { href: "#top", label: "The Highlands" },
-  { href: "#about", label: "Tea Country" },
-  { href: "#apartment", label: "The Residence" },
-  { href: "#stay", label: "Your Stay" },
+const heroFrames = [
+  { src: "/assets/mistwood/backgrounds/tea-sunrise.png", spot: "is-sunrise", label: "Tea hills at sunrise", journey: "The Highlands" },
+  { src: "/assets/mistwood/home/gregory-lake-shore.jpg", spot: "is-lake", label: "Gregory Lake", journey: "Tea Country" },
+  { src: "/assets/mistwood/explore/tea-plantations.png", spot: "is-plantations", label: "Tea plantations", journey: "The Residence" },
+  { src: "/assets/mistwood/backgrounds/tea-sunset.png", spot: "is-sunset", label: "Tea hills at sunset", journey: "Your Stay" },
 ];
 
 export default function Home() {
-  const [active, setActive] = useState(0);
+  const [frame, setFrame] = useState(0);
+  const frameRef = useRef(0);
 
   useEffect(() => {
     document.title = "Home | Mistwood Residence";
-    const spy = () => {
-      const mark = scrollY + innerHeight * 0.38;
-      let next = 0;
-      journey.forEach((item, index) => {
-        const section = document.querySelector(item.href);
-        if (section && section.offsetTop <= mark) next = index;
+    const pin = document.querySelector(".mh-hero-pin");
+    const hero = pin?.querySelector(".mh-hero");
+    const slides = [...document.querySelectorAll(".mh-hero-frame")];
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    heroFrames.forEach((item) => {
+      const image = new Image();
+      image.src = item.src;
+    });
+
+    let tick = 0;
+    const paint = () => {
+      if (reduced || !pin || !hero || slides.length < 2) return;
+      const top = pin.getBoundingClientRect().top;
+      const total = Math.max(pin.offsetHeight - innerHeight, 0);
+      if (top > 1) {
+        hero.classList.remove("is-pinned", "is-released");
+      } else if (-top >= total - 1) {
+        hero.classList.remove("is-pinned");
+        hero.classList.add("is-released");
+      } else {
+        hero.classList.add("is-pinned");
+        hero.classList.remove("is-released");
+      }
+      const scrolled = Math.min(Math.max(-top, 0), total);
+      const progress = total > 0 ? scrolled / total : 0;
+      const pos = progress * (slides.length - 1);
+      slides.forEach((slide, index) => {
+        const distance = index - pos;
+        const opacity = Math.max(0, 1 - Math.abs(distance));
+        slide.style.opacity = opacity.toFixed(3);
+        slide.style.transform = `translate3d(0, ${(distance * 6).toFixed(2)}%, 0)`;
+        const photo = slide.querySelector("img");
+        if (photo) photo.style.transform = `scale(${(1.1 - opacity * 0.08).toFixed(4)})`;
       });
-      setActive(next);
+      const shown = Math.round(pos);
+      if (shown !== frameRef.current) {
+        frameRef.current = shown;
+        setFrame(shown);
+      }
     };
-    addEventListener("scroll", spy, { passive: true });
-    spy();
-    return () => removeEventListener("scroll", spy);
+    const onScroll = () => {
+      cancelAnimationFrame(tick);
+      tick = requestAnimationFrame(paint);
+    };
+    addEventListener("scroll", onScroll, { passive: true });
+    addEventListener("resize", onScroll, { passive: true });
+    paint();
+    const settle = setTimeout(() => document.querySelector(".mh-hero")?.classList.add("is-settled"), 1300);
+    return () => {
+      removeEventListener("scroll", onScroll);
+      removeEventListener("resize", onScroll);
+      cancelAnimationFrame(tick);
+      clearTimeout(settle);
+    };
   }, []);
+
+  const goToFrame = (index) => {
+    const pin = document.querySelector(".mh-hero-pin");
+    if (!pin) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      frameRef.current = index;
+      setFrame(index);
+      return;
+    }
+    const total = pin.offsetHeight - window.innerHeight;
+    const top = pin.getBoundingClientRect().top + window.scrollY;
+    window.scrollTo({ top: top + (total * index) / (heroFrames.length - 1), behavior: "smooth" });
+  };
+
+  const explore = () => {
+    const next = frameRef.current + 1;
+    if (next >= heroFrames.length) {
+      document.querySelector("#highlights")?.scrollIntoView({ behavior: "smooth" });
+      return;
+    }
+    goToFrame(next);
+  };
 
   return (
     <>
@@ -34,39 +99,58 @@ export default function Home() {
       <HighlandHeader />
 
       <main>
-        <section className="mh-hero" id="top">
-          <div className="mh-hero-shade" aria-hidden="true" />
-          <img className="mh-hero-leaf" alt="" src="/assets/mistwood/decorations/leaf-branch.png" />
-          <div className="mh-wrap mh-hero-copy">
-            <p className="mh-kicker light">Escape to the Highlands</p>
-            <h1>Mistwood Residence</h1>
-            <p className="mh-lead">Where Tea Hills Meet Modern Comfort</p>
-            <a className="mh-btn ghost" href="#about">Discover the Experience <span aria-hidden="true">→</span></a>
+        <section className="mh-hero-pin" id="top" aria-label="Mistwood Residence">
+          <div className="mh-hero" data-parallax>
+            <div className="mh-hero-scene" aria-hidden="true">
+              {heroFrames.map((item, index) => (
+                <div key={item.src} className={index === frame ? "mh-hero-frame is-current" : "mh-hero-frame"}>
+                  <img alt="" className={item.spot} src={item.src} />
+                </div>
+              ))}
+            </div>
+            <div className="mh-hero-shade" aria-hidden="true" />
+            <img className="mh-hero-leaf" alt="" src="/assets/mistwood/decorations/leaf-branch.png" />
+            <div className="mh-wrap mh-hero-copy">
+              <p className="mh-kicker light">Escape to the Highlands</p>
+              <h1>Mistwood Residence</h1>
+              <p className="mh-lead">Where Tea Hills Meet Modern Comfort</p>
+              <a className="mh-btn ghost" href="#about">Discover the Experience <span aria-hidden="true">→</span></a>
+            </div>
+            <nav className="mh-journey" aria-label="Hero photographs">
+              {heroFrames.map((item, index) => (
+                <button key={item.src} type="button" className={index === frame ? "is-active" : undefined} onClick={() => goToFrame(index)}><span>{item.journey}</span><i /></button>
+              ))}
+            </nav>
+            <div className="mh-scroll">
+              <button className="mh-scroll-go" type="button" onClick={explore}>
+                <span className="mh-mouse" aria-hidden="true"><span /></span>
+                Scroll to explore
+              </button>
+              <div className="mh-hero-dots" role="tablist" aria-label="Highland photographs">
+                {heroFrames.map((item, index) => (
+                  <button key={item.src} type="button" role="tab" aria-label={item.label} aria-selected={index === frame} className={index === frame ? "is-on" : undefined} onClick={() => goToFrame(index)} />
+                ))}
+              </div>
+            </div>
           </div>
-          <nav className="mh-journey" aria-label="On this page">
-            {journey.map((item, index) => (
-              <a key={item.href} className={index === active ? "is-active" : undefined} href={item.href}><span>{item.label}</span><i /></a>
-            ))}
-          </nav>
-          <a className="mh-scroll" href="#highlights"><span className="mh-mouse" aria-hidden="true"><span /></span>Scroll to explore</a>
         </section>
 
-        <section className="mh-strip" id="highlights">
-          <ul>
+        <section className="mh-strip" id="highlights" aria-label="Highland highlights">
+          <ul data-reveal="stagger">
             <li>
-              <img className="mh-gold-icon" alt="" src="/assets/mistwood/icons/pin.png" />
+              <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M3 35 14 18l5 6 4-5 8 16" fill="none" stroke="currentColor" strokeWidth="1.35" strokeLinejoin="round" strokeLinecap="round" /><path d="M23 35 33 14l12 21" fill="none" stroke="currentColor" strokeWidth="1.35" strokeLinejoin="round" strokeLinecap="round" /></svg>
               <span>Breathtaking Views<br />of Nuwara Eliya</span>
             </li>
             <li>
-              <img className="mh-gold-icon" alt="" src="/assets/mistwood/icons/leaf.png" />
+              <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M22 42c1.2-9 3-16 9-24" fill="none" stroke="currentColor" strokeWidth="1.35" strokeLinecap="round" /><path d="M31 18c8 0 14 4 13 11-8 0-12-4-13-11Z" fill="none" stroke="currentColor" strokeWidth="1.35" strokeLinejoin="round" /><path d="M31 18c2 4.5 1 8-1.2 11" fill="none" stroke="currentColor" strokeWidth="1.15" strokeLinecap="round" /><path d="M26 28c-9 1-15 7-14 14 9-.4 13-5.5 14-14Z" fill="none" stroke="currentColor" strokeWidth="1.35" strokeLinejoin="round" /><path d="M26 28c-1.2 5 .2 8.5 3.2 11.5" fill="none" stroke="currentColor" strokeWidth="1.15" strokeLinecap="round" /></svg>
               <span>Tea Plantation<br />Experiences</span>
             </li>
             <li>
-              <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 20 24 8l16 12v18H8V20Z" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" /><path d="M20 38V26h8v12" fill="none" stroke="currentColor" strokeWidth="1.6" /></svg>
+              <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M7 30V16h7.5A5.5 5.5 0 0 1 20 21.5V30" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" strokeLinecap="round" /><path d="M7 24h34v8H7Z" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" /><path d="M16 24v-1.5A3.5 3.5 0 0 1 19.5 19h7A3.5 3.5 0 0 1 30 22.5V24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" /><path d="M12 32v4M36 32v4" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" /></svg>
               <span>Modern<br />Apartments</span>
             </li>
             <li>
-              <img className="mh-gold-icon" alt="" src="/assets/mistwood/icons/pines.png" />
+              <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 34 14 18l6 16Z" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" /><path d="M14 26v8" fill="none" stroke="currentColor" strokeWidth="1.15" strokeLinecap="round" /><path d="M18 36 26 12l8 24Z" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" /><path d="M26 22v14" fill="none" stroke="currentColor" strokeWidth="1.15" strokeLinecap="round" /><path d="M32 34 37 22l5 12Z" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" /><path d="M4 38c8-2.5 12-3 18-1.5 7 1.6 12 1.2 22-2.5" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" /></svg>
               <span>Peaceful<br />Highland Living</span>
             </li>
           </ul>
@@ -75,12 +159,12 @@ export default function Home() {
         <section className="mh-about" id="about">
           <div className="mh-sprig sprig-left" aria-hidden="true" />
           <div className="mh-wrap mh-about-grid">
-            <figure className="mh-about-photo">
+            <figure className="mh-about-photo" data-reveal="image">
               <img alt="The living room at Mistwood Residence, open toward the hills" src="/assets/room.jpg" />
               <span className="sprig-corner a" aria-hidden="true" />
               <span className="sprig-corner b" aria-hidden="true" />
             </figure>
-            <div className="mh-about-copy">
+            <div className="mh-about-copy" data-reveal="right">
               <p className="mh-kicker gold">About Mistwood</p>
               <h2>A Tranquil Retreat in Nuwara Eliya</h2>
               <p>Mistwood Residence is a charming apartment in the heart of Nuwara Eliya, offering modern comfort, serene surroundings, and easy access to the region’s most beautiful attractions.</p>
@@ -99,7 +183,7 @@ export default function Home() {
           <div className="mh-wrap">
             <p className="mh-kicker light">The Apartment</p>
             <h2>Modern Comforts in the Highlands</h2>
-            <div className="mh-rooms">
+            <div className="mh-rooms" data-reveal="stagger">
               <article><img alt="Living room with sofas, lounge chairs, and a view toward the balcony" src="/assets/room.jpg" /><p><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M5 18v6h22v-6" fill="none" stroke="currentColor" strokeWidth="1.5" /><path d="M6 18c0-4 2.4-6 6-6h8c3.6 0 6 2 6 6" fill="none" stroke="currentColor" strokeWidth="1.5" /><path d="M5 24v2M27 24v2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg> Spacious Living Area</p></article>
               <article><img alt="Lounge chairs beside the window in the apartment" src="/assets/lounge-chairs.jpg" /><p><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M6 18v7h20v-5" fill="none" stroke="currentColor" strokeWidth="1.5" /><path d="M6 18h14c3 0 6-2 6-5V9" fill="none" stroke="currentColor" strokeWidth="1.5" /><path d="M8 18V9h8v9" fill="none" stroke="currentColor" strokeWidth="1.5" /></svg> Lounge seating</p></article>
               <article><img alt="Dining table with chairs and a refrigerator beside the kitchen" src="/assets/dining-kitchen.jpg" /><p><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M10 6v8c0 2 1.4 3 3 3v9M19 6c2 2 3 4 3 6 0 2-1 3-3 3v11" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg> Fully Equipped Kitchen</p></article>
@@ -111,7 +195,7 @@ export default function Home() {
         <section className="mh-deals" id="offers">
           <div className="mh-sprig sprig-right" aria-hidden="true" />
           <div className="mh-sprig sprig-left soft" aria-hidden="true" />
-          <div className="mh-wrap">
+          <div className="mh-wrap" data-reveal="up">
             <p className="mh-kicker gold">Seasonal stays</p>
             <h2>Ask for the dates you want</h2>
             <p className="mh-intro">No discount is published on this website. Tell us the nights, and the owner confirms the rate before anything is held.</p>
@@ -124,7 +208,7 @@ export default function Home() {
             <p className="mh-kicker light">Explore Nuwara Eliya</p>
             <h2>Discover the Beauty Around</h2>
             <p className="mh-intro light">From serene lakes to rolling tea estates, explore the best of Nuwara Eliya during your stay at Mistwood Residence.</p>
-            <div className="mh-places">
+            <div className="mh-places" data-reveal="stagger">
               <Link to="/explore"><img alt="Gregory Lake in Nuwara Eliya, with boats on the water" src="/assets/mistwood/explore/gregory-lake.png" loading="lazy" /><span>Gregory Lake</span></Link>
               <Link to="/explore"><img alt="Tea pickers in the plantations near Nuwara Eliya" src="/assets/mistwood/explore/tea-plantations.png" loading="lazy" /><span>Tea Plantations</span></Link>
               <Link to="/explore"><img alt="The entrance to Hakgala Botanical Garden" src="/assets/places/hakgala.jpg" loading="lazy" /><span>Hakgala Botanical Garden</span></Link>
@@ -135,7 +219,7 @@ export default function Home() {
         </section>
 
         <section className="mh-cta" id="stay">
-          <div className="mh-wrap">
+          <div className="mh-wrap" data-reveal="up">
             <h2>Ready for a Highland Getaway?</h2>
             <p>Check availability and book your stay at Mistwood Residence today.</p>
             <Link className="mh-btn" to="/contact#booking">

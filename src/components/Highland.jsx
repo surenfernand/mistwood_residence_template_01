@@ -19,11 +19,19 @@ export function HighlandHeader() {
 
   useEffect(() => {
     const bar = document.querySelector(".mh-header");
-    const onScroll = () => bar?.classList.toggle("scrolled", scrollY > 48);
+    const onScroll = () => {
+      const pin = document.querySelector(".mh-hero-pin");
+      const pastHero = pin ? pin.getBoundingClientRect().bottom <= (bar?.offsetHeight || 82) : scrollY > 72;
+      bar?.classList.toggle("scrolled", pastHero);
+    };
     addEventListener("scroll", onScroll, { passive: true });
+    addEventListener("resize", onScroll, { passive: true });
     onScroll();
-    return () => removeEventListener("scroll", onScroll);
-  }, []);
+    return () => {
+      removeEventListener("scroll", onScroll);
+      removeEventListener("resize", onScroll);
+    };
+  }, [location.pathname]);
 
   return (
     <header className="topbar mh-header">
@@ -46,7 +54,12 @@ export function HighlandHeader() {
 
 export function PageHero({ kicker, title, lede, crumb }) {
   return (
-    <section className="ab-hero">
+    <section className="ab-hero" data-parallax>
+      <div className="ab-hero-scene" aria-hidden="true">
+        <div className="ab-hero-shift">
+          <div className="ab-hero-photo" />
+        </div>
+      </div>
       <div className="mh-wrap ab-hero-copy">
         <img className="ab-hero-leaf" alt="" src="/assets/mistwood/decorations/leaf-branch.png" />
         <p className="mh-kicker light">{kicker}</p>
@@ -73,7 +86,7 @@ export function HighlandFooter() {
 
   return (
     <footer className="mh-footer">
-      <div className="mh-wrap mh-foot-grid">
+      <div className="mh-wrap mh-foot-grid" data-reveal="stagger">
         <div className="mh-foot-brand">
           <Link className="brand mh-brand" to="/" aria-label="Mistwood Residence"><img className="mh-logo" alt="Mistwood Residence" src="/assets/mistwood/branding/logo.png" /></Link>
           <p>A charming apartment in the heart of Nuwara Eliya, offering modern comfort, serene surroundings, and an unforgettable highland experience.</p>

@@ -45,7 +45,7 @@ export default function Contact() {
         <PageHero kicker="Get in Touch" title="Contact Us" lede="We're here to help with your stay." crumb="Contact" />
         <section className="ct-panel" id="enquiry">
           <div className="mh-wrap ct-grid">
-            <ul className="ct-details">
+            <ul className="ct-details" data-reveal="stagger">
               <li>
                 <img alt="" src="/assets/mistwood/icons/whatsapp.png" />
                 <span>WhatsApp</span>
@@ -63,7 +63,7 @@ export default function Contact() {
                 <p>Nuwara Eliya, Sri Lanka. The street address is sent when a stay is confirmed.</p>
               </li>
             </ul>
-            <form className="ct-form" onSubmit={enquire}>
+            <form className="ct-form" data-reveal="up" onSubmit={enquire}>
               <label>Your name<input id="name" name="name" autoComplete="name" /></label>
               <label>Email<input id="email" name="email" type="email" autoComplete="email" /></label>
               <label>Phone number<input id="phone" name="phone" type="tel" autoComplete="tel" placeholder="+94 …" /></label>
@@ -80,7 +80,7 @@ export default function Contact() {
             <p className="mh-kicker gold ab-kicker">Book your stay</p>
             <h2>Choose dates, then wait for the owner</h2>
             <p className="ct-intro">For the train and what to pack, read the <Link to="/about#practical">practical notes</Link>. Payment is not taken on this preview. The sample total below is an illustration of a deposit, not the live rate.</p>
-            <form className="booking-wrap booking-demo" onSubmit={book}>
+            <form className="booking-wrap booking-demo" data-reveal="up" onSubmit={book}>
               <div className="booking-grid">
                 <Calendar initialStart={initial.start} initialEnd={initial.end} onChange={setStay} />
                 <div className="field">

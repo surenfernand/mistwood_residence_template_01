@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
-import { HighlandFooter, HighlandHeader } from "../components/Highland.jsx";
+import { HighlandFooter, HighlandHeader, PageHero } from "../components/Highland.jsx";
 
 const qualities = [
   {
@@ -37,36 +37,22 @@ export default function About() {
     <>
       <HighlandHeader />
       <main>
-        <section className="ab-hero">
-          <div className="mh-wrap ab-hero-copy">
-            <p className="mh-kicker light">About Us</p>
-            <h1>The Story of Mistwood Residence</h1>
-            <p className="ab-sub">A Boutique Apartment Stay in the Heart of Nuwara Eliya</p>
-            <p className="ab-crumb">
-              <Link to="/">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11.2 12 5l8 6.2V20H4v-8.8Z" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" /></svg>
-                Home
-              </Link>
-              <span aria-hidden="true">›</span>
-              About Us
-            </p>
-          </div>
-        </section>
+        <PageHero kicker="About Us" title="The Story of Mistwood Residence" lede="A Boutique Apartment Stay in the Heart of Nuwara Eliya" crumb="About Us" />
 
         <section className="ab-story">
           <div className="mh-sprig sprig-left" aria-hidden="true" />
           <div className="mh-sprig sprig-right soft" aria-hidden="true" />
           <div className="mh-wrap ab-story-grid">
-            <figure className="ab-photo">
+            <figure className="ab-photo" data-reveal="left">
               <img alt="The living room at Mistwood Residence, with warm light and the dining table beyond" src="/assets/living-wide.jpg" />
             </figure>
-            <div className="ab-story-copy">
+            <div className="ab-story-copy" data-reveal="right">
               <p className="mh-kicker gold ab-kicker">Our Story</p>
               <h2>A Home in the Highlands</h2>
               <p>Mistwood Residence was created to offer travellers a peaceful and comfortable retreat in the heart of Nuwara Eliya. Surrounded by tea-covered hills, cool mountain air, and serene natural beauty, our apartment combines modern living with the charm of the highlands.</p>
             </div>
           </div>
-          <ul className="mh-wrap ab-qualities">
+          <ul className="mh-wrap ab-qualities" data-reveal="stagger">
             {qualities.map((item) => (
               <li key={item.label}>{item.icon}<span>{item.label}</span></li>
             ))}
@@ -77,7 +63,7 @@ export default function About() {
           <div className="mh-wrap">
             <p className="mh-kicker light">Our Facilities</p>
             <h2>Everything You Need for a Relaxing Stay</h2>
-            <ul>
+            <ul data-reveal="stagger">
               {facilities.map((item) => (
                 <li key={item.label}>{item.icon}<span>{item.label}</span></li>
               ))}
@@ -87,28 +73,28 @@ export default function About() {
 
         <section className="ab-location" id="practical">
           <div className="mh-wrap ab-location-grid">
-            <div>
+            <div data-reveal="left">
               <p className="mh-kicker gold ab-kicker">The Location</p>
               <h2>In the Heart of Nuwara Eliya</h2>
               <p>Mistwood Residence is conveniently located close to Nuwara Eliya’s key attractions, tea estates, gardens, and lakes, making it the ideal base to explore the beauty of the highlands.</p>
               <Link className="ab-outline" to="/explore">Explore Nearby Attractions <span aria-hidden="true">→</span></Link>
               <p className="ab-note">The street address is sent when a stay is confirmed. From Colombo, the drive climbs into the hill country. By train, the scenic ride ends at Nanu Oya, then a short drive into town. Nuwara Eliya evenings are cool, so bring a warm layer.</p>
             </div>
-            <figure className="ab-photo">
+            <figure className="ab-photo" data-reveal="image">
               <img alt="Sunset over the tea hills near Nuwara Eliya" src="/assets/mistwood/backgrounds/tea-sunset.png" loading="lazy" />
             </figure>
           </div>
         </section>
 
         <section className="ab-quote" aria-label="A note on the stay">
-          <div className="mh-wrap">
+          <div className="mh-wrap" data-reveal="up">
             <span className="ab-mark" aria-hidden="true">“</span>
             <p>A peaceful highland escape, where modern comfort meets the natural beauty of Nuwara Eliya.</p>
           </div>
         </section>
 
         <section className="ab-notes" id="meals">
-          <div className="mh-wrap ab-notes-grid">
+          <div className="mh-wrap ab-notes-grid" data-reveal="stagger">
             <article>
               <p className="mh-kicker gold ab-kicker">Meals</p>
               <h2>Cook here, or eat in town</h2>

@@ -29,10 +29,10 @@ export default function Apartments() {
           <div className="mh-sprig sprig-right soft" aria-hidden="true" />
           <div className="mh-wrap ab-story-grid">
             <div>
-              <figure className="ab-photo">
+              <figure className="ab-photo" data-reveal="image">
                 <img alt="The living room at Mistwood Residence, open toward the dining table" src="/assets/living-wide.jpg" />
               </figure>
-              <div className="apt-thumbs">
+              <div className="apt-thumbs" data-reveal="stagger">
                 {thumbs.map(([src, alt]) => <img key={src} alt={alt} src={src} loading="lazy" />)}
               </div>
             </div>
@@ -40,7 +40,7 @@ export default function Apartments() {
               <p className="mh-kicker gold ab-kicker">The apartment</p>
               <h2>What the photographs show</h2>
               <p>Sofas and lounge chairs share one room with the dining table. Glass doors open toward a balcony over the hills. A refrigerator and the edge of a kitchen counter are in the pictures. Bedroom and bathroom photographs are not in this set yet.</p>
-              <ul className="apt-facts">
+              <ul className="apt-facts" data-reveal="stagger">
                 {facts.map((fact) => <li key={fact}>{fact}</li>)}
               </ul>
               <Link className="mh-btn" to="/contact#booking">Book Your Stay <span aria-hidden="true">→</span></Link>

@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { Route, Routes, useLocation } from "react-router-dom";
+import { IntroLoader, MotionBoot } from "./motion.jsx";
 import { PhotoModal } from "./photos.jsx";
 import { PageShell } from "./components/Chrome.jsx";
 import Home from "./pages/Home.jsx";
@@ -31,11 +32,11 @@ function ScrollManager() {
   return null;
 }
 
-export default function App() {
+function AnimatedRoutes() {
+  const location = useLocation();
   return (
-    <>
-      <ScrollManager />
-      <Routes>
+    <div key={location.pathname} className="page-enter">
+      <Routes location={location}>
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
         <Route path="/apartments" element={<Apartments />} />
@@ -49,6 +50,17 @@ export default function App() {
           <Route path="/credits" element={<Credits />} />
         </Route>
       </Routes>
+    </div>
+  );
+}
+
+export default function App() {
+  return (
+    <>
+      <ScrollManager />
+      <MotionBoot />
+      <IntroLoader />
+      <AnimatedRoutes />
       <PhotoModal />
     </>
   );

@@ -34,7 +34,7 @@ export default function Deals() {
         <section className="offer-band">
           <div className="mh-wrap">
             <p className="offer-lead">No offer is published yet. These cards explain how to ask. They are not prices, and they are not a percentage off.</p>
-            <div className="offer-grid">
+            <div className="offer-grid" data-reveal="stagger">
               {cards.map((card) => (
                 <article key={card.title}>
                   <img alt={card.alt} src={card.image} loading="lazy" />

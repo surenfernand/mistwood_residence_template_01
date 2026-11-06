@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script>try{document.documentElement.dataset.theme=localStorage.getItem("mistwood-look")||"light"}catch(e){document.documentElement.dataset.theme="light"}document.documentElement.classList.add("js")</script>
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("mistwood-look")||"light"}catch(e){document.documentElement.dataset.theme="light"}document.documentElement.classList.add("js");if(!window.matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.classList.add("motion")</script>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <meta name="theme-color" content="#f8f5ef"/>
@@ -10,6 +10,7 @@
 <link rel="preload" as="image" href="/assets/mistwood/backgrounds/tea-sunrise.png"/>
 <link rel="stylesheet" href="/style.css"/>
 <link rel="stylesheet" href="/home.css"/>
+<link rel="stylesheet" href="/motion.css"/>
 </head>
 <body>
 <div id="root"></div>

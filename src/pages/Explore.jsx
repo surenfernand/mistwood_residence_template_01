@@ -29,7 +29,7 @@ export default function Explore() {
         <section className="explore-band">
           <div className="mh-wrap">
             <p className="offer-lead">Photographs of the lake, the tea, the waterfall, and Hakgala are of those places. They are not the view from the apartment. Distances wait until the street address is confirmed.</p>
-            <div className="explore-grid">
+            <div className="explore-grid" data-reveal="stagger">
               {cards.map(([title, text, src, alt]) => (
                 <article key={title}>
                   <img alt={alt} src={src} loading="lazy" />
@@ -46,7 +46,7 @@ export default function Explore() {
           <div className="mh-wrap">
             <p className="mh-kicker gold ab-kicker">Further out</p>
             <h2>A day trip, a round of golf, or the train</h2>
-            <div className="explore-notes">
+            <div className="explore-notes" data-reveal="stagger">
               {further.map(([title, text]) => (
                 <article key={title}>
                   {title === "Nuwara Eliya Golf Club" ? <img alt="The golf course and clubhouse in the Nuwara Eliya hills" src="/assets/mistwood/explore/golf-club.png" loading="lazy" /> : null}
