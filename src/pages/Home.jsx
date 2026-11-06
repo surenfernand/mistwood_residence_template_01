@@ -6,7 +6,7 @@ const heroFrames = [
   { src: "/assets/mistwood/backgrounds/tea-sunrise.png", spot: "is-sunrise", label: "Tea hills at sunrise", journey: "The Highlands" },
   { src: "/assets/mistwood/home/gregory-lake-shore.jpg", spot: "is-lake", label: "Gregory Lake", journey: "Tea Country" },
   { src: "/assets/mistwood/explore/tea-plantations.png", spot: "is-plantations", label: "Tea plantations", journey: "The Residence" },
-  { src: "/assets/mistwood/backgrounds/tea-sunset.png", spot: "is-sunset", label: "Tea hills at sunset", journey: "Your Stay" },
+  { src: "/assets/mistwood/home/lake-boat.jpg", spot: "is-stay", label: "A boat on the lake below the hills", journey: "Your Stay" },
 ];
 
 export default function Home() {
