@@ -1,0 +1,114 @@
+name: Build, publish and deploy Mistwood Residence
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mistwood-residence-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      IMAGE_NAME: mistwood-residence
+    steps:
+      - name: Check out website
+        uses: actions/checkout@v4
+
+      - name: Check Docker Hub username
+        run: |
+          if [ -z "$DOCKERHUB_USERNAME" ]; then
+            echo "Add the DOCKERHUB_USERNAME repository secret first."
+            exit 1
+          fi
+          if ! printf '%s' "$DOCKERHUB_USERNAME" | grep -Eq '^[a-z0-9][a-z0-9_-]*$'; then
+            echo "Use your lowercase Docker Hub username, not your email address."
+            exit 1
+          fi
+
+      - name: Build image on GitHub
+        run: |
+          docker build --platform linux/amd64 \
+            -t "$DOCKERHUB_USERNAME/$IMAGE_NAME:latest" \
+            -t "$DOCKERHUB_USERNAME/$IMAGE_NAME:$GITHUB_SHA" .
+
+      - name: Start container for smoke check
+        run: |
+          docker run -d --name mistwood-smoke \
+            -p 127.0.0.1:8088:3000 \
+            "$DOCKERHUB_USERNAME/$IMAGE_NAME:$GITHUB_SHA"
+          for i in $(seq 1 20); do
+            curl -fsS http://127.0.0.1:8088/healthz && break
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:8088/ | grep -q '<div id="root">'
+          curl -fsS http://127.0.0.1:8088/contact | grep -q '<div id="root">'
+          curl -fsS -o /dev/null http://127.0.0.1:8088/assets/logo-mark.png
+          curl -fsS -o /dev/null http://127.0.0.1:8088/style.css
+
+      - name: Sign in to Docker Hub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Publish tested image
+        run: |
+          docker push "$DOCKERHUB_USERNAME/$IMAGE_NAME:$GITHUB_SHA"
+          docker push "$DOCKERHUB_USERNAME/$IMAGE_NAME:latest"
+
+      - name: Clean up smoke container
+        if: always()
+        run: docker rm -f mistwood-smoke || true
+
+  deploy:
+    needs: publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      COOLIFY_URL: ${{ secrets.COOLIFY_URL }}
+      COOLIFY_API_TOKEN: ${{ secrets.COOLIFY_API_TOKEN }}
+      COOLIFY_APP_UUID: ${{ secrets.COOLIFY_APP_UUID }}
+    steps:
+      - name: Check Coolify secrets
+        run: |
+          for name in COOLIFY_URL COOLIFY_API_TOKEN COOLIFY_APP_UUID; do
+            if [ -z "${!name}" ]; then
+              echo "Add the $name repository secret first."
+              exit 1
+            fi
+          done
+
+      - name: Point Coolify at the new image
+        run: |
+          curl -fsS -X PATCH "$COOLIFY_URL/api/v1/applications/$COOLIFY_APP_UUID" \
+            -H "Authorization: Bearer $COOLIFY_API_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "{\"docker_registry_image_tag\":\"$GITHUB_SHA\"}"
+
+      - name: Deploy on Coolify
+        run: |
+          response=$(curl -fsS "$COOLIFY_URL/api/v1/deploy?uuid=$COOLIFY_APP_UUID&force=false" \
+            -H "Authorization: Bearer $COOLIFY_API_TOKEN")
+          echo "$response"
+          deployment=$(echo "$response" | jq -r '.deployments[0].deployment_uuid')
+          for i in $(seq 1 60); do
+            status=$(curl -fsS "$COOLIFY_URL/api/v1/deployments/$deployment" \
+              -H "Authorization: Bearer $COOLIFY_API_TOKEN" | jq -r '.status')
+            echo "Deployment status: $status"
+            case "$status" in
+              finished) exit 0 ;;
+              failed|cancelled*) exit 1 ;;
+            esac
+            sleep 10
+          done
+          echo "Timed out waiting for the Coolify deployment."
+          exit 1

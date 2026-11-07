@@ -22,6 +22,21 @@ function money(amount) {
   return `LKR ${amount.toLocaleString("en-LK")}`;
 }
 
+function isoDay(date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
+async function send(url, payload) {
+  const response = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error || "Something went wrong. Please try again or message us on WhatsApp.");
+  return data;
+}
+
 export default function Contact() {
   const [params] = useSearchParams();
   const initial = useMemo(() => ({
@@ -34,6 +49,8 @@ export default function Contact() {
   const [guest, setGuest] = useState({ name: "", email: "", phone: "", note: "", policies: false });
   const [step, setStep] = useState("details");
   const [payNotice, setPayNotice] = useState("");
+  const [enquiryNotice, setEnquiryNotice] = useState("");
+  const [sending, setSending] = useState(false);
   const payRef = useRef(null);
 
   useEffect(() => { document.title = "Contact us | Mistwood Residence"; }, []);
@@ -47,8 +64,9 @@ export default function Contact() {
     setGuest((current) => ({ ...current, [name]: type === "checkbox" ? checked : value }));
   };
 
-  const book = (event) => {
+  const book = async (event) => {
     event.preventDefault();
+    if (sending) return;
     if (!stay?.start || !stay?.end) {
       setNotice("Please select your arrival and departure dates.");
       return;
@@ -65,8 +83,26 @@ export default function Contact() {
       setNotice("Please confirm you have read the booking notes.");
       return;
     }
+    setSending(true);
+    setNotice("Saving your booking request…");
+    try {
+      await send("/api/bookings", {
+        name: guest.name,
+        email: guest.email,
+        phone: guest.phone,
+        note: guest.note,
+        guests,
+        arrive: isoDay(stay.start),
+        depart: isoDay(stay.end),
+      });
+    } catch (error) {
+      setNotice(error.message);
+      return;
+    } finally {
+      setSending(false);
+    }
     setNotice("");
-    setPayNotice("");
+    setPayNotice("Your booking request has been saved. The owner will confirm availability with you.");
     setStep("payment");
   };
 
@@ -74,9 +110,22 @@ export default function Contact() {
     setPayNotice("The payment gateway is not connected yet, so this deposit was not charged. Your details stay on this page until you leave it.");
   };
 
-  const enquire = (event) => {
+  const enquire = async (event) => {
     event.preventDefault();
-    alert("This enquiry is a preview and has not been sent. The owner will add the email address before messages can be delivered.");
+    if (sending) return;
+    const form = event.currentTarget;
+    const fields = Object.fromEntries(new FormData(form));
+    setSending(true);
+    setEnquiryNotice("Sending your message…");
+    try {
+      await send("/api/enquiries", fields);
+      form.reset();
+      setEnquiryNotice("Thank you. Your message has been received and we'll reply soon.");
+    } catch (error) {
+      setEnquiryNotice(error.message);
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -154,7 +203,8 @@ export default function Contact() {
                   <textarea id="message" name="message" rows="5" placeholder="Write your message here…" required />
                 </label>
               </div>
-              <button className="ct-send" type="submit">Send Message <span aria-hidden="true">→</span></button>
+              <button className="ct-send" type="submit" disabled={sending}>Send Message <span aria-hidden="true">→</span></button>
+              <p aria-live="polite" className="notice">{enquiryNotice}</p>
             </form>
           </div>
         </section>
@@ -180,7 +230,7 @@ export default function Contact() {
                     <option value="7">7 or more</option>
                   </select>
                 </div>
-                <button className="btn" type="submit">Continue <span>↗</span></button>
+                <button className="btn" type="submit" disabled={sending}>Continue <span>↗</span></button>
               </div>
               <div className="form-columns">
                 <div className="field"><label htmlFor="guest-name">Full name</label><input id="guest-name" name="name" autoComplete="name" placeholder="The name on the booking" required value={guest.name} onChange={updateGuest} /></div>

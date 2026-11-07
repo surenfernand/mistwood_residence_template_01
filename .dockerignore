@@ -1,0 +1,7 @@
+node_modules
+dist
+design-reference
+.git
+.github
+*.md
+*.local
