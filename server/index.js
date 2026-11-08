@@ -122,8 +122,13 @@ app.post("/api/bookings", async (req, res) => {
 
 app.use("/api", (_req, res) => res.status(404).json({ error: "Not found" }));
 
-app.use("/assets", express.static(path.join(root, "assets"), { maxAge: "7d" }));
-app.use(express.static(root, { maxAge: "1h", index: false }));
+const hashed = /-[A-Za-z0-9_-]{8}\.(js|css)$/;
+app.use(express.static(root, {
+  index: false,
+  setHeaders(res, file) {
+    res.setHeader("Cache-Control", hashed.test(file) ? "public, max-age=31536000, immutable" : "no-cache");
+  },
+}));
 app.get("/{*path}", (_req, res) => res.sendFile(path.join(root, "index.html")));
 
 app.listen(port, () => console.log(`Mistwood Residence listening on ${port}`));
