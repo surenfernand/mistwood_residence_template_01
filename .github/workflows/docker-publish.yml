@@ -96,7 +96,7 @@ jobs:
 
       - name: Deploy on Coolify
         run: |
-          response=$(curl -fsS "$COOLIFY_URL/api/v1/deploy?uuid=$COOLIFY_APP_UUID&force=false" \
+          response=$(curl -fsS -X POST "$COOLIFY_URL/api/v1/deploy?uuid=$COOLIFY_APP_UUID&force=false" \
             -H "Authorization: Bearer $COOLIFY_API_TOKEN")
           echo "$response"
           deployment=$(echo "$response" | jq -r '.deployments[0].deployment_uuid')
