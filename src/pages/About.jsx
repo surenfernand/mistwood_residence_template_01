@@ -346,8 +346,8 @@ export default function About() {
               <Link className="ab-outline" to="/explore">Explore Nearby Attractions <span aria-hidden="true">→</span></Link>
               <p className="ab-note">The street address is sent when a stay is confirmed. From Colombo, the drive climbs into the hill country. By train, the scenic ride ends at Nanu Oya, then a short drive into town. Nuwara Eliya evenings are cool, so bring a warm layer.</p>
             </div>
-            <figure className="ab-photo" data-reveal="image">
-              <img alt="Sunset over the tea hills near Nuwara Eliya" src="/assets/mistwood/backgrounds/tea-sunset.jpg" loading="lazy" />
+            <figure className="ab-photo ab-collage" data-reveal="image">
+              <img alt="Collage of Nuwara Eliya landscapes, gardens, tea country, and landmarks" src="/assets/mistwood/explore/nuwara-eliya-collage.png" loading="lazy" />
             </figure>
           </div>
         </section>
@@ -361,47 +361,46 @@ export default function About() {
 
         <section className="ab-voices" id="voices" aria-label="Guest posts and reviews from Facebook">
           <div className="mh-wrap ab-voices-head">
-            <p className="mh-kicker gold">From Facebook</p>
+            <p className="mh-kicker gold">From Social</p>
             <h2>What guests have been sharing</h2>
             <p>Reviews, posts, and comments from people who have stayed.</p>
           </div>
           <VoiceRow items={guestNotes} direction="to-left" />
         </section>
 
-        <section className="ab-notes" id="meals">
-          <div className="mh-wrap ab-board">
-            <div className="ab-meals" data-reveal="left">
-              <p className="mh-kicker gold ab-kicker">Meals</p>
-              <h2>Cook, Dine, or Explore Local Flavors</h2>
-              <p className="ab-lead">The apartment includes a fully equipped kitchen with a refrigerator and counter beside the dining table. Breakfast, a cook, and groceries are not included unless arranged by the owner. Enjoy a relaxed meal or try the local cafés in town.</p>
-              <ul className="ab-meal-cards">
-                <li>
-                  <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M18 8v14c0 2.4 1.6 3.6 3.4 3.6V40M29 8c2.4 2.6 3.6 5 3.6 7.6 0 2.4-1.2 3.6-3.6 3.6V40" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
-                  <span>Equipped Kitchen</span>
-                </li>
-                <li>
-                  <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M18 8v32M14 8c0 6 8 6 8 0M30 8v14c2.8 0 5-2 5-5.2V8M30 16v24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
-                  <span>Dining Area</span>
-                </li>
-                <li>
-                  <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M14 18h20c2 4 2 8 0 12H14c-2-4-2-8 0-12Z" fill="none" stroke="currentColor" strokeWidth="1.6" /><path d="M24 14v4M24 30v6" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
-                  <span>Local Dining Nearby</span>
-                </li>
+        <section className="ab-stay-showcase" id="meals" aria-label="Meals and apartment photographs">
+          <svg className="ab-stay-hills" viewBox="0 0 1600 360" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M0 245C164 155 300 172 440 236c147 67 260 50 392-13 192-92 360-39 501 43 102 59 193 43 267-7v156H0Z" fill="currentColor" opacity=".34" />
+            <path d="M0 290c156-63 269-54 421 13 129 57 262 55 386-20 144-87 316-62 464 20 133 74 232 49 329-5v110H0Z" fill="currentColor" opacity=".6" />
+            <path d="M720 345c164-91 308-103 498-31 116 44 248 30 382-17v33H720Z" fill="none" stroke="#75a26f" strokeWidth="2" opacity=".32" />
+            <path d="M754 324c160-69 303-76 481-18 121 39 238 30 365-11M824 346c134-54 267-53 423-7 116 34 235 25 347-10" fill="none" stroke="#83b177" strokeWidth="1.5" opacity=".25" />
+          </svg>
+          <div className="mh-wrap ab-stay-grid">
+            <section className="ab-stay-meals" aria-labelledby="meals-heading">
+              <p className="ab-stay-label"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M16 7v16c0 2.7 1.7 4 4 4v14M29 7c3 3 4 5.8 4 8.5 0 2.7-1.3 4-4 4V41" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg><span>Meals &amp; Dining</span></p>
+              <h2 id="meals-heading">Cook, Dine, or Explore <em>Local Flavors</em></h2>
+              <span className="ab-stay-underline" aria-hidden="true" />
+              <p className="ab-stay-lead">The apartment includes a fully equipped kitchen with a refrigerator and counter beside the dining table. Breakfast, a cook, and groceries are not included unless arranged by the owner. Enjoy a relaxed meal or try the local cafés in town.</p>
+              <ul className="ab-stay-features">
+                <li><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M12 19h24v18H12zM16 19v-4c0-4.4 3.6-8 8-8s8 3.6 8 8v4M8 23h4M36 23h4M18 37v4M30 37v4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg><span>Equipped Kitchen</span></li>
+                <li><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M11 26h26M14 26v14M34 26v14M18 26V14h12v12M10 21h8M30 21h8" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg><span>Dining Area</span></li>
+                <li><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 41s12-11.5 12-21a12 12 0 1 0-24 0c0 9.5 12 21 12 21Z" fill="none" stroke="currentColor" strokeWidth="2" /><circle cx="24" cy="20" r="4" fill="none" stroke="currentColor" strokeWidth="2" /></svg><span>Local Dining Nearby</span></li>
               </ul>
-            </div>
-            <div className="ab-shots" data-reveal="right">
-              <div>
-                <p className="mh-kicker gold ab-kicker">Photographs</p>
-                <h2>Explore the Rooms Through Photos</h2>
-                <p className="ab-lead">Get a closer look at the living room, dining area, balcony, and entrance. Bedroom and bathroom photos will be added when provided by the owner.</p>
-                <Link className="ab-photo-btn" to="/photos">Open the hotel photos <span aria-hidden="true">→</span></Link>
+            </section>
+
+            <section className="ab-stay-photos" aria-labelledby="photos-heading">
+              <div className="ab-stay-photo-copy">
+                <p className="ab-stay-label"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 16h9l3-5h8l3 5h9v22H8Z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" /><circle cx="24" cy="27" r="6" fill="none" stroke="currentColor" strokeWidth="2" /></svg><span>Photographs</span></p>
+                <h2 id="photos-heading">Explore the Residence Through <em>Our Gallery</em></h2>
+                <p className="ab-stay-lead">Get a closer look at the living room, dining area, balcony, and entrance—each designed for a relaxed and comfortable highland stay.</p>
+                <Link className="ab-stay-gallery" to="/photos"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 16h9l3-5h8l3 5h9v22H8Z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" /><circle cx="24" cy="27" r="6" fill="none" stroke="currentColor" strokeWidth="2" /></svg><span>Open the Hotel Photos</span><b aria-hidden="true">→</b></Link>
               </div>
-              <div className="ab-polaroids">
-                <img className="p1" alt="The balcony looking over the hills" src="/assets/stay-balcony.jpg" />
-                <img className="p2" alt="The living room with blue chairs and a sofa" src="/assets/room.jpg" />
-                <img className="p3" alt="The dining table beside the kitchen" src="/assets/dining-table.jpg" />
+              <div className="ab-stay-collage" aria-label="Apartment photographs">
+                <img className="ab-stay-photo-one" alt="The balcony looking over the hills" src="/assets/stay-balcony.jpg" loading="lazy" />
+                <img className="ab-stay-photo-two" alt="The living room with blue chairs and a sofa" src="/assets/room.jpg" loading="lazy" />
+                <img className="ab-stay-photo-three" alt="The dining table beside the kitchen" src="/assets/dining-table.jpg" loading="lazy" />
               </div>
-            </div>
+            </section>
           </div>
         </section>
       </main>

@@ -563,7 +563,25 @@ html:not([data-theme="light"]) .switch-icon.moon { display: block; }
   background: rgba(8, 14, 11, .88);
 }
 .modal.open { display: flex; }
-.modal img { width: auto; max-width: min(1100px, 92vw); max-height: 86vh; border-radius: 12px; }
+.modal.open {
+  animation: modal-backdrop-in .3s ease both;
+  backdrop-filter: blur(8px);
+}
+@keyframes modal-backdrop-in {
+  from { background: rgba(8, 14, 11, 0); }
+  to { background: rgba(8, 14, 11, .88); }
+}
+.modal img {
+  width: auto;
+  max-width: min(1100px, 92vw);
+  max-height: 86vh;
+  border-radius: 12px;
+  animation: modal-photo-in .45s cubic-bezier(.2, .75, .25, 1) both;
+}
+@keyframes modal-photo-in {
+  from { opacity: 0; filter: blur(10px); transform: scale(.96); }
+  to { opacity: 1; filter: blur(0); transform: scale(1); }
+}
 .modal-close,
 .modal-nav {
   position: absolute;
@@ -588,10 +606,42 @@ html:not([data-theme="light"]) .switch-icon.moon { display: block; }
   font: 500 13px/1 Outfit, sans-serif;
   letter-spacing: .12em;
 }
+@media (prefers-reduced-motion: reduce) {
+  .mh-apt-main img,
+  .mh-apt-thumbs button.is-on img,
+  .modal.open,
+  .modal img { animation: none; }
+}
 
 .map-card { overflow: hidden; border: 1px solid var(--line); border-radius: 18px; background: var(--panel); }
 .map-frame { width: 100%; height: 440px; border: 0; filter: saturate(.9) contrast(1.02); }
 .map-note { padding: 16px 20px; color: var(--muted); font-size: 13px; }
+.map-intro { margin: -8px 0 22px; color: var(--muted); }
+.attraction-map { position: relative; }
+.attraction-map-canvas { width: 100%; height: 440px; background: #dce8db; }
+.attraction-map-pin { border: 0; background: transparent; filter: drop-shadow(0 3px 3px rgba(10, 35, 23, .3)); }
+.attraction-map-pin:hover { filter: brightness(1.08) drop-shadow(0 4px 4px rgba(10, 35, 23, .4)); }
+.attraction-map-pin:focus-visible { outline: 2px solid #9a6f2b; outline-offset: 3px; border-radius: 8px; }
+.attraction-map .leaflet-control-zoom a { color: #174d36; }
+.attraction-map .leaflet-popup-content-wrapper { overflow: hidden; padding: 0; border-radius: 14px; box-shadow: 0 12px 28px rgba(10, 35, 23, .28); }
+.attraction-map .leaflet-popup-content { width: 260px !important; margin: 0; }.attraction-map .leaflet-popup-tip { background: #fff; }
+.attraction-map .marker-cluster { background: transparent; }
+.attraction-cluster-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #0c5339 0%, #063f2c 100%);
+  border: 2px solid #e1cc97;
+  color: #fff;
+  font: 600 14px/1 Outfit, sans-serif;
+  box-shadow: 0 4px 10px rgba(10, 35, 23, .4);
+}
+.attraction-cluster-icon span { display: block; }
+.attraction-popup-card img { display: block; width: 100%; height: 122px; object-fit: cover; }.attraction-popup-card div { padding: 13px 14px 15px; }.attraction-popup-card h3 { margin: 0 0 6px; color: #183d2b; font: 600 17px/1.2 "Playfair Display", Georgia, serif; }.attraction-popup-card p { margin: 0 0 11px; color: #5b655d; font: 13px/1.45 Outfit, sans-serif; }.attraction-popup-card a { color: #9a6f2b; font: 700 12px/1 Outfit, sans-serif; text-decoration: none; }
+@media (max-width: 600px) { .map-frame, .attraction-map-canvas { height: 360px; } }
 
 .booking-wrap,
 .form-shell {
@@ -1015,4 +1065,122 @@ html:not([data-theme="light"]) .switch-icon.moon { display: block; }
   .tour { height: auto; }
   .tour-sticky { position: static; height: auto; }
   .tour-track { transform: none !important; overflow-x: auto; }
+  .apt-tile:hover img { transform: none; }
+}
+
+/* ------------------------------------------------------------------ */
+/* Apartment gallery — "A closer look at Mistwood"                     */
+/* ------------------------------------------------------------------ */
+.apt-gallery {
+  --apt-forest: #0f3d2b;
+  --apt-gold: #c9a45c;
+  --apt-ivory: #fffdf8;
+  background: var(--bg);
+  padding: 80px 0 96px;
+}
+body:not(.home) .apt-gallery { padding-top: 150px; }
+.apt-gallery-inner { position: relative; }
+.apt-gallery-head { max-width: 720px; margin: 0 auto 32px; text-align: center; }
+.apt-gallery-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  color: var(--apt-gold);
+  font: 600 12px/1 "Familjen Grotesk", sans-serif;
+  letter-spacing: .24em;
+  text-transform: uppercase;
+}
+.apt-gallery-eyebrow::before,
+.apt-gallery-eyebrow::after {
+  content: "";
+  width: 34px;
+  height: 1px;
+  background: currentColor;
+  transform: none;
+  opacity: .7;
+  flex: none;
+}
+.apt-gallery-head h2 {
+  margin: 16px 0 14px;
+  font-family: "Playfair Display", Georgia, serif;
+  font-weight: 700;
+  font-size: clamp(30px, 3.4vw, 46px);
+  line-height: 1.08;
+  color: var(--ink);
+}
+.apt-gallery-sub { max-width: 620px; margin: 0 auto; color: var(--muted); font-size: 16px; line-height: 1.7; }
+
+/* Filters */
+.apt-gallery-filters {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  max-width: 1000px;
+  margin: 0 auto 40px;
+}
+.apt-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 11px 20px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--panel);
+  color: #1f3d30;
+  font: 600 13px/1 "Familjen Grotesk", sans-serif;
+  letter-spacing: .02em;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background .2s, color .2s, border-color .2s, transform .2s, box-shadow .2s;
+}
+.apt-filter svg { color: #2f6a4c; transition: color .2s; }
+.apt-filter:hover { border-color: var(--apt-gold); transform: translateY(-1px); box-shadow: 0 6px 16px rgba(28, 24, 20, .08); }
+.apt-filter.is-on { background: var(--apt-forest); border-color: var(--apt-forest); color: #fff; box-shadow: 0 10px 22px rgba(15, 61, 43, .26); }
+.apt-filter.is-on svg { color: #dcc38c; }
+.apt-filter:focus-visible { outline: 2px solid var(--apt-gold); outline-offset: 2px; }
+
+/* Masonry collage */
+.apt-gallery-grid { column-count: 3; column-gap: 18px; }
+.apt-tile {
+  display: block;
+  width: 100%;
+  margin: 0 0 18px;
+  padding: 0;
+  border: 0;
+  background: none;
+  border-radius: 16px;
+  overflow: hidden;
+  cursor: pointer;
+  break-inside: avoid;
+  box-shadow: 0 10px 26px rgba(28, 24, 20, .1);
+  transition: transform .3s, box-shadow .3s;
+}
+.apt-tile img { display: block; width: 100%; height: auto; border-radius: 16px; transition: transform .5s ease; }
+.apt-tile:hover { box-shadow: 0 16px 36px rgba(28, 24, 20, .18); }
+.apt-tile:hover img { transform: scale(1.04); }
+.apt-tile:focus-visible { outline: 2px solid var(--apt-gold); outline-offset: 3px; }
+
+@media (max-width: 980px) {
+  .apt-gallery { padding-top: 130px; }
+  .apt-gallery-grid { column-count: 2; }
+}
+@media (max-width: 620px) {
+  .apt-gallery { padding-top: 116px; }
+  .apt-gallery-grid { column-count: 2; column-gap: 12px; }
+  .apt-tile { margin-bottom: 12px; }
+  .apt-gallery-filters {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    overflow-x: auto;
+    padding-bottom: 6px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .apt-gallery-filters::-webkit-scrollbar { display: none; }
+  .apt-filter { flex: 0 0 auto; }
+}
+@media (max-width: 430px) {
+  .apt-gallery-grid { column-count: 1; }
 }

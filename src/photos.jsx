@@ -59,8 +59,7 @@ export function PhotoModal() {
       <button className="modal-close" type="button" aria-label="Close image" onClick={closePhoto}>×</button>
       {gallery && gallery.length > 1 ? <button className="modal-nav prev" type="button" aria-label="Previous photo" onClick={() => step(-1)}>‹</button> : null}
       <figure className="modal-figure">
-        <img src={current.src} alt={current.alt} />
-        {gallery ? <figcaption>{index + 1} / {gallery.length}</figcaption> : null}
+        <img key={`${current.src}-${index}`} src={current.src} alt={current.alt} />
       </figure>
       {gallery && gallery.length > 1 ? <button className="modal-nav next" type="button" aria-label="Next photo" onClick={() => step(1)}>›</button> : null}
     </div>

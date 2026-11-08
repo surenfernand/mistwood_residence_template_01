@@ -3,8 +3,8 @@ import { Link } from "react-router-dom";
 import { HighlandFooter, HighlandHeader, PageHero } from "../components/Highland.jsx";
 
 const featured = {
-  image: "/assets/mistwood/backgrounds/tea-sunrise.jpg",
-  alt: "Sunrise over the tea hills near Nuwara Eliya",
+  image: "/assets/mistwood/offers/highland-escape.jpg",
+  alt: "Green tea plantations across the hills of Nuwara Eliya",
   badge: "Most popular",
   title: "Highland Escape Deal",
   text: "Book your stay this month and enjoy a special rate for a peaceful highland retreat.",
@@ -15,8 +15,8 @@ const featured = {
 
 const offers = [
   {
-    image: "/assets/dining-kitchen.jpg",
-    alt: "Dining table and kitchen at Mistwood Residence",
+    image: "/assets/mistwood/offers/long-stay.jpg",
+    alt: "A woman relaxing with a book and coffee beside a window",
     title: "Long Stay Savings",
     text: "Planning a longer escape? Enjoy great savings on extended stays.",
     valid: "All Year Round",
@@ -24,8 +24,8 @@ const offers = [
     off: "20%",
   },
   {
-    image: "/assets/stay-balcony.jpg",
-    alt: "The balcony looking over the hills",
+    image: "/assets/mistwood/offers/family-getaway.jpg",
+    alt: "A family spending time together on a picnic blanket outdoors",
     title: "Family Getaway",
     text: "A perfect highland holiday for families, with special savings and extra comfort.",
     valid: "1 Nov – 20 Dec 2026",
@@ -33,8 +33,8 @@ const offers = [
     off: "10%",
   },
   {
-    image: "/assets/room.jpg",
-    alt: "Sofas and lounge chairs in the living room",
+    image: "/assets/mistwood/offers/romantic-retreat.jpg",
+    alt: "A smiling couple cuddling outdoors under a cosy blanket",
     title: "Romantic Retreat",
     text: "A cosy escape for couples with special benefits and a relaxing atmosphere.",
     valid: "All Year Round",
@@ -42,8 +42,8 @@ const offers = [
     off: "15%",
   },
   {
-    image: "/assets/mistwood/backgrounds/tea-sunset.jpg",
-    alt: "Sunset light over the tea hills near Nuwara Eliya",
+    image: "/assets/mistwood/offers/festive-holiday.jpg",
+    alt: "Festive Christmas decorations with gold ornaments and pinecones",
     title: "Festive Holiday Deal",
     text: "Celebrate the season in Nuwara Eliya with exclusive holiday rates.",
     valid: "20 Dec 2026 – 5 Jan 2027",

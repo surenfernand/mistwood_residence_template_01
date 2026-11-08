@@ -267,16 +267,7 @@ export default function Contact() {
           </div>
         </section>
 
-        <section className="ct-map" id="map">
-          <div className="mh-wrap">
-            <p className="mh-kicker gold">Where to find us</p>
-            <h2>The Town, Until the Address Is Confirmed</h2>
-            <div className="map-card">
-              <iframe className="map-frame" loading="lazy" referrerPolicy="no-referrer-when-downgrade" src="https://maps.google.com/maps?q=Nuwara%20Eliya%20Sri%20Lanka&t=&z=11&ie=UTF8&iwloc=&output=embed" title="Map of Nuwara Eliya, Sri Lanka" />
-              <div className="map-note"><a className="text-link" href="https://www.google.com/maps/search/?api=1&query=Nuwara+Eliya+Sri+Lanka" rel="noopener noreferrer" target="_blank">Open a larger map ↗</a></div>
-            </div>
-          </div>
-        </section>
+       
         </div>
       </main>
       <HighlandFooter />

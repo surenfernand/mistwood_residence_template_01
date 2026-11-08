@@ -4,7 +4,7 @@ import { Link, NavLink, useLocation } from "react-router-dom";
 const nav = [
   ["/", "Home"],
   ["/about", "About"],
-  ["/apartments", "Apartments"],
+  ["/apartments", "Apartment"],
   ["/deals", "Offers"],
   ["/explore", "Explore"],
   ["/contact", "Contact"],
@@ -99,19 +99,12 @@ export function HighlandFooter() {
           <h3>Quick Links</h3>
           <Link to="/">Home</Link>
           <Link to="/about">About Us</Link>
-          <Link to="/apartments">Apartments</Link>
+          <Link to="/apartments">Apartment</Link>
           <Link to="/#offers">Monthly Deals</Link>
           <Link to="/explore">Explore</Link>
           <Link to="/contact">Contact Us</Link>
         </div>
-        <div>
-          <h3>Guest Information</h3>
-          <Link to="/policies#booking-policy">Booking Policy</Link>
-          <Link to="/policies#cancellation">Cancellation Policy</Link>
-          <Link to="/policies#refund">Refund Policy</Link>
-          <Link to="/policies#privacy">Privacy Policy</Link>
-          <Link to="/policies">Terms &amp; Conditions</Link>
-        </div>
+       
         <div className="mh-touch">
           <h3>Get in Touch</h3>
           <p><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s6-5.2 6-10a6 6 0 1 0-12 0c0 4.8 6 10 6 10Z" fill="none" stroke="currentColor" strokeWidth="1.6" /><circle cx="12" cy="11" r="1.7" fill="none" stroke="currentColor" strokeWidth="1.6" /></svg> Nuwara Eliya, Sri Lanka</p>

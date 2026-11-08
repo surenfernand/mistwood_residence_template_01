@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { HighlandFooter, HighlandHeader, PageHero } from "../components/Highland.jsx";
+import ApartmentGallery from "../components/ApartmentGallery.jsx";
 import { usePhotos } from "../photos.jsx";
 
 const apartmentShots = [
@@ -25,11 +26,16 @@ const stageShots = apartmentShots.slice(0, 4);
 
 const apartmentFacts = [
   ["Entire apartment for your group", "sofa"],
+  ["Up to 6 guests", "key"],
   ["Private balcony", "balcony"],
-  ["Living and dining in one room", "dining"],
-  ["Guest numbers confirmed by the owner", "key"],
   ["Kitchen with a refrigerator", "kitchen"],
-  ["Bedroom photos still to come", "bed"],
+];
+
+const faqs = [
+  ["Is the apartment rented as a whole unit?", "Yes. Mistwood Residence is one private apartment reserved for your group."],
+  ["Is parking available?", "Private parking is available for guests."],
+  ["Is Wi-Fi available?", "Complimentary Wi-Fi is available in the apartment."],
+  ["Can guests prepare their own meals?", "Yes. The apartment has an equipped kitchen with a refrigerator and dining area. Meals, groceries, and a cook are not included unless arranged with the owner."],
 ];
 
 function FactIcon({ name }) {
@@ -45,9 +51,10 @@ function FactIcon({ name }) {
 export default function Apartments() {
   const { openPhoto } = usePhotos();
   const [index, setIndex] = useState(0);
+  const [openFaq, setOpenFaq] = useState(null);
   const current = stageShots[index];
 
-  useEffect(() => { document.title = "Apartments | Mistwood Residence"; }, []);
+  useEffect(() => { document.title = "Apartment | Mistwood Residence"; }, []);
 
   const openGallery = (src) => {
     const start = Math.max(0, apartmentShots.findIndex((shot) => shot.src === src));
@@ -59,44 +66,25 @@ export default function Apartments() {
     <>
       <HighlandHeader />
       <main>
-        <PageHero kicker="Our Apartment" title="Stay in Comfort" lede="One apartment, reserved as a whole, with the hills beyond the glass." crumb="Apartments" />
-        <section className="apt-showcase">
-          <img className="mh-apt-leaf tl" alt="" src="/assets/mistwood/decorations/leaf-branch.png" />
-          <img className="mh-apt-leaf br" alt="" src="/assets/mistwood/decorations/leaf-branch.png" />
-          <svg className="mh-apt-hills" viewBox="0 0 1440 120" preserveAspectRatio="none" aria-hidden="true"><path fill="#efe8d8" d="M0 78C180 36 340 104 520 68 720 28 860 96 1080 58 1240 30 1360 74 1440 48V120H0Z" /><path fill="#e6dece" d="M0 98C220 72 420 114 680 88 940 62 1120 104 1440 74V120H0Z" /></svg>
-          <div className="mh-wrap mh-apt-grid">
-            <div className="mh-apt-gallery">
-              <div className="mh-apt-stage">
-                <button type="button" className="mh-apt-main" aria-label={`Enlarge ${current.alt}`} onClick={() => openGallery(current.src)}>
-                  <img alt="" src={current.src} />
-                </button>
-                <button className="mh-apt-arrow prev" type="button" aria-label="Previous apartment photo" onClick={() => move(-1)}>‹</button>
-                <button className="mh-apt-arrow next" type="button" aria-label="Next apartment photo" onClick={() => move(1)}>›</button>
-              </div>
-              <div className="mh-apt-thumbs">
-                {stageShots.map((shot, shotIndex) => (
-                  <button key={shot.src} type="button" className={shotIndex === index ? "is-on" : undefined} aria-label={shot.alt} aria-pressed={shotIndex === index} onClick={() => setIndex(shotIndex)}>
-                    <img alt="" src={shot.src} />
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="mh-apt-copy">
-              <p className="mh-kicker gold mh-apt-kicker">The Apartment</p>
-              <h2>What the Photographs Show</h2>
-              <p className="mh-apt-lead">Sofas and lounge chairs share one room with the dining table. Glass doors open toward a balcony over the hills. A refrigerator and the edge of a kitchen counter are seen in the pictures. Bedroom and bathroom photographs are not in this set yet.</p>
-              <ul className="mh-apt-facts">
-                {apartmentFacts.map(([label, icon]) => (
-                  <li key={label}><FactIcon name={icon} /><span>{label}</span></li>
-                ))}
-              </ul>
-              <div className="mh-apt-actions">
-                <Link className="mh-apt-book" to="/contact#booking">Book Your Stay <span aria-hidden="true">→</span></Link>
-                <button className="mh-apt-photos" type="button" onClick={() => openGallery(current.src)}>Open the hotel photos <span aria-hidden="true">→</span></button>
-              </div>
-            </div>
+        <PageHero kicker="Our Apartment" title="Stay in Comfort" lede="One apartment, reserved as a whole, with the hills beyond the glass." crumb="Apartment" />
+      
+
+        <ApartmentGallery />
+
+        <section className="apt-experience">
+          <div className="mh-wrap apt-experience-copy">
+            <p className="mh-kicker gold">Beyond Your Stay</p>
+            <h2>Experience Nuwara Eliya</h2>
+            <p>Cool air, rolling tea country, gardens, lakes, and quiet hill-country evenings are all close to Mistwood Residence.</p>
+            <Link className="apt-gold-link" to="/explore">Explore Nuwara Eliya <span aria-hidden="true">→</span></Link>
           </div>
         </section>
+
+        <section className="apt-faq" aria-labelledby="faq-title">
+          <div className="mh-wrap apt-faq-grid"><div><p className="mh-kicker gold" style={{ justifyContent: "left" }}>Helpful Details</p><h2 id="faq-title">Frequently Asked Questions</h2><p>Everything we can confirm about a stay at Mistwood Residence.</p></div><div>{faqs.map(([question, answer], faqIndex) => <article key={question} className={openFaq === faqIndex ? "is-open" : ""}><button type="button" aria-expanded={openFaq === faqIndex} onClick={() => setOpenFaq(openFaq === faqIndex ? null : faqIndex)}><span>{question}</span><b aria-hidden="true">+</b></button><div><p>{answer}</p></div></article>)}</div></div>
+        </section>
+
+        <section className="apt-final-cta"><div className="mh-wrap"><p className="mh-kicker gold">Mistwood Residence</p><h2 style={{ justifyContent: "center" }}>Your Highland Escape Awaits</h2><p>Book your stay at Mistwood Residence and enjoy the comfort of a private apartment in the heart of Nuwara Eliya.</p><Link className="apt-gold-link" to="/contact#booking">Book Your Stay <span aria-hidden="true">→</span></Link></div></section>
       </main>
       <HighlandFooter />
     </>
