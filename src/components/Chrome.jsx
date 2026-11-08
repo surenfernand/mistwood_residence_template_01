@@ -4,7 +4,6 @@ import { NavLink, Outlet, useLocation } from "react-router-dom";
 const links = [
   { to: "/", label: "Home", end: true },
   { to: "/about", label: "The apartment" },
-  { to: "/photos", label: "Hotel photos" },
   { to: "/explore", label: "Around Nuwara Eliya" },
   { to: "/contact", label: "Contact us" },
 ];
@@ -51,7 +50,7 @@ export function SiteFooter() {
             <span className="eyebrow">On this website</span>
             <NavLink to="/about">The apartment</NavLink>
             <NavLink to="/about#meals">Meals</NavLink>
-            <NavLink to="/photos">Hotel photos</NavLink>
+            <NavLink to="/apartments">Photo gallery</NavLink>
             <NavLink to="/explore">Around Nuwara Eliya</NavLink>
             <NavLink to="/deals">Offers</NavLink>
             <NavLink to="/about#practical">Practical notes</NavLink>

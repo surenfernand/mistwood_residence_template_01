@@ -107,6 +107,7 @@ function AttractionCard({ attraction, onOpen }) {
       <div className="attraction-card-body">
         <h3>{name}</h3>
         <p className="attraction-card-text">{description}</p>
+        {attraction.photoCredit?.note ? <small className="attraction-image-note">{attraction.photoCredit.note}</small> : null}
         {showMeta ? (
           <div className="attraction-meta">
             {distance ? (
@@ -209,14 +210,7 @@ export default function Attractions() {
   const canExpand = isAll && filtered.length > INITIAL_COUNT;
 
   return (
-    <section
-      className="attractions-section"
-      aria-labelledby="attractions-title"
-      style={{
-        backgroundImage: "url('/images/explore/pexels-tomfisk-5718331.jpg?v=10')",
-      }}
-    >
-      <div className="attractions-overlay" aria-hidden="true" />
+    <section className="attractions-section" aria-labelledby="attractions-title">
       <div className="mh-wrap attractions-inner">
         <header className="attractions-head">
           <p className="mh-kicker gold">Explore Nuwara Eliya</p>

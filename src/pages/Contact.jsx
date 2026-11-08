@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import Calendar from "../components/Calendar.jsx";
 import { HighlandFooter, HighlandHeader, PageHero } from "../components/Highland.jsx";
@@ -26,6 +26,77 @@ function isoDay(date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 }
 
+function guestLabel(guests) {
+  if (guests === "7") return "7 or more";
+  return `${guests} guest${guests === "1" ? "" : "s"}`;
+}
+
+function BookingDialog({ titleId, title, kicker, busy = false, onDismiss, children }) {
+  const panelRef = useRef(null);
+  const busyRef = useRef(busy);
+  const dismissRef = useRef(onDismiss);
+  busyRef.current = busy;
+  dismissRef.current = onDismiss;
+
+  useEffect(() => {
+    const panel = panelRef.current;
+    const previouslyFocused = document.activeElement;
+    panel?.focus();
+    const onKey = (event) => {
+      if (event.key === "Escape") {
+        if (!busyRef.current) dismissRef.current();
+        return;
+      }
+      if (event.key !== "Tab" || !panel) return;
+      const focusable = [...panel.querySelectorAll("button, [href], input, select, textarea")].filter((el) => !el.disabled);
+      if (!focusable.length) {
+        event.preventDefault();
+        panel.focus();
+        return;
+      }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    const { overflow } = document.body.style;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = overflow;
+      if (previouslyFocused instanceof HTMLElement && previouslyFocused.isConnected) previouslyFocused.focus();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (busy) panelRef.current?.focus();
+  }, [busy]);
+
+  return (
+    <div className="booking-dialog-overlay">
+      <div
+        ref={panelRef}
+        className="booking-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        aria-busy={busy || undefined}
+        tabIndex={-1}
+      >
+        <p className="mh-kicker gold">{kicker}</p>
+        <h3 id={titleId}>{title}</h3>
+        {children}
+      </div>
+    </div>
+  );
+}
+
 async function send(url, payload) {
   const response = await fetch(url, {
     method: "POST",
@@ -50,8 +121,12 @@ export default function Contact() {
   const [step, setStep] = useState("details");
   const [payNotice, setPayNotice] = useState("");
   const [enquiryNotice, setEnquiryNotice] = useState("");
+  const [enquiryDraft, setEnquiryDraft] = useState(null);
   const [sending, setSending] = useState(false);
+  const [dialog, setDialog] = useState(null);
+  const [confirmError, setConfirmError] = useState("");
   const payRef = useRef(null);
+  const enquiryFormRef = useRef(null);
 
   useEffect(() => { document.title = "Contact us | Mistwood Residence"; }, []);
 
@@ -64,9 +139,15 @@ export default function Contact() {
     setGuest((current) => ({ ...current, [name]: type === "checkbox" ? checked : value }));
   };
 
-  const book = async (event) => {
-    event.preventDefault();
+  const dismissDialog = useCallback(() => {
     if (sending) return;
+    setDialog(null);
+    setConfirmError("");
+  }, [sending]);
+
+  const book = (event) => {
+    event.preventDefault();
+    if (sending || dialog) return;
     if (!stay?.start || !stay?.end) {
       setNotice("Please select your arrival and departure dates.");
       return;
@@ -83,8 +164,15 @@ export default function Contact() {
       setNotice("Please confirm you have read the booking notes.");
       return;
     }
+    setNotice("");
+    setConfirmError("");
+    setDialog("confirm");
+  };
+
+  const confirmBooking = async () => {
+    if (sending || !stay?.start || !stay?.end) return;
     setSending(true);
-    setNotice("Saving your booking request…");
+    setConfirmError("");
     try {
       await send("/api/bookings", {
         name: guest.name,
@@ -96,36 +184,61 @@ export default function Contact() {
         depart: isoDay(stay.end),
       });
     } catch (error) {
-      setNotice(error.message);
-      return;
-    } finally {
+      setConfirmError(error.message);
       setSending(false);
+      return;
     }
+    setSending(false);
     setNotice("");
     setPayNotice("Your booking request has been saved. The owner will confirm availability with you.");
     setStep("payment");
+    setDialog("success");
   };
 
   const startPayment = () => {
     setPayNotice("The payment gateway is not connected yet, so this deposit was not charged. Your details stay on this page until you leave it.");
   };
 
-  const enquire = async (event) => {
+  const enquire = (event) => {
     event.preventDefault();
-    if (sending) return;
-    const form = event.currentTarget;
-    const fields = Object.fromEntries(new FormData(form));
-    setSending(true);
-    setEnquiryNotice("Sending your message…");
-    try {
-      await send("/api/enquiries", fields);
-      form.reset();
-      setEnquiryNotice("Thank you. Your message has been received and we'll reply soon.");
-    } catch (error) {
-      setEnquiryNotice(error.message);
-    } finally {
-      setSending(false);
+    if (sending || dialog) return;
+    const fields = Object.fromEntries(new FormData(event.currentTarget));
+    const draft = {
+      name: String(fields.name || "").trim(),
+      email: String(fields.email || "").trim(),
+      phone: String(fields.phone || "").trim(),
+      subject: String(fields.subject || "").trim(),
+      message: String(fields.message || "").trim(),
+    };
+    if (!draft.name || !draft.email || !draft.subject || !draft.message) {
+      setEnquiryNotice("Please add your name, email, subject, and message.");
+      return;
     }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(draft.email)) {
+      setEnquiryNotice("Please enter an email address we can reply to.");
+      return;
+    }
+    setEnquiryNotice("");
+    setConfirmError("");
+    setEnquiryDraft(draft);
+    setDialog("enquiry-confirm");
+  };
+
+  const confirmEnquiry = async () => {
+    if (sending || !enquiryDraft) return;
+    setSending(true);
+    setConfirmError("");
+    try {
+      await send("/api/enquiries", enquiryDraft);
+    } catch (error) {
+      setConfirmError(error.message);
+      setSending(false);
+      return;
+    }
+    setSending(false);
+    enquiryFormRef.current?.reset();
+    setEnquiryNotice("");
+    setDialog("enquiry-success");
   };
 
   return (
@@ -171,9 +284,9 @@ export default function Contact() {
                 </li>
               </ul>
             </div>
-            <form className="ct-card" data-reveal="up" onSubmit={enquire}>
+            <form ref={enquiryFormRef} className="ct-card" data-reveal="up" onSubmit={enquire}>
               <h2>Send Us a Message</h2>
-              <div className="ct-fields">
+              <fieldset className="ct-fields" disabled={sending}>
                 <label className="ct-field">
                   <span><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.1" /><path d="M5.5 19.2c.8-3 3.2-4.6 6.5-4.6s5.7 1.6 6.5 4.6" /></svg> Your Name <em>*</em></span>
                   <input id="name" name="name" autoComplete="name" placeholder="Enter your name" required />
@@ -202,8 +315,8 @@ export default function Contact() {
                   <span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6.5h14M5 12h10M5 17.5h7" /></svg> Your Message <em>*</em></span>
                   <textarea id="message" name="message" rows="5" placeholder="Write your message here…" required />
                 </label>
-              </div>
-              <button className="ct-send" type="submit" disabled={sending}>Send Message <span aria-hidden="true">→</span></button>
+              </fieldset>
+              <button className="ct-send" type="submit" disabled={sending || Boolean(dialog)}>Send Message <span aria-hidden="true">→</span></button>
               <p aria-live="polite" className="notice">{enquiryNotice}</p>
             </form>
           </div>
@@ -216,6 +329,7 @@ export default function Contact() {
             <p className="ct-intro">For the train and what to pack, read the <Link to="/about#practical">practical notes</Link>. This form asks only for the details we need. The amount to pay is shown after you continue, and payment comes after that.</p>
             {step === "details" ? (
             <form className="booking-wrap booking-demo" data-reveal="up" onSubmit={book}>
+              <fieldset className="booking-fields" disabled={sending}>
               <div className="booking-grid">
                 <Calendar initialStart={stay?.start || initial.start} initialEnd={stay?.end || initial.end} onChange={setStay} />
                 <div className="field">
@@ -240,6 +354,7 @@ export default function Contact() {
               </div>
               <label className="check"><input type="checkbox" name="policies" checked={guest.policies} onChange={updateGuest} /> I have read the <Link to="/policies">booking, cancellation, and refund notes</Link>. I understand the owner still has to approve the final terms.</label>
               <p aria-live="polite" className="notice booking-notice">{notice}</p>
+              </fieldset>
             </form>
             ) : (
             <div className="booking-wrap pay-step" ref={payRef}>
@@ -271,6 +386,71 @@ export default function Contact() {
         </div>
       </main>
       <HighlandFooter />
+      {dialog === "confirm" && stay?.start && stay?.end ? (
+        <BookingDialog titleId="booking-confirm-title" title="Confirm your stay" kicker="Review before sending" busy={sending} onDismiss={dismissDialog}>
+          <p className="booking-dialog-lead">Check the dates and contact details below. Nothing is sent until you choose Continue.</p>
+          <dl className="booking-dialog-list">
+            <div><dt>Arrival</dt><dd>{formatStay(stay.start)}</dd></div>
+            <div><dt>Departure</dt><dd>{formatStay(stay.end)}</dd></div>
+            <div><dt>Nights</dt><dd>{Math.round((stay.end - stay.start) / 86400000)}</dd></div>
+            <div><dt>Guests</dt><dd>{guestLabel(guests)}</dd></div>
+            <div><dt>Full name</dt><dd>{guest.name.trim()}</dd></div>
+            <div><dt>Email</dt><dd>{guest.email.trim()}</dd></div>
+            <div><dt>Phone</dt><dd>{guest.phone.trim()}</dd></div>
+            {guest.note.trim() ? <div><dt>Message</dt><dd>{guest.note.trim()}</dd></div> : null}
+          </dl>
+          {sending ? (
+            <div className="booking-dialog-loading" role="status">
+              <span className="booking-spinner" aria-hidden="true" />
+              <span>Saving your reservation…</span>
+            </div>
+          ) : null}
+          {confirmError ? <p className="booking-dialog-error" role="alert">{confirmError}</p> : null}
+          <div className="booking-dialog-actions">
+            <button className="booking-dialog-cancel" type="button" onClick={dismissDialog} disabled={sending}>Cancel</button>
+            <button className="btn" type="button" onClick={confirmBooking} disabled={sending}>Continue <span aria-hidden="true">↗</span></button>
+          </div>
+        </BookingDialog>
+      ) : null}
+      {dialog === "enquiry-confirm" && enquiryDraft ? (
+        <BookingDialog titleId="enquiry-confirm-title" title="Confirm your message" kicker="Review before sending" busy={sending} onDismiss={dismissDialog}>
+          <p className="booking-dialog-lead">Check the details below. Nothing is sent until you choose Continue.</p>
+          <dl className="booking-dialog-list">
+            <div><dt>Name</dt><dd>{enquiryDraft.name}</dd></div>
+            <div><dt>Email</dt><dd>{enquiryDraft.email}</dd></div>
+            <div><dt>Phone</dt><dd>{enquiryDraft.phone || "Not provided"}</dd></div>
+            <div><dt>Subject</dt><dd>{enquiryDraft.subject}</dd></div>
+            <div><dt>Message</dt><dd>{enquiryDraft.message}</dd></div>
+          </dl>
+          {sending ? (
+            <div className="booking-dialog-loading" role="status">
+              <span className="booking-spinner" aria-hidden="true" />
+              <span>Sending your message…</span>
+            </div>
+          ) : null}
+          {confirmError ? <p className="booking-dialog-error" role="alert">{confirmError}</p> : null}
+          <div className="booking-dialog-actions">
+            <button className="booking-dialog-cancel" type="button" onClick={dismissDialog} disabled={sending}>Cancel</button>
+            <button className="btn" type="button" onClick={confirmEnquiry} disabled={sending}>Continue <span aria-hidden="true">↗</span></button>
+          </div>
+        </BookingDialog>
+      ) : null}
+      {dialog === "enquiry-success" ? (
+        <BookingDialog titleId="enquiry-success-title" title="Thank you" kicker="Message received" onDismiss={dismissDialog}>
+          <p className="booking-dialog-lead">We have received your message. Please check your email for our reply.</p>
+          <div className="booking-dialog-actions">
+            <button className="btn" type="button" onClick={dismissDialog}>Close</button>
+          </div>
+        </BookingDialog>
+      ) : null}
+      {dialog === "success" ? (
+        <BookingDialog titleId="booking-success-title" title="Thank you" kicker="Reservation received" onDismiss={dismissDialog}>
+          <p className="booking-dialog-lead">We have received your reservation request. Please check your email for our reply. The owner will confirm availability before the stay is final.</p>
+          <div className="booking-dialog-actions">
+            <button className="btn" type="button" onClick={dismissDialog}>Close</button>
+          </div>
+        </BookingDialog>
+      ) : null}
     </>
   );
 }

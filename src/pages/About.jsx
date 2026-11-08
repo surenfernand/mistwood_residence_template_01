@@ -393,7 +393,7 @@ export default function About() {
                 <p className="ab-stay-label"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 16h9l3-5h8l3 5h9v22H8Z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" /><circle cx="24" cy="27" r="6" fill="none" stroke="currentColor" strokeWidth="2" /></svg><span>Photographs</span></p>
                 <h2 id="photos-heading">Explore the Residence Through <em>Our Gallery</em></h2>
                 <p className="ab-stay-lead">Get a closer look at the living room, dining area, balcony, and entrance—each designed for a relaxed and comfortable highland stay.</p>
-                <Link className="ab-stay-gallery" to="/photos"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 16h9l3-5h8l3 5h9v22H8Z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" /><circle cx="24" cy="27" r="6" fill="none" stroke="currentColor" strokeWidth="2" /></svg><span>Open the Hotel Photos</span><b aria-hidden="true">→</b></Link>
+                <Link className="ab-stay-gallery" to="/apartments"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 16h9l3-5h8l3 5h9v22H8Z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" /><circle cx="24" cy="27" r="6" fill="none" stroke="currentColor" strokeWidth="2" /></svg><span>Open the Photo Gallery</span><b aria-hidden="true">→</b></Link>
               </div>
               <div className="ab-stay-collage" aria-label="Apartment photographs">
                 <img className="ab-stay-photo-one" alt="The balcony looking over the hills" src="/assets/stay-balcony.jpg" loading="lazy" />

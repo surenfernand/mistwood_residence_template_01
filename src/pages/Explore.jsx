@@ -149,7 +149,7 @@ export default function Explore() {
                 ))}
               </div>
             </div>
-            <div className="experiences-cta"><Link className="mh-btn" to="/explore#map">Explore All Attractions <span aria-hidden="true">→</span></Link></div>
+     
           </div>
         </section>
         <section className="ab-location" id="map">

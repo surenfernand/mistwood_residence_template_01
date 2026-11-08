@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { ATTRACTIONS } from "../data/attractions.js";
 
 const files = [
   ["https://commons.wikimedia.org/wiki/File:Tea%20plantations%20near%20Nuwara%20Eliya%2C%20Sri%20Lanka%20-%20panoramio.jpg", "Tea plantations near Nuwara Eliya, Sri Lanka - panoramio.jpg"],
@@ -22,6 +23,16 @@ export default function Credits() {
         {files.map(([href, label]) => (
           <p key={href}><a href={href} rel="noopener noreferrer" target="_blank">{label}</a></p>
         ))}
+        <h2 id="attraction-photos">Attraction photographs</h2>
+        {ATTRACTIONS.map(({ id, name, photoCredit }) => photoCredit ? (
+          <p key={id}>
+            <a href={photoCredit.source} rel="noopener noreferrer" target="_blank">{name} — {photoCredit.title}</a>
+            {" by "}{photoCredit.author}{". "}
+            <a href={photoCredit.licenseUrl} rel="noopener noreferrer" target="_blank">{photoCredit.license}</a>
+            {". "}{photoCredit.changes}
+            {photoCredit.note ? <> {photoCredit.note}.</> : null}
+          </p>
+        ) : null)}
       </div>
     </section>
   );

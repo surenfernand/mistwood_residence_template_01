@@ -6,7 +6,6 @@ import { PageShell } from "./components/Chrome.jsx";
 import Home from "./pages/Home.jsx";
 import About from "./pages/About.jsx";
 import Apartments from "./pages/Apartments.jsx";
-import Photos from "./pages/Photos.jsx";
 import Gallery from "./pages/Gallery.jsx";
 import Explore from "./pages/Explore.jsx";
 import Deals from "./pages/Deals.jsx";
@@ -44,7 +43,6 @@ function AnimatedRoutes() {
         <Route path="/deals" element={<Deals />} />
         <Route path="/contact" element={<Contact />} />
         <Route element={<PageShell />}>
-          <Route path="/photos" element={<Photos />} />
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/policies" element={<Policies />} />
           <Route path="/credits" element={<Credits />} />

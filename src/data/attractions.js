@@ -1,9 +1,9 @@
+import imageCredits from "./attractionImageCredits.json";
+
 // Nearby attractions for the Explore page "Discover Nearby Attractions" section.
 //
-// Replacing placeholder photographs later:
-//   Drop a real image at the `image` path below (e.g. public/images/attractions/gregory-lake.jpg)
-//   and it will appear automatically. Until a file exists at that path, a themed local
-//   placeholder (public/images/attractions/placeholder.svg) is shown instead.
+// Photos are hosted locally, with source and license information in imageCredits.
+// The themed placeholder is retained only as a fallback for failed image requests.
 //
 // Distance / travel time are intentionally left null until the exact Mistwood Residence
 // street address is confirmed. When set to a string they will render on the cards and in
@@ -34,7 +34,7 @@ export const ATTRACTIONS = [
     description:
       "A scenic lake with boating, walking paths, and beautiful mountain views right beside the town.",
     image: "/images/attractions/gregory-lake.jpg",
-    alt: "Boats on Gregory Lake with flower-lined paths in Nuwara Eliya",
+    alt: "Gregory Lake and the green hills around Nuwara Eliya",
     distance: null,
     travelTime: null,
     maps: mapsUrl("Gregory Lake, Nuwara Eliya, Sri Lanka"),
@@ -46,7 +46,7 @@ export const ATTRACTIONS = [
     description:
       "Visit a working tea estate and see how Ceylon tea is grown, picked, and processed.",
     image: "/images/attractions/pedro-tea-estate.jpg",
-    alt: "Tea pickers working the slopes of Pedro Tea Estate",
+    alt: "Tea pickers in Nuwara Eliya, illustrative tea plantation photo",
     distance: null,
     travelTime: null,
     maps: mapsUrl("Pedro Tea Estate, Nuwara Eliya, Sri Lanka"),
@@ -58,7 +58,7 @@ export const ATTRACTIONS = [
     description:
       "A stunning national park with cloud forest, rich wildlife, and the famous World's End escarpment.",
     image: "/images/attractions/horton-plains.jpg",
-    alt: "Highland grassland path across Horton Plains National Park",
+    alt: "Sunrise over the mountains at Horton Plains",
     distance: null,
     travelTime: null,
     maps: mapsUrl("Horton Plains National Park, Sri Lanka"),
@@ -94,7 +94,7 @@ export const ATTRACTIONS = [
     description:
       "One of Sri Lanka's most beautiful botanical gardens, with a wide variety of roses, ferns, and orchids.",
     image: "/images/attractions/hakgala-garden.jpg",
-    alt: "Terraced lawns and flower beds at Hakgala Botanical Garden",
+    alt: "Entrance to Hakgala Botanical Garden",
     distance: null,
     travelTime: null,
     maps: mapsUrl("Hakgala Botanical Garden, Nuwara Eliya, Sri Lanka"),
@@ -154,7 +154,7 @@ export const ATTRACTIONS = [
     description:
       "The highest viewpoint near town, offering a rewarding short hike and sweeping highland vistas.",
     image: "/images/attractions/single-tree-hill.jpg",
-    alt: "View from Single Tree Hill over Nuwara Eliya",
+    alt: "Green slopes and the summit of Single Tree Hill",
     distance: null,
     travelTime: null,
     maps: mapsUrl("Single Tree Hill, Nuwara Eliya, Sri Lanka"),
@@ -190,7 +190,7 @@ export const ATTRACTIONS = [
     description:
       "A calm highland reservoir ringed by pine woodland, ideal for a quiet lakeside pause.",
     image: "/images/attractions/kande-ela-reservoir.jpg",
-    alt: "Pine woodland around the calm Kande Ela Reservoir",
+    alt: "Kande Ela Reservoir with its intake tower and wooded hills",
     distance: null,
     travelTime: null,
     maps: mapsUrl("Kande Ela Reservoir, Sri Lanka"),
@@ -202,7 +202,7 @@ export const ATTRACTIONS = [
     description:
       "A compact montane forest reserve within town, popular with birdwatchers and nature lovers.",
     image: "/images/attractions/galways-land.jpg",
-    alt: "Forest trail in Galway's Land National Park",
+    alt: "Forest vegetation in Galway's Land National Park",
     distance: null,
     travelTime: null,
     maps: mapsUrl("Galway's Land National Park, Nuwara Eliya, Sri Lanka"),
@@ -262,9 +262,12 @@ export const ATTRACTIONS = [
     description:
       "Pick-your-own strawberry farms along the Ambewela road, a sweet stop for families.",
     image: "/images/attractions/strawberry-farms.jpg",
-    alt: "Rows of strawberries at a farm along the Ambewela road",
+    alt: "Rows of strawberry plants at a farm, illustrative photo",
     distance: null,
     travelTime: null,
     maps: mapsUrl("Strawberry farms near Ambewela, Sri Lanka"),
   },
-];
+].map((attraction) => ({
+  ...attraction,
+  photoCredit: imageCredits.find((credit) => credit.id === attraction.id),
+}));

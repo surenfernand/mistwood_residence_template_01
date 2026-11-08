@@ -2,6 +2,9 @@ html:has(body.home) {
   scroll-behavior: smooth;
 }
 
+.attraction-image-note { display: block; margin: 8px 0 14px; color: #62665b; font-size: 12px; line-height: 1.5; }
+.attraction-image-note a { color: inherit; text-decoration: underline; }
+
 body.home {
   background: #f6f3ec;
   color: #241e18;
@@ -4257,6 +4260,10 @@ body.home .experience-card h3 {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px 18px;
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-inline-size: 0;
 }
 
 .ct-field {
@@ -4447,6 +4454,177 @@ body.home .experience-card h3 {
   text-underline-offset: 3px;
 }
 
+.booking-fields {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-inline-size: 0;
+}
+
+.booking-fields:disabled {
+  opacity: .72;
+}
+
+.booking-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(18, 24, 16, .55);
+  backdrop-filter: blur(3px);
+}
+
+.booking-dialog {
+  width: min(520px, 100%);
+  max-height: calc(100vh - 40px);
+  overflow: auto;
+  padding: 22px 24px 0;
+  border-radius: 22px;
+  background: #fffdf8;
+  color: #17231d;
+  text-align: left;
+  box-shadow: 0 28px 70px rgba(18, 24, 16, .35);
+}
+
+.booking-dialog:focus {
+  outline: none;
+}
+
+.booking-dialog h3 {
+  margin: 6px 0 10px;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: clamp(1.7rem, 2vw, 2.1rem);
+  font-weight: 600;
+  line-height: 1.15;
+}
+
+.booking-dialog-lead {
+  margin: 0 0 18px;
+  color: #5c564e;
+  line-height: 1.6;
+}
+
+.booking-dialog-list {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 8px;
+}
+
+.booking-dialog-list div {
+  display: grid;
+  grid-template-columns: 108px 1fr;
+  gap: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(28, 61, 44, .1);
+}
+
+.booking-dialog-list dt {
+  margin: 0;
+  color: #8a7350;
+  font: 600 11px/1.4 "Familjen Grotesk", sans-serif;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.booking-dialog-list dd {
+  margin: 0;
+  color: #17231d;
+  font-size: 15px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.booking-dialog-loading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 16px;
+  color: #1c3d2c;
+  font-size: 15px;
+}
+
+.booking-spinner {
+  width: 22px;
+  height: 22px;
+  border: 2.5px solid rgba(28, 61, 44, .18);
+  border-top-color: #1c3d2c;
+  border-radius: 50%;
+  animation: booking-spin .7s linear infinite;
+}
+
+@keyframes booking-spin {
+  to { transform: rotate(360deg); }
+}
+
+.booking-dialog-error {
+  margin: 0 0 14px;
+  color: #8a3b24;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.booking-dialog-actions {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin: 8px -24px 0;
+  padding: 14px 24px 18px;
+  background: linear-gradient(180deg, rgba(255, 253, 248, 0) 0%, #fffdf8 28%);
+}
+
+.booking-dialog-actions .btn:disabled,
+.booking-dialog-cancel:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.booking-dialog-cancel {
+  min-height: 50px;
+  padding: 0 18px;
+  border: 0;
+  background: transparent;
+  color: #5c564e;
+  cursor: pointer;
+  font: 600 12px/1 "Familjen Grotesk", sans-serif;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.booking-dialog-cancel:hover:not(:disabled) {
+  color: #17231d;
+}
+
+@media (max-width: 560px) {
+  .booking-dialog-list div {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .booking-dialog-actions {
+    flex-direction: column-reverse;
+  }
+
+  .booking-dialog-actions .btn,
+  .booking-dialog-cancel {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .booking-spinner {
+    animation: none;
+    border-top-color: rgba(28, 61, 44, .18);
+    border-right-color: #1c3d2c;
+  }
+}
+
 @media (max-width: 980px) {
 
   .offer-grid,
@@ -4629,26 +4807,13 @@ body.home .experience-card h3 {
   --ivory: #fffdf8;
   --charcoal: #17231d;
   position: relative;
-  isolation: isolate;
   overflow: hidden;
   padding: 72px 0 88px;
-  background-color: #e7ecdf;
-  background-size: 100% 100%;
-  background-position: center top;
-  background-repeat: no-repeat;
-}
-
-.attractions-overlay {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background: linear-gradient(180deg, rgba(248, 245, 239, .12) 0%, rgba(248, 245, 239, .22) 50%, rgba(248, 245, 239, .3) 100%);
+  background: #f7f3ea;
 }
 
 .attractions-section .mh-wrap.attractions-inner {
   position: relative;
-  z-index: 1;
   width: min(1320px, calc(100% - 64px));
 }
 
