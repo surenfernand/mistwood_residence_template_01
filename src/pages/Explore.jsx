@@ -3,11 +3,11 @@ import { Link } from "react-router-dom";
 import { HighlandFooter, HighlandHeader, PageHero } from "../components/Highland.jsx";
 
 const cards = [
-  ["Gregory Lake", "Walk the path around the water, or take a boat when the boats are running. Allow an hour or two.", "/assets/mistwood/explore/gregory-lake.png", "Gregory Lake in Nuwara Eliya, with boats on the water"],
-  ["Pedro Tea Estate", "A working estate where visitors can see the fields and how tea is processed. Allow about half a morning. A tea tour is not included with the apartment.", "/assets/mistwood/explore/tea-plantations.png", "Tea pickers in the plantations near Nuwara Eliya"],
-  ["Horton Plains", "A path across the highland grassland. The World's End cliff is further along the walk, when the mist lifts. The drive and the walk take most of a day.", "/assets/mistwood/explore/horton-plains.png", "A path across the highland grassland of Horton Plains"],
+  ["Gregory Lake", "Walk the path around the water, or take a boat when the boats are running. Allow an hour or two.", "/assets/mistwood/explore/gregory-lake.jpg", "Gregory Lake in Nuwara Eliya, with boats on the water"],
+  ["Pedro Tea Estate", "A working estate where visitors can see the fields and how tea is processed. Allow about half a morning. A tea tour is not included with the apartment.", "/assets/mistwood/explore/tea-plantations.jpg", "Tea pickers in the plantations near Nuwara Eliya"],
+  ["Horton Plains", "A path across the highland grassland. The World's End cliff is further along the walk, when the mist lifts. The drive and the walk take most of a day.", "/assets/mistwood/explore/horton-plains.jpg", "A path across the highland grassland of Horton Plains"],
   ["Lover's Leap Falls", "A waterfall in the tea hills, a shorter visit than Horton Plains. The path can be wet.", "/assets/places/leap.jpg", "Lover's Leap waterfall near Nuwara Eliya"],
-  ["Victoria Park", "A public garden in the middle of town, with flower beds and a lot of birds. Allow about an hour.", "/assets/mistwood/explore/victoria-park.png", "Flower beds and a path in Victoria Park, Nuwara Eliya"],
+  ["Victoria Park", "A public garden in the middle of town, with flower beds and a lot of birds. Allow about an hour.", "/assets/mistwood/explore/victoria-park.jpg", "Flower beds and a path in Victoria Park, Nuwara Eliya"],
   ["Hakgala Garden", "Roses, ferns, and orchids, depending on the season. Allow a morning. You pay the entry fee at the garden.", "/assets/places/hakgala.jpg", "The entrance to Hakgala Botanical Garden"],
 ];
 

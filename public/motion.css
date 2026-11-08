@@ -178,7 +178,7 @@ html.motion [data-reveal="stagger"].is-in > *:nth-child(7) { transition-delay: .
 html.motion [data-reveal="stagger"].is-in > *:nth-child(8) { transition-delay: .58s; }
 
 body.home .mh-header.topbar {
-  transition: background .3s ease, box-shadow .3s ease, backdrop-filter .3s ease, height .3s ease, border-color .3s ease;
+  transition: background .3s ease, box-shadow .3s ease, height .3s ease, border-color .3s ease;
 }
 body.home .mh-header.topbar.scrolled {
   height: 74px;

@@ -3,9 +3,9 @@ import { Link } from "react-router-dom";
 import { HighlandFooter, HighlandHeader } from "../components/Highland.jsx";
 
 const heroFrames = [
-  { src: "/assets/mistwood/backgrounds/tea-sunrise.png", spot: "is-sunrise", label: "Tea hills at sunrise", journey: "The Highlands" },
+  { src: "/assets/mistwood/backgrounds/tea-sunrise.jpg", spot: "is-sunrise", label: "Tea hills at sunrise", journey: "The Highlands" },
   { src: "/assets/mistwood/home/gregory-lake-shore.jpg", spot: "is-lake", label: "Gregory Lake", journey: "Tea Country" },
-  { src: "/assets/mistwood/explore/tea-plantations.png", spot: "is-plantations", label: "Tea plantations", journey: "The Residence" },
+  { src: "/assets/mistwood/explore/tea-plantations.jpg", spot: "is-plantations", label: "Tea plantations", journey: "The Residence" },
   { src: "/assets/mistwood/home/lake-boat.jpg", spot: "is-stay", label: "A boat on the lake below the hills", journey: "Your Stay" },
 ];
 
@@ -22,32 +22,26 @@ export default function Home() {
     heroFrames.forEach((item) => {
       const image = new Image();
       image.src = item.src;
+      image.decode?.().catch(() => {});
     });
 
     let tick = 0;
+    let lastPos = -1;
     const paint = () => {
       if (reduced || !pin || !hero || slides.length < 2) return;
       const top = pin.getBoundingClientRect().top;
       const total = Math.max(pin.offsetHeight - innerHeight, 0);
-      if (top > 1) {
-        hero.classList.remove("is-pinned", "is-released");
-      } else if (-top >= total - 1) {
-        hero.classList.remove("is-pinned");
-        hero.classList.add("is-released");
-      } else {
-        hero.classList.add("is-pinned");
-        hero.classList.remove("is-released");
-      }
       const scrolled = Math.min(Math.max(-top, 0), total);
       const progress = total > 0 ? scrolled / total : 0;
       const pos = progress * (slides.length - 1);
+      if (Math.abs(pos - lastPos) < 0.001) return;
+      lastPos = pos;
       slides.forEach((slide, index) => {
         const distance = index - pos;
         const opacity = Math.max(0, 1 - Math.abs(distance));
         slide.style.opacity = opacity.toFixed(3);
-        slide.style.transform = `translate3d(0, ${(distance * 6).toFixed(2)}%, 0)`;
-        const photo = slide.querySelector("img");
-        if (photo) photo.style.transform = `scale(${(1.1 - opacity * 0.08).toFixed(4)})`;
+        slide.style.transform = `translate3d(0, ${(Math.max(-1, Math.min(1, distance)) * 6).toFixed(2)}%, 0)`;
+        slide.style.visibility = opacity > 0 ? "visible" : "hidden";
       });
       const shown = Math.round(pos);
       if (shown !== frameRef.current) {
@@ -188,8 +182,8 @@ export default function Home() {
             <h2>Discover the Beauty Around</h2>
             <p className="mh-intro light">From serene lakes to rolling tea estates, explore the best of Nuwara Eliya during your stay at Mistwood Residence.</p>
             <div className="mh-places" data-reveal="stagger">
-              <Link to="/explore"><img alt="Gregory Lake in Nuwara Eliya, with boats on the water" src="/assets/mistwood/explore/gregory-lake.png" loading="lazy" /><span>Gregory Lake</span></Link>
-              <Link to="/explore"><img alt="Tea pickers in the plantations near Nuwara Eliya" src="/assets/mistwood/explore/tea-plantations.png" loading="lazy" /><span>Tea Plantations</span></Link>
+              <Link to="/explore"><img alt="Gregory Lake in Nuwara Eliya, with boats on the water" src="/assets/mistwood/explore/gregory-lake.jpg" loading="lazy" /><span>Gregory Lake</span></Link>
+              <Link to="/explore"><img alt="Tea pickers in the plantations near Nuwara Eliya" src="/assets/mistwood/explore/tea-plantations.jpg" loading="lazy" /><span>Tea Plantations</span></Link>
               <Link to="/explore"><img alt="The entrance to Hakgala Botanical Garden" src="/assets/places/hakgala.jpg" loading="lazy" /><span>Hakgala Botanical Garden</span></Link>
               <Link to="/explore"><img alt="Lover's Leap waterfall near Nuwara Eliya" src="/assets/places/leap.jpg" loading="lazy" /><span>Lovers' Leap</span></Link>
             </div>

@@ -92,7 +92,6 @@ body.home .mh-header.topbar {
 body.home .mh-header.topbar.scrolled {
   background: rgba(12, 32, 22, .96);
   box-shadow: 0 10px 28px rgba(0, 0, 0, .18);
-  backdrop-filter: blur(14px);
 }
 body.home .mh-brand {
   gap: 10px;
@@ -186,7 +185,7 @@ body.home .menu-btn {
 
 .mh-hero-pin {
   position: relative;
-  height: calc(100svh + 210vh);
+  height: calc(100svh + 120vh);
 }
 .mh-hero {
   position: sticky;
@@ -206,13 +205,13 @@ body.home .menu-btn {
   position: absolute;
   inset: -6% 0;
   opacity: 0;
+  will-change: opacity, transform;
 }
 .mh-hero-frame:first-child { opacity: 1; }
 .mh-hero-frame img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transform: scale(1.06);
 }
 .mh-hero-frame img.is-sunrise { object-position: center 42%; }
 .mh-hero-frame img.is-lake { object-position: center 62%; }
@@ -229,7 +228,7 @@ body.home .menu-btn {
 .mh-hero-shift,
 .ab-hero-shift { position: absolute; inset: -8%; }
 .mh-hero-photo,
-.ab-hero-photo { position: absolute; inset: 0; background: url("/assets/mistwood/backgrounds/tea-sunrise.png") center 42% / cover no-repeat; }
+.ab-hero-photo { position: absolute; inset: 0; background: url("/assets/mistwood/backgrounds/tea-sunrise.jpg") center 42% / cover no-repeat; }
 .ab-hero-photo { background-position: center 40%; }
 .mh-hero-shade {
   position: absolute;
@@ -310,9 +309,7 @@ body.home .mh-nav a.is-current { color: #f0d7a4; box-shadow: inset 0 -2px 0 #d4a
   left: 0;
   z-index: 3;
   color: #f6efe2;
-  background: rgba(8, 28, 18, 0.22);
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
+  background: linear-gradient(180deg, rgba(8, 28, 18, 0.38), rgba(8, 28, 18, 0.56));
   box-shadow: inset 0 1px 0 rgba(244, 228, 190, 0.16);
 }
 .mh-strip ul {
@@ -670,7 +667,7 @@ body.home .mh-nav a.is-current { color: #f0d7a4; box-shadow: inset 0 -2px 0 #d4a
   padding: 86px 0 78px;
   background:
     linear-gradient(180deg, rgba(16, 40, 28, .92) 0%, rgba(16, 40, 28, .78) 58%, rgba(16, 40, 28, .55) 100%),
-    url("/assets/mistwood/explore/tea-plantations.png") center 60% / cover no-repeat;
+    url("/assets/mistwood/explore/tea-plantations.jpg") center 60% / cover no-repeat;
   color: #fff;
   text-align: center;
 }
@@ -705,7 +702,7 @@ body.home .mh-nav a.is-current { color: #f0d7a4; box-shadow: inset 0 -2px 0 #d4a
   padding: 92px 0 88px;
   background:
     linear-gradient(180deg, rgba(70, 36, 8, .28), rgba(28, 18, 8, .5)),
-    url("/assets/mistwood/backgrounds/tea-sunset.png") center 45% / cover no-repeat;
+    url("/assets/mistwood/backgrounds/tea-sunset.jpg") center 45% / cover no-repeat;
   color: #fff;
   text-align: center;
 }
@@ -1061,7 +1058,7 @@ body.home .mh-nav a.is-current { color: #f0d7a4; box-shadow: inset 0 -2px 0 #d4a
   color: #fff;
   background:
     linear-gradient(180deg, rgba(12, 28, 18, .42), rgba(10, 24, 16, .5)),
-    url("/assets/mistwood/explore/horton-plains.png") center 55% / cover no-repeat;
+    url("/assets/mistwood/explore/horton-plains.jpg") center 55% / cover no-repeat;
 }
 .ab-mark {
   display: block;
@@ -1778,16 +1775,7 @@ body.home .mh-nav a.is-current { color: #f0d7a4; box-shadow: inset 0 -2px 0 #d4a
 .mh-gold-icon { width: 40px; height: 40px; object-fit: contain; }
 .ab-hero,
 .mh-footer { position: relative; }
-.mh-hero-pin > .mh-hero {
-  position: absolute;
-  top: 0;
-  right: 0;
-  left: 0;
-  width: 100%;
-  z-index: 1;
-}
-.mh-hero-pin > .mh-hero.is-pinned { position: fixed; }
-.mh-hero-pin > .mh-hero.is-released { top: auto; bottom: 0; }
+.mh-hero-pin > .mh-hero { z-index: 1; }
 .mh-hero-leaf,
 .ab-hero-leaf {
   position: absolute;

@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { HighlandFooter, HighlandHeader, PageHero } from "../components/Highland.jsx";
 
 const featured = {
-  image: "/assets/mistwood/backgrounds/tea-sunrise.png",
+  image: "/assets/mistwood/backgrounds/tea-sunrise.jpg",
   alt: "Sunrise over the tea hills near Nuwara Eliya",
   badge: "Most popular",
   title: "Highland Escape Deal",
@@ -42,7 +42,7 @@ const offers = [
     off: "15%",
   },
   {
-    image: "/assets/mistwood/backgrounds/tea-sunset.png",
+    image: "/assets/mistwood/backgrounds/tea-sunset.jpg",
     alt: "Sunset light over the tea hills near Nuwara Eliya",
     title: "Festive Holiday Deal",
     text: "Celebrate the season in Nuwara Eliya with exclusive holiday rates.",

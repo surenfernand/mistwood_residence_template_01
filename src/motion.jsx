@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 
-const HERO = "/assets/mistwood/backgrounds/tea-sunrise.png";
+const HERO = "/assets/mistwood/backgrounds/tea-sunrise.jpg";
 
 export function MotionBoot() {
   const { pathname } = useLocation();

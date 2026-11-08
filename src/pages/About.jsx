@@ -182,7 +182,7 @@ const guestNotes = [
       kind: "post",
       color: "#163628",
       text: "Last light on the tea fields, from the road just above the apartment. This is the Nuwara Eliya I wanted to show my parents.",
-      image: "/assets/mistwood/backgrounds/tea-sunset.png",
+      image: "/assets/mistwood/backgrounds/tea-sunset.jpg",
       imageAlt: "Sunset over the tea hills near Nuwara Eliya",
       likes: 73,
       comments: 9,
@@ -347,7 +347,7 @@ export default function About() {
               <p className="ab-note">The street address is sent when a stay is confirmed. From Colombo, the drive climbs into the hill country. By train, the scenic ride ends at Nanu Oya, then a short drive into town. Nuwara Eliya evenings are cool, so bring a warm layer.</p>
             </div>
             <figure className="ab-photo" data-reveal="image">
-              <img alt="Sunset over the tea hills near Nuwara Eliya" src="/assets/mistwood/backgrounds/tea-sunset.png" loading="lazy" />
+              <img alt="Sunset over the tea hills near Nuwara Eliya" src="/assets/mistwood/backgrounds/tea-sunset.jpg" loading="lazy" />
             </figure>
           </div>
         </section>
