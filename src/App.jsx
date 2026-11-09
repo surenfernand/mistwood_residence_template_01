@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { Route, Routes, useLocation } from "react-router-dom";
 import { IntroLoader, MotionBoot, RouteLoader } from "./motion.jsx";
 import { PhotoModal } from "./photos.jsx";
-import { PageShell } from "./components/Chrome.jsx";
+import { PageShell, SocialDock } from "./components/Chrome.jsx";
 import Home from "./pages/Home.jsx";
 import About from "./pages/About.jsx";
 import Apartments from "./pages/Apartments.jsx";
@@ -59,6 +59,7 @@ export default function App() {
       <MotionBoot />
       <IntroLoader />
       <AnimatedRoutes />
+      <SocialDock />
       <RouteLoader />
       <PhotoModal />
     </>

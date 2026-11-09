@@ -12,8 +12,10 @@ Build:
 
 Server (serves dist/ and the /api routes):
   npm run build
-  DATABASE_URL=postgres://user:pass@host:5432/db npm start
-  Run "npm start" alongside "npm run dev" to use the forms in development; Vite proxies /api to port 3000.
+  npm start
+  In development, keep "npm run dev" running and start the API with "npm run api".
+  That reads DATABASE_URL from .env and Vite proxies /api to port 3000.
+  Local Postgres for this machine listens on 127.0.0.1:5433, database mistwood.
 
 Database: PostgreSQL. Tables enquiries and booking_requests are created on startup.
 Images live in public/ and are baked into the Docker image.
