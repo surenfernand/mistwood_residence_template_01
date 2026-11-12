@@ -1,7 +1,15 @@
+import { addDays } from "./adminDates.js";
+
 const COLOMBO = "Asia/Colombo";
 
+/** Calendar night key (YYYY-MM-DD) in Asia/Colombo — never use `toISOString().slice(0, 10)`. */
 export function dayKey(date) {
-  return date.toISOString().slice(0, 10);
+  return new Intl.DateTimeFormat("en-CA", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    timeZone: COLOMBO,
+  }).format(date);
 }
 
 export function dateOnly(value) {
@@ -38,26 +46,33 @@ export function readableMonth(month) {
     month: "long",
     year: "numeric",
     timeZone: COLOMBO,
-  }).format(new Date(`${month}-01T00:00:00+05:30`));
+  }).format(new Date(`${month}-01T12:00:00+05:30`));
+}
+
+function weekdayColombo(iso) {
+  const name = new Intl.DateTimeFormat("en-US", { timeZone: COLOMBO, weekday: "short" }).format(
+    new Date(`${iso}T12:00:00+05:30`),
+  );
+  return { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 }[name] ?? 0;
 }
 
 function eachNightInRange(from, to, fn) {
   const start = dateOnly(from);
   const end = dateOnly(to);
   if (!/^\d{4}-\d{2}-\d{2}$/.test(start) || !/^\d{4}-\d{2}-\d{2}$/.test(end)) return;
-  for (let d = new Date(`${start}T00:00:00+05:30`); dayKey(d) < end; d.setUTCDate(d.getUTCDate() + 1)) {
-    fn(dayKey(d));
+  if (end <= start) return;
+  for (let cur = start; cur < end; cur = addDays(cur, 1)) {
+    fn(cur);
   }
 }
 
 /** @param {string} month YYYY-MM */
 export function buildCalendar(month, data) {
   const result = {};
-  const start = new Date(`${month}-01T00:00:00+05:30`);
-  const end = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth() + 1, 1));
+  const monthEnd = `${addMonths(month, 1)}-01`;
 
-  for (let d = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), 1)); d < end; d.setUTCDate(d.getUTCDate() + 1)) {
-    result[dayKey(d)] = { type: "available" };
+  for (let cur = `${month}-01`; cur < monthEnd; cur = addDays(cur, 1)) {
+    result[cur] = { type: "available" };
   }
 
   for (const block of data?.blocks || []) {
@@ -80,12 +95,13 @@ export function buildCalendar(month, data) {
 
 /** 42 cells for a Mon-start month grid (dashboard mini calendar). */
 export function monthGridCells(month) {
-  const first = new Date(`${month}-01T00:00:00+05:30`);
-  const offset = (first.getUTCDay() + 6) % 7;
+  const firstIso = `${month}-01`;
+  const offset = (weekdayColombo(firstIso) + 6) % 7;
+  const gridStart = addDays(firstIso, -offset);
+
   return Array.from({ length: 42 }, (_, index) => {
-    const d = new Date(Date.UTC(first.getUTCFullYear(), first.getUTCMonth(), 1 - offset + index));
-    const key = dayKey(d);
-    return { key, day: d.getUTCDate(), inMonth: key.slice(0, 7) === month };
+    const key = addDays(gridStart, index);
+    return { key, day: Number(key.slice(8, 10)), inMonth: key.startsWith(month) };
   });
 }
 

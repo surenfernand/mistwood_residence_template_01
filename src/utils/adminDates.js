@@ -20,7 +20,7 @@ export function isoDay(date = new Date()) {
 }
 
 export function addDays(iso, days) {
-  const base = new Date(`${iso}T00:00:00+05:30`);
+  const base = new Date(`${iso}T12:00:00+05:30`);
   base.setUTCDate(base.getUTCDate() + days);
-  return base.toISOString().slice(0, 10);
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Colombo" }).format(base);
 }

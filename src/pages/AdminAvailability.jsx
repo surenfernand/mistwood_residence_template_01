@@ -9,8 +9,9 @@ import {
   buildCalendar,
   countNightsByType,
   currentMonthKey,
-  dayKey,
+  monthGridCells,
   readableMonth,
+  todayKeyColombo,
 } from "../utils/adminAvailabilityCalendar.js";
 
 const icon = (symbol) => <span className="availability-icon" aria-hidden="true">{symbol}</span>;
@@ -59,7 +60,9 @@ export default function AdminAvailability() {
   }, [loadAvailability]);
 
   const calendar = useMemo(() => buildCalendar(month, data), [month, data]);
+  const gridCells = useMemo(() => monthGridCells(month), [month]);
   const counts = countNightsByType(calendar);
+  const todayKey = todayKeyColombo();
 
   const openBlockDialog = () => {
     setBlockForm(defaultBlockForm());
@@ -166,16 +169,15 @@ export default function AdminAvailability() {
                   ))}
                 </div>
                 <div className="calendar-days">
-                  {Array.from({ length: 42 }, (_, i) => {
-                    const first = new Date(`${month}-01T00:00:00+05:30`);
-                    const offset = (first.getUTCDay() + 6) % 7;
-                    const d = new Date(Date.UTC(first.getUTCFullYear(), first.getUTCMonth(), 1 - offset + i));
-                    const key = dayKey(d);
-                    const entry = calendar[key];
-                    const current = key.startsWith(month);
+                  {gridCells.map(({ key, day, inMonth }) => {
+                    const entry = inMonth ? calendar[key] : null;
+                    const type = inMonth ? entry?.type || "available" : "";
                     return (
-                      <div key={key} className={`calendar-day ${current ? "" : "outside"} ${entry?.type || ""}`}>
-                        <b>{d.getUTCDate()}</b>
+                      <div
+                        key={key}
+                        className={`calendar-day ${inMonth ? "" : "outside"} ${type}${todayKey === key ? " today" : ""}`}
+                      >
+                        <b>{day}</b>
                         {entry?.name ? (
                           <span>
                             {entry.type === "booked" ? "▰" : "◌"} {entry.name}

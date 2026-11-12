@@ -383,3 +383,39 @@ html.admin-reduce-motion .admin-profile b { transition: none !important; }
   border-radius: 8px;
   background: #fff;
 }
+
+.availability-content { padding: 0 24px 32px; }
+.availability-metrics { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; margin: 16px 0; }
+.availability-metrics article { border: 1px solid #e5e0d5; border-radius: 12px; padding: 14px 16px; background: #fffdfa; }
+.availability-metrics article span { display: block; color: #626b64; font-size: 12px; }
+.availability-metrics article strong { display: block; margin-top: 8px; font: 600 26px/1 "Playfair Display", Georgia, serif; color: #123d2d; }
+.availability-card { border: 1px solid #e4e0d7; border-radius: 13px; background: rgba(255, 255, 255, .85); box-shadow: 0 3px 10px rgba(40, 31, 13, .04); overflow: hidden; }
+.calendar-controls { display: grid; grid-template-columns: auto 1fr auto auto auto auto auto; gap: 10px; align-items: center; padding: 16px 18px; border-bottom: 1px solid #ece8df; }
+.calendar-controls strong { font: 600 18px/1 "Playfair Display", Georgia, serif; color: #103d2b; text-align: center; }
+.calendar-layout { display: grid; grid-template-columns: 1.45fr 1fr; gap: 14px; padding: 16px 18px 18px; }
+.calendar-weekdays, .calendar-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.calendar-weekdays { margin-bottom: 6px; text-align: center; font-size: 11px; color: #5f6962; }
+.calendar-day { min-height: 72px; border: 1px solid #ece7de; border-radius: 8px; padding: 6px 7px; font-size: 11px; line-height: 1.35; background: #ddefd8; }
+.calendar-day b { display: block; font-size: 12px; color: #1a3f2e; }
+.calendar-day span { display: block; margin-top: 4px; color: #2d4a3c; font-size: 10px; overflow: hidden; text-overflow: ellipsis; }
+.calendar-day.outside { color: #b0aca4; background: #f7f6f3; opacity: .85; }
+.calendar-day.available { background: #ddefd8; }
+.calendar-day.booked { background: #f6d2d1; }
+.calendar-day.pending { background: #f9e6aa; }
+.calendar-day.blocked { background: #d4e8f7; }
+.calendar-day.today b { display: inline-flex; min-width: 22px; min-height: 22px; align-items: center; justify-content: center; border-radius: 50%; color: #fff; background: #245940; }
+.calendar-side section { margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px solid #ebe6dc; }
+.calendar-side h2 { margin: 0 0 10px; font: 600 17px/1.2 "Playfair Display", Georgia, serif; color: #103d2b; }
+.calendar-side .legend { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 12px; }
+.calendar-side .legend i { width: 22px; height: 16px; border-radius: 4px; font-style: normal; }
+.calendar-side .legend i.available { background: #ddefd8; }
+.calendar-side .legend i.booked { background: #f6d2d1; }
+.calendar-side .legend i.blocked { background: #d4e8f7; }
+.calendar-side .legend i.pending { background: #f9e6aa; }
+.calendar-side .upcoming { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 10px; font-size: 12px; }
+.calendar-side .upcoming strong { display: block; color: #183f2e; }
+.calendar-side .upcoming span { color: #6d7670; }
+.availability-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 14px 18px; border-top: 1px solid #ece8df; background: #f8f6f1; }
+.availability-actions button { min-height: 38px; border: 1px solid #d5dbcf; border-radius: 8px; padding: 0 14px; background: #fff; color: #275b41; font: 500 13px Outfit, sans-serif; cursor: pointer; }
+.availability-actions button.primary { border-color: #0c452e; color: #fff; background: #0c452e; }
+@media (max-width: 900px) { .calendar-layout { grid-template-columns: 1fr; } .availability-metrics { grid-template-columns: repeat(2, 1fr); } }
