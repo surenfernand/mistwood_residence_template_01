@@ -7,14 +7,18 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "start": "node server/index.js",
-    "api": "node --env-file=.env server/index.js"
+    "start": "node --env-file=.env server/index.js",
+    "api": "node --trace-warnings --env-file=.env server/index.js",
+    "seed:bookings": "node --env-file=.env server/seed-bookings.js",
+    "dev:all": "npx concurrently --kill-others-on-fail -n web,api -c blue,green \"npm run dev\" \"npm run api\""
   },
   "dependencies": {
     "express": "^5.3.0",
     "leaflet": "^1.9.4",
     "leaflet.markercluster": "^1.5.3",
+    "nodemailer": "^10.5.0",
     "pg": "^8.23.1",
+    "qrcode": "^1.5.4",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-router-dom": "^7.9.4"

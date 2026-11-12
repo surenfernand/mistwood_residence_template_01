@@ -14,12 +14,42 @@
 
 export const GALLERY_FILTERS = [
   "All Photos",
+  "Overview",
   "Bedrooms",
   "Living Room",
   "Kitchen",
   "Bathroom",
   "Balcony & Views",
   "Details",
+];
+
+/** Apartment walk-through and view clips (Overview filter). */
+export const GALLERY_VIDEOS = [
+  {
+    src: "/assets/mistwood/videos/mistwood-living-room.mp4",
+    poster: "/assets/room.jpg",
+    alt: "Walk-through of the Mistwood Residence living room",
+    label: "Living room",
+  },
+  {
+    src: "/assets/mistwood/videos/mistwood-balcony-panorama.mp4",
+    poster: "/assets/stay-balcony.jpg",
+    alt: "Panoramic view from the Mistwood Residence balcony",
+    label: "Balcony panorama",
+  },
+  {
+    src: "/assets/mistwood/videos/mistwood-balcony-mist.mp4",
+    poster: "/assets/stay-balcony.jpg",
+    alt: "Misty morning view from the balcony",
+    label: "Morning mist",
+  },
+ 
+  {
+    src: "/assets/mistwood/videos/mistwood-tea-valley.mp4",
+    poster: "/assets/mistwood/explore/tea-plantations-card.jpg",
+    alt: "Tea valleys surrounding Nuwara Eliya",
+    label: "Tea country",
+  },
 ];
 
 export const GALLERY_PHOTOS = [

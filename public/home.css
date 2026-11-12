@@ -313,7 +313,8 @@ body.home .menu-btn {
   opacity: 1;
 }
 
-.mh-hero-frame img {
+.mh-hero-frame img,
+.mh-hero-frame video {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -333,6 +334,10 @@ body.home .menu-btn {
 
 .mh-hero-frame img.is-stay {
   object-position: center 58%;
+}
+
+.mh-hero-frame video.is-views {
+  object-position: center 52%;
 }
 
 .mh-hero-scene,
@@ -530,8 +535,12 @@ body.home .mh-nav a.is-current {
   margin: 0;
 }
 
-.mh-about-photo img {
+.mh-about-photo img,
+.mh-about-photo video {
+  display: block;
+  width: 100%;
   height: 430px;
+  object-fit: cover;
   border-radius: 22px;
   box-shadow: 0 22px 50px rgba(36, 42, 24, .16);
 }
@@ -1164,7 +1173,8 @@ body.home .mh-nav a.is-current {
   box-shadow: 0 10px 24px rgba(45, 36, 22, .07);
 }
 
-.mh-way-grid article>img {
+.mh-way-grid article>img,
+.mh-way-grid article>video {
   width: 100%;
   height: 210px;
   object-fit: cover;
@@ -1172,7 +1182,8 @@ body.home .mh-nav a.is-current {
   transition: transform .45s ease;
 }
 
-.mh-way-grid article:hover>img {
+.mh-way-grid article:hover>img,
+.mh-way-grid article:hover>video {
   transform: scale(1.04);
 }
 
@@ -1374,6 +1385,24 @@ body.home .mh-nav a.is-current {
   }
 }
 
+/* style.css hides .nav below 1280px and applies a light panel background; keep the
+   highland header layout on the home page until the dedicated mobile nav kicks in. */
+@media (max-width: 1280px) and (min-width: 981px) {
+  body.home .mh-nav {
+    top: auto;
+    right: auto;
+    left: 50%;
+    transform: translateX(-50%);
+    flex-direction: row;
+    align-items: center;
+    gap: 22px;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+  }
+}
+
 @media (max-width: 980px) {
   body.home .menu-btn {
     display: grid;
@@ -1464,6 +1493,7 @@ body.home .mh-nav a.is-current {
   }
 
   .mh-about-photo img,
+  .mh-about-photo video,
   .mh-deal img {
     height: 240px;
   }
@@ -2043,7 +2073,8 @@ body.home .experience-feature h3 {
   min-height: 100%;
 }
 
-.experience-card-photo img {
+.experience-card-photo img,
+.experience-card-photo video {
   display: block;
   width: 100%;
   height: 100%;
@@ -2107,7 +2138,8 @@ body.home .experience-card h3 {
   }
 
   .experience-feature:hover>img,
-  .experience-card:hover img {
+  .experience-card:hover img,
+  .experience-card:hover video {
     transform: scale(1.035);
   }
 }

@@ -1,8 +1,10 @@
-import { useEffect } from "react";
+import { useSiteTitle } from "../hooks/useSiteTitle.js";
 import { Link } from "react-router-dom";
+import { usePublicSettings } from "../hooks/usePublicSettings.js";
 
 export default function Policies() {
-  useEffect(() => { document.title = "Guest policies | Mistwood Residence"; }, []);
+  const pub = usePublicSettings();
+  useSiteTitle("Guest policies");
   return (
     <>
       <section className="hero short">
@@ -25,12 +27,19 @@ export default function Policies() {
           <article className="policy-block reveal" id="booking-policy">
             <span className="eyebrow">Booking</span>
             <h2>How a stay is reserved.</h2>
-            <p>You reserve the whole apartment, not a room. Nights are counted in Sri Lanka time, from the arrival date up to, but not including, the departure date. You do not need an account. A proposed deposit is 30 percent of the stay, paid to reserve the apartment, with the remaining 70 percent due at check-in. The sample of LKR 40,000, with LKR 12,000 to reserve and LKR 28,000 at check-in, is an illustration only. The owner will confirm the rate, the deposit, and the payment method before anyone can pay.</p>
+            <p>
+              You reserve the whole apartment, not a room. Nights are counted in Sri Lanka time, from the arrival date up to, but not including, the departure date.
+              Minimum stay: {pub.minNights} night{pub.minNights === 1 ? "" : "s"}
+              {pub.maxNights ? ` · maximum ${pub.maxNights} nights` : ""}.
+              {pub.requireDeposit === false
+                ? " No deposit is collected online when you book."
+                : ` A ${pub.depositPercent}% deposit is collected to reserve the apartment, with the balance due at check-in.`}
+            </p>
           </article>
           <article className="policy-block reveal" id="cancellation">
             <span className="eyebrow">Cancellation</span>
             <h2>If you need to change the dates.</h2>
-            <p>The owner will set how many days before arrival a stay can be changed or cancelled, and what happens to the deposit. Until that rule is written and approved, a date chosen on this website is not a booking and cannot be cancelled, because no stay has been taken.</p>
+            <p>{pub.cancellationPolicy}</p>
           </article>
           <article className="policy-block reveal" id="refund">
             <span className="eyebrow">Refund</span>

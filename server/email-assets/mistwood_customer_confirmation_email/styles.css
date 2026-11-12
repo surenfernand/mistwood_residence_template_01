@@ -1,0 +1,2 @@
+/* Optional browser preview enhancements. Important email styles are inline in index.html. */
+@media only screen and (max-width:600px){.body-pad{padding:12px 18px 24px!important}.info-cell{padding:14px 5px!important}.explore-photo{display:none!important}h1{font-size:27px!important}}

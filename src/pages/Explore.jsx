@@ -5,10 +5,12 @@ import "leaflet.markercluster/dist/MarkerCluster.css";
 import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 import { HighlandFooter, HighlandHeader, PageHero } from "../components/Highland.jsx";
 import Attractions from "../components/Attractions.jsx";
+import { usePublicSettings } from "../hooks/usePublicSettings.js";
+import { useSiteTitle } from "../hooks/useSiteTitle.js";
 
 const experiences = [
   { title: "Lake Gregory", text: "Enjoy a peaceful lakeside setting, perfect for walking, boating, and relaxing in the cool mountain air.", image: "03-lake-gregory.jpg", alt: "Boats and a flower-lined boardwalk beside Gregory Lake", icon: "water" },
-  { title: "Tea Plantations", text: "Explore the lush tea estates and discover Sri Lanka's rich tea heritage.", image: "04-tea-plantations.jpg", alt: "Green tea fields winding through the hills at sunset", icon: "tea" },
+  { title: "Tea Plantations", text: "Explore the lush tea estates and discover Sri Lanka's rich tea heritage.", video: "/assets/mistwood/videos/mistwood-tea-valley.mp4", poster: "/images/explore/04-tea-plantations.jpg", alt: "Green tea fields winding through the hills at sunset", icon: "tea" },
   { title: "Scenic Train Journeys", text: "Experience scenic railway journeys through misty hills, tea estates, and picturesque villages.", image: "05-scenic-train.jpg", alt: "A blue train crossing a stone railway viaduct in Sri Lanka's hill country", icon: "train" },
 ];
 
@@ -31,6 +33,7 @@ const mapAttractions = [
   { name: "Pedro Tea Estate", category: "Tea Plantation", coords: [6.9636, 80.7907], image: "/assets/mistwood/explore/tea-plantations-card.jpg", detail: "A working tea estate close to Nuwara Eliya.", query: "Pedro Tea Estate, Nuwara Eliya, Sri Lanka" },
   { name: "Victoria Park", category: "Garden & Recreation", coords: [6.96917, 80.76806], image: "/assets/mistwood/explore/victoria-park.jpg", detail: "A peaceful town-centre park with seasonal flowers and birds.", query: "Victoria Park, Nuwara Eliya, Sri Lanka" },
   { name: "Ramboda Falls", category: "Waterfall", coords: [7.05587, 80.69907], detail: "Waterfall views along the Ramboda stretch of the hill-country road.", query: "Ramboda Falls, Sri Lanka" },
+  { name: "Nanu Oya Falls", category: "Waterfall", coords: [6.94515, 80.73878], image: "/images/attractions/nanuoya-falls.jpg", detail: "Tiered falls beside Nanu Oya, with scenic trains on the viaduct overhead.", query: "Nanu Oya Falls, Nanu Oya, Sri Lanka" },
   { name: "Single Tree Hill", category: "Mountain Viewpoint", coords: [6.9578, 80.7625], detail: "A hilltop overlooking Nuwara Eliya and the surrounding highlands.", query: "Single Tree Hill, Nuwara Eliya, Sri Lanka" },
   { name: "Damro Labookellie Tea Centre", category: "Tea Plantation & Factory", coords: [7.024147, 80.719254], detail: "Tea estates and a tea centre in Labookellie.", query: "Damro Labookellie Tea Centre, Sri Lanka" },
   { name: "Bomburu Ella Waterfall", category: "Waterfall", coords: [6.94706, 80.83077], detail: "A broad waterfall in the forest near Perawella.", query: "Bomburu Ella Waterfall, Sri Lanka" },
@@ -45,8 +48,9 @@ const mapAttractions = [
 ];
 
 export default function Explore() {
+  const pub = usePublicSettings();
   const mapRef = useRef(null);
-  useEffect(() => { document.title = "Explore | Mistwood Residence"; }, []);
+  useSiteTitle("Explore");
   useEffect(() => {
     if (!mapRef.current) return undefined;
     let cancelled = false;
@@ -126,7 +130,7 @@ export default function Explore() {
             <header className="experiences-heading" data-reveal="up">
               <p className="mh-kicker">Explore Nuwara Eliya</p>
               <h2 id="experiences-title">A Day Trip, a Round of Golf, or the Train</h2>
-              <p className="experiences-lead">Discover unforgettable experiences around Mistwood Residence. From historic golf courses to scenic train journeys, Nuwara Eliya offers something for everyone.</p>
+              <p className="experiences-lead">Discover unforgettable experiences around {pub.propertyName}. From historic golf courses to scenic train journeys, Nuwara Eliya offers something for everyone.</p>
             </header>
             <div className="experiences-grid">
               <article className="experience-feature" data-reveal="up">
@@ -138,9 +142,9 @@ export default function Explore() {
                 </div>
               </article>
               <div className="experience-list">
-                {experiences.map(({ title, text, image, alt, icon }) => (
+                {experiences.map(({ title, text, image, video, poster, alt, icon }) => (
                   <article className="experience-card" key={title} data-reveal="up">
-                    <div className="experience-card-photo"><img src={`/images/explore/${image}`} alt={alt} loading="lazy" width="1600" height="1067" /></div>
+                    <div className="experience-card-photo">{video ? <video src={video} poster={poster} autoPlay muted loop playsInline preload="metadata" aria-label={`${title} scenery`} /> : <img src={`/images/explore/${image}`} alt={alt} loading="lazy" width="1600" height="1067" />}</div>
                     <div className="experience-card-copy">
                       <ExperienceIcon type={icon} />
                       <div><h3>{title}</h3><p>{text}</p></div>

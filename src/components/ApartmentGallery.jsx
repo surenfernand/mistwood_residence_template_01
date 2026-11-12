@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { usePhotos } from "../photos.jsx";
-import { GALLERY_FILTERS, GALLERY_PHOTOS } from "../data/galleryPhotos.js";
+import { GALLERY_FILTERS, GALLERY_PHOTOS, GALLERY_VIDEOS } from "../data/galleryPhotos.js";
 
 function FilterIcon({ name }) {
   const common = {
@@ -16,19 +16,60 @@ function FilterIcon({ name }) {
   };
   switch (name) {
     case "All Photos":
-      return (<svg {...common}><rect x="3" y="5" width="18" height="14" rx="2" /><circle cx="8.5" cy="10" r="1.6" /><path d="m5 17 5-4 4 3 2-2 3 3" /></svg>);
+      return (
+        <svg {...common}>
+          <rect x="3" y="5" width="18" height="14" rx="2" />
+          <circle cx="8.5" cy="10" r="1.6" />
+          <path d="m5 17 5-4 4 3 2-2 3 3" />
+        </svg>
+      );
+    case "Overview":
+      return (
+        <svg {...common}>
+          <circle cx="12" cy="12" r="9" />
+          <path d="m10 8 6 4-6 4Z" fill="currentColor" stroke="none" />
+        </svg>
+      );
     case "Bedrooms":
-      return (<svg {...common}><path d="M3 17v-4a2 2 0 0 1 2-2h11a3 3 0 0 1 3 3v3" /><path d="M3 11V7h6v4M21 17v2M3 17v2" /></svg>);
+      return (
+        <svg {...common}>
+          <path d="M3 17v-4a2 2 0 0 1 2-2h11a3 3 0 0 1 3 3v3" />
+          <path d="M3 11V7h6v4M21 17v2M3 17v2" />
+        </svg>
+      );
     case "Living Room":
-      return (<svg {...common}><path d="M5 11V9a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v2" /><path d="M4 11a2 2 0 0 1 2 2v3h12v-3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v5H2v-5a2 2 0 0 1 2-2Z" /></svg>);
+      return (
+        <svg {...common}>
+          <path d="M5 11V9a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v2" />
+          <path d="M4 11a2 2 0 0 1 2 2v3h12v-3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v5H2v-5a2 2 0 0 1 2-2Z" />
+        </svg>
+      );
     case "Kitchen":
-      return (<svg {...common}><path d="M5 3v7a3 3 0 0 0 6 0V3M8 3v18M16 3c-1.5 0-2.5 1.8-2.5 4s1 4 2.5 4m0-8c1.5 0 2.5 1.8 2.5 4s-1 4-2.5 4m0 0v6" /></svg>);
+      return (
+        <svg {...common}>
+          <path d="M5 3v7a3 3 0 0 0 6 0V3M8 3v18M16 3c-1.5 0-2.5 1.8-2.5 4s1 4 2.5 4m0-8c1.5 0 2.5 1.8 2.5 4s-1 4-2.5 4m0 0v6" />
+        </svg>
+      );
     case "Bathroom":
-      return (<svg {...common}><path d="M4 12h16v2a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4v-2Z" /><path d="M6 12V6a2 2 0 0 1 2-2c1 0 1.6.6 2 1.4M7 18l-1 2M18 18l1 2" /></svg>);
+      return (
+        <svg {...common}>
+          <path d="M4 12h16v2a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4v-2Z" />
+          <path d="M6 12V6a2 2 0 0 1 2-2c1 0 1.6.6 2 1.4M7 18l-1 2M18 18l1 2" />
+        </svg>
+      );
     case "Balcony & Views":
-      return (<svg {...common}><path d="M3 20h18M4 20V9l8-5 8 5v11M9 20v-5h6v5" /><path d="M4 9h16" /></svg>);
+      return (
+        <svg {...common}>
+          <path d="M3 20h18M4 20V9l8-5 8 5v11M9 20v-5h6v5" />
+          <path d="M4 9h16" />
+        </svg>
+      );
     case "Details":
-      return (<svg {...common}><path d="M12 3c2.5 3 5 5.5 5 9a5 5 0 0 1-10 0c0-3.5 2.5-6 5-9Z" /></svg>);
+      return (
+        <svg {...common}>
+          <path d="M12 3c2.5 3 5 5.5 5 9a5 5 0 0 1-10 0c0-3.5 2.5-6 5-9Z" />
+        </svg>
+      );
     default:
       return null;
   }
@@ -38,18 +79,19 @@ export default function ApartmentGallery() {
   const { openPhoto } = usePhotos();
   const [active, setActive] = useState("All Photos");
 
-  // Only show filters that actually have photos (plus the virtual "All Photos").
   const filters = useMemo(
     () =>
-      GALLERY_FILTERS.filter(
-        (name) => name === "All Photos" || GALLERY_PHOTOS.some((p) => p.category === name),
-      ),
+      GALLERY_FILTERS.filter((name) => {
+        if (name === "All Photos") return true;
+        if (name === "Overview") return GALLERY_VIDEOS.length > 0;
+        return GALLERY_PHOTOS.some((p) => p.category === name);
+      }),
     [],
   );
 
-  // For "All Photos" interleave the categories so the collage stays varied
-  // instead of showing every bedroom first. Other filters keep data order.
-  const visible = useMemo(() => {
+  const visiblePhotos = useMemo(() => {
+    if (active === "Overview") return [];
+
     if (active !== "All Photos") return GALLERY_PHOTOS.filter((p) => p.category === active);
 
     const buckets = new Map();
@@ -57,14 +99,14 @@ export default function ApartmentGallery() {
       if (!buckets.has(photo.category)) buckets.set(photo.category, []);
       buckets.get(photo.category).push(photo);
     }
-    const order = filters.filter((name) => name !== "All Photos");
+    const order = filters.filter((name) => name !== "All Photos" && name !== "Overview");
     const mixed = [];
     let added = true;
     while (added) {
       added = false;
       for (const name of order) {
         const list = buckets.get(name);
-        if (list && list.length) {
+        if (list?.length) {
           mixed.push(list.shift());
           added = true;
         }
@@ -73,9 +115,11 @@ export default function ApartmentGallery() {
     return mixed;
   }, [active, filters]);
 
+  const showVideos = active === "Overview";
+
   const open = (photo) => {
-    const index = visible.indexOf(photo);
-    openPhoto({ ...photo, gallery: visible, index });
+    const index = visiblePhotos.indexOf(photo);
+    openPhoto({ ...photo, gallery: visiblePhotos, index });
   };
 
   return (
@@ -106,19 +150,37 @@ export default function ApartmentGallery() {
           ))}
         </div>
 
-        <div className="apt-gallery-grid">
-          {visible.map((photo) => (
-            <button
-              type="button"
-              className="apt-tile"
-              key={photo.src}
-              onClick={() => open(photo)}
-              aria-label={`Open photo: ${photo.alt}`}
-            >
-              <img src={photo.src} alt={photo.alt} loading="lazy" />
-            </button>
-          ))}
-        </div>
+        {showVideos ? (
+          <div className="apt-gallery-grid apt-gallery-videos">
+            {GALLERY_VIDEOS.map((item) => (
+              <figure className="apt-tile apt-tile-video" key={item.src}>
+                <video
+                  src={item.src}
+                  // poster={item.poster}
+                  controls
+                  playsInline
+                  preload="metadata"
+                  aria-label={item.alt}
+                />
+                {item.label ? <figcaption>{item.label}</figcaption> : null}
+              </figure>
+            ))}
+          </div>
+        ) : (
+          <div className="apt-gallery-grid">
+            {visiblePhotos.map((photo) => (
+              <button
+                type="button"
+                className="apt-tile"
+                key={photo.src}
+                onClick={() => open(photo)}
+                aria-label={`Open photo: ${photo.alt}`}
+              >
+                <img src={photo.src} alt={photo.alt} loading="lazy" />
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

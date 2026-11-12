@@ -1,0 +1,8 @@
+create table if not exists roles (id bigserial primary key, name text not null unique, description text, created_at timestamptz not null default now());
+create table if not exists permissions (id bigserial primary key, code text not null unique, label text not null);
+create table if not exists role_permissions (role_id bigint not null references roles(id) on delete cascade, permission_id bigint not null references permissions(id) on delete cascade, primary key(role_id,permission_id));
+create table if not exists admin_role_assignments (admin_id bigint primary key references admins(id) on delete cascade, role_id bigint not null references roles(id), assigned_at timestamptz not null default now());
+create table if not exists admin_access_logs (id bigserial primary key, admin_id bigint references admins(id) on delete set null, action text not null, ip_address inet, created_at timestamptz not null default now());
+insert into roles(name,description) values ('Owner','Full access to all features and settings.'),('Manager','Manage bookings, guests, payments and reports.'),('Booking Staff','Handle booking requests and guest communication.'),('Housekeeping','Manage cleaning schedules and stay preparations.') on conflict(name) do nothing;
+insert into permissions(code,label) values ('dashboard','Dashboard'),('bookings','Bookings'),('availability','Availability & Calendar'),('rates','Rates & Pricing'),('payments','Payments'),('guests','Guests & Enquiries'),('reports','Reports'),('settings','Settings') on conflict(code) do nothing;
+insert into admin_role_assignments(admin_id,role_id) select a.id,r.id from admins a join roles r on r.name='Owner' where not exists(select 1 from admin_role_assignments x where x.admin_id=a.id) limit 1;

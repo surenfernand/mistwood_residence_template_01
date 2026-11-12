@@ -1,28 +1,33 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { HighlandFooter, HighlandHeader } from "../components/Highland.jsx";
+import { usePublicSettings } from "../hooks/usePublicSettings.js";
+import { useSiteTitle } from "../hooks/useSiteTitle.js";
 
 const heroFrames = [
   { src: "/assets/mistwood/backgrounds/tea-sunrise.jpg", spot: "Tea sunrise", label: "Tea plantations at sunrise", journey: "The Residence" },
   { src: "/assets/mistwood/backgrounds/railway-sunset.jpg", spot: "is-sunrise", label: "Railway through the Nuwara Eliya hills at sunset", journey: "The Highlands" },
   { src: "/assets/mistwood/backgrounds/pexels-thilina-alagiyawanna-3266092-36847091.jpg", spot: "is-lake", label: "Gregory Lake", journey: "Tea Country" },
   { src: "/assets/mistwood/home/lake-boat.jpg", spot: "is-stay", label: "A boat on the lake below the hills", journey: "Your Stay" },
+  // { src: "/assets/mistwood/videos/mistwood-highland-view.mp4", poster: "/assets/stay-balcony.jpg", type: "video", spot: "is-views", label: "Mistwood's sweeping highland view", journey: "Breathtaking Views" },
 ];
 
 export default function Home() {
+  const pub = usePublicSettings();
   const [frame, setFrame] = useState(0);
   const frameRef = useRef(0);
 
+  useSiteTitle("Home");
+
   useEffect(() => {
-    document.title = "Home | Mistwood Residence";
     const pin = document.querySelector(".mh-hero-pin");
     const hero = pin?.querySelector(".mh-hero");
     const slides = [...document.querySelectorAll(".mh-hero-frame")];
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    heroFrames.forEach((item) => {
+    heroFrames.filter((item) => item.type !== "video").forEach((item) => {
       const image = new Image();
       image.src = item.src;
-      image.decode?.().catch(() => {});
+      image.decode?.().catch(() => { });
     });
 
     let tick = 0;
@@ -84,12 +89,12 @@ export default function Home() {
       <HighlandHeader />
 
       <main>
-        <section className="mh-hero-pin" id="top" aria-label="Mistwood Residence">
+        <section className="mh-hero-pin" id="top" aria-label={pub.propertyName}>
           <div className="mh-hero" data-parallax>
             <div className="mh-hero-scene" aria-hidden="true">
               {heroFrames.map((item, index) => (
                 <div key={item.src} className={index === frame ? "mh-hero-frame is-current" : "mh-hero-frame"}>
-                  <img alt="" className={item.spot} src={item.src} />
+                  {item.type === "video" ? <video className={item.spot} src={item.src} poster={item.poster} autoPlay muted loop playsInline preload="metadata" /> : <img alt="" className={item.spot} src={item.src} />}
                 </div>
               ))}
             </div>
@@ -97,8 +102,8 @@ export default function Home() {
             {/* <img className="mh-hero-leaf" alt="" src="/assets/mistwood/decorations/leaf-branch.png" /> */}
             <div className="mh-wrap mh-hero-copy">
               <p className="mh-kicker light">Escape to the Highlands</p>
-              <h1>Mistwood Residence</h1>
-              <p className="mh-lead">Where Tea Hills Meet Modern Comfort</p>
+              <h1>{pub.propertyName}</h1>
+              <p className="mh-lead">{pub.tagline}</p>
               <a className="mh-btn ghost" href="#about">Discover the Experience <span aria-hidden="true">→</span></a>
             </div>
             <nav className="mh-journey" aria-label="Hero photographs">
@@ -133,15 +138,15 @@ export default function Home() {
           <div className="mh-sprig sprig-left" aria-hidden="true" />
           <div className="mh-wrap mh-about-grid">
             <figure className="mh-about-photo" data-reveal="image">
-              <img alt="The living room at Mistwood Residence, open toward the hills" src="/assets/room.jpg" />
+              <img alt={`The living room at ${pub.propertyName}, open toward the hills`} src="/assets/room.jpg" />
             </figure>
             <div className="mh-about-copy" data-reveal="right">
               <p className="mh-kicker gold">About Mistwood</p>
               <h2>A Tranquil Retreat in Nuwara Eliya</h2>
-              <p>Mistwood Residence is a charming apartment in the heart of Nuwara Eliya, offering modern comfort, serene surroundings, and easy access to the region’s most beautiful attractions.</p>
+              <p>{pub.propertyDescription}</p>
               <ul className="mh-perks">
                 <li><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M4.5 14.5 16 5l11.5 9.5v11.5H4.5Z" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /><path d="M13 26V18h6v8" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /></svg><span>Entire Apartment</span></li>
-                <li><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="11" cy="11" r="3.25" fill="none" stroke="currentColor" strokeWidth="1.7" /><circle cx="21.5" cy="12.25" r="2.5" fill="none" stroke="currentColor" strokeWidth="1.7" /><path d="M4.5 25c.8-3.8 3.4-5.8 6.5-5.8s5.8 2 6.5 5.8M17.5 25c.55-2.7 2.35-4.25 4.65-4.25 2.45 0 4.25 1.55 4.85 4.25" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" /></svg><span>Up to 6 Guests</span></li>
+                <li><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="11" cy="11" r="3.25" fill="none" stroke="currentColor" strokeWidth="1.7" /><circle cx="21.5" cy="12.25" r="2.5" fill="none" stroke="currentColor" strokeWidth="1.7" /><path d="M4.5 25c.8-3.8 3.4-5.8 6.5-5.8s5.8 2 6.5 5.8M17.5 25c.55-2.7 2.35-4.25 4.65-4.25 2.45 0 4.25 1.55 4.85 4.25" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" /></svg><span>Up to {pub.maxGuests} Guests</span></li>
                 <li><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M4.5 12.5c6.25-5.8 16.75-5.8 23 0M8.5 16.5c4.1-3.75 10.9-3.75 15 0M12.5 20.5c1.95-1.75 5.05-1.75 7 0" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" /><circle cx="16" cy="24.25" r="1.55" fill="currentColor" /></svg><span>Free Wi-Fi</span></li>
                 <li><svg viewBox="0 0 32 32" aria-hidden="true"><rect x="5" y="4.5" width="22" height="23" rx="2.5" fill="none" stroke="currentColor" strokeWidth="1.7" /><path d="M12 24V9h5.2a4.15 4.15 0 0 1 0 8.3H12" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg><span>Private Parking</span></li>
               </ul>
@@ -178,7 +183,7 @@ export default function Home() {
           <div className="mh-wrap">
             <p className="mh-kicker light">Explore Nuwara Eliya</p>
             <h2>Discover the Beauty Around</h2>
-            <p className="mh-intro light">From serene lakes to rolling tea estates, explore the best of Nuwara Eliya during your stay at Mistwood Residence.</p>
+            <p className="mh-intro light">From serene lakes to rolling tea estates, explore the best of Nuwara Eliya during your stay at {pub.propertyName}.</p>
             <div className="mh-places" data-reveal="stagger">
               <Link to="/explore"><img alt="Swan boat on Gregory Lake in Nuwara Eliya" src="/assets/mistwood/explore/gregory-lake-card.jpg" loading="lazy" /><span>Gregory Lake</span></Link>
               <Link to="/explore"><img alt="Tea-covered hills near Nuwara Eliya" src="/assets/mistwood/explore/tea-plantations-card.jpg" loading="lazy" /><span>Tea Plantations</span></Link>
@@ -213,7 +218,7 @@ export default function Home() {
                 </div>
               </article>
               <article>
-                <img src="/assets/stay-balcony.jpg" alt="Balcony overlooking the green hills from Mistwood Residence" loading="lazy" />
+                <video src="/assets/mistwood/videos/mistwood-balcony-mist.mp4" poster="/assets/stay-balcony.jpg" autoPlay muted loop playsInline preload="metadata" aria-label="Misty morning view from the Mistwood Residence balcony" />
                 <div className="mh-way-copy">
                   <svg viewBox="0 0 32 32" aria-hidden="true"><path d="m4 23 8-9 5 5 4-4 7 8M4 27h24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /><path d="m18 10 3-3 3 3" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
                   <h3>Take in the View</h3>
@@ -227,7 +232,7 @@ export default function Home() {
         <section className="mh-cta" id="stay">
           <div className="mh-wrap" data-reveal="up">
             <h2>Ready for a Highland Getaway?</h2>
-            <p>Check availability and book your stay at Mistwood Residence today.</p>
+            <p>Check availability and book your stay at {pub.propertyName} today.</p>
             <Link className="mh-btn" to="/contact#booking">
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2" /><path d="M3.5 9.5h17M8 3.5v3M16 3.5v3" /></svg>
               Book Your Stay <span aria-hidden="true">→</span>

@@ -148,6 +148,18 @@ export const ATTRACTIONS = [
     maps: mapsUrl("Ramboda Falls, Sri Lanka"),
   },
   {
+    id: "nanuoya-falls",
+    name: "Nanu Oya Falls",
+    category: "Waterfalls",
+    description:
+      "A tiered cascade below the hill-country railway, where trains cross the viaduct right above the falls.",
+    image: "/images/attractions/nanuoya-falls.jpg",
+    alt: "Nanu Oya Falls with the railway bridge above the cascade",
+    distance: null,
+    travelTime: null,
+    maps: mapsUrl("Nanu Oya Falls, Nanu Oya, Sri Lanka"),
+  },
+  {
     id: "single-tree-hill",
     name: "Single Tree Hill",
     category: "Nature & Hiking",

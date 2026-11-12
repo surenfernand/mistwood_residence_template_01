@@ -2,9 +2,27 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import Calendar from "../components/Calendar.jsx";
 import { HighlandFooter, HighlandHeader, PageHero } from "../components/Highland.jsx";
+import { usePublicSettings } from "../hooks/usePublicSettings.js";
+import { useSiteTitle } from "../hooks/useSiteTitle.js";
+import { formatSettingsTime } from "../utils/formatSettingsTime.js";
+import { validateStayRange } from "../utils/bookingDateRules.js";
+import { getOfferEligibility } from "../utils/offerEligibility.js";
+import { formatOfferPeriod } from "../utils/offerPeriod.js";
 
-const SAMPLE_TOTAL = 40000;
-const DEPOSIT_SHARE = 0.3;
+function submitPayhereForm(checkoutUrl, fields) {
+  const form = document.createElement("form");
+  form.method = "POST";
+  form.action = checkoutUrl;
+  for (const [key, value] of Object.entries(fields)) {
+    const input = document.createElement("input");
+    input.type = "hidden";
+    input.name = key;
+    input.value = String(value);
+    form.appendChild(input);
+  }
+  document.body.appendChild(form);
+  form.submit();
+}
 
 function parseDay(value) {
   if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
@@ -97,6 +115,40 @@ function BookingDialog({ titleId, title, kicker, busy = false, onDismiss, childr
   );
 }
 
+function SelectedOfferBanner({ offer, eligible, reasons, onRemove }) {
+  return (
+    <article className={`booking-offer-banner${eligible === false ? " is-warning" : ""}`} data-reveal="up">
+      <button type="button" className="booking-offer-banner-close" aria-label="Remove this offer" onClick={onRemove}>
+        ×
+      </button>
+      {offer.imageUrl ? (
+        <img className="booking-offer-banner-photo" src={offer.imageUrl} alt="" />
+      ) : null}
+      <div className="booking-offer-banner-copy">
+        <p className="mh-kicker gold">Selected offer</p>
+        <h3>{offer.name}</h3>
+        {offer.description ? <p>{offer.description}</p> : null}
+        <ul className="booking-offer-banner-meta">
+          <li>
+            <strong>{offer.discountPercent}%</strong> off qualifying nights
+          </li>
+          <li>Valid {formatOfferPeriod(offer.startDate, offer.endDate)}</li>
+          <li>
+            Min. {offer.minNights} night{offer.minNights === 1 ? "" : "s"}
+          </li>
+        </ul>
+        {eligible === false && reasons?.length ? (
+          <p className="booking-offer-banner-warn" role="status">
+            {reasons.join(" ")}
+          </p>
+        ) : (
+          <p className="booking-offer-banner-note">Your total updates when dates match this offer.</p>
+        )}
+      </div>
+    </article>
+  );
+}
+
 async function send(url, payload) {
   const response = await fetch(url, {
     method: "POST",
@@ -109,7 +161,10 @@ async function send(url, payload) {
 }
 
 export default function Contact() {
-  const [params] = useSearchParams();
+  const pub = usePublicSettings();
+  const [params, setSearchParams] = useSearchParams();
+  const [selectedOffer, setSelectedOffer] = useState(null);
+  const [offerIneligibleReasons, setOfferIneligibleReasons] = useState([]);
   const initial = useMemo(() => ({
     start: parseDay(params.get("arrive")),
     end: parseDay(params.get("depart")),
@@ -125,10 +180,103 @@ export default function Contact() {
   const [sending, setSending] = useState(false);
   const [dialog, setDialog] = useState(null);
   const [confirmError, setConfirmError] = useState("");
+  const [quote, setQuote] = useState(null);
+  const [paymentOrderId, setPaymentOrderId] = useState("");
   const payRef = useRef(null);
   const enquiryFormRef = useRef(null);
 
-  useEffect(() => { document.title = "Contact us | Mistwood Residence"; }, []);
+  useSiteTitle("Contact us");
+
+  const bookingRules = useMemo(
+    () => ({
+      minNights: Number(pub.minNights) || 1,
+      maxNights: pub.maxNights != null ? Number(pub.maxNights) : null,
+      sameDayBooking: pub.sameDayBooking !== false,
+      advanceBookingDays: pub.advanceBookingDays != null ? Number(pub.advanceBookingDays) : null,
+      leadTimeHours: Number(pub.leadTimeHours) || 0,
+      checkInTime: pub.checkInTime || "14:00",
+    }),
+    [pub],
+  );
+
+  const offerParam = params.get("offer");
+
+  const clearSelectedOffer = useCallback(() => {
+    setSelectedOffer(null);
+    setOfferIneligibleReasons([]);
+    const next = new URLSearchParams(params);
+    next.delete("offer");
+    setSearchParams(next, { replace: true });
+  }, [params, setSearchParams]);
+
+  useEffect(() => {
+    if (!offerParam) {
+      setSelectedOffer(null);
+      return;
+    }
+    let active = true;
+    fetch("/api/offers")
+      .then((r) => (r.ok ? r.json() : { offers: [] }))
+      .then((data) => {
+        if (!active) return;
+        const found = (data.offers || []).find((row) => String(row.id) === String(offerParam));
+        setSelectedOffer(found || null);
+      })
+      .catch(() => {
+        if (active) setSelectedOffer(null);
+      });
+    return () => {
+      active = false;
+    };
+  }, [offerParam]);
+
+  useEffect(() => {
+    if (!offerParam) return undefined;
+    const timer = window.setTimeout(() => {
+      document.getElementById("booking")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 120);
+    return () => window.clearTimeout(timer);
+  }, [offerParam]);
+
+  useEffect(() => {
+    const status = params.get("payment");
+    if (status === "return") {
+      setPayNotice("Thank you — if your payment succeeded, a confirmation email will arrive shortly.");
+      setStep("payment");
+    }
+  }, [params]);
+
+  const offerEligibility = useMemo(() => {
+    if (!selectedOffer || !stay?.start || !stay?.end) return { eligible: null, reasons: [] };
+    return getOfferEligibility(selectedOffer, isoDay(stay.start), isoDay(stay.end));
+  }, [selectedOffer, stay]);
+
+  useEffect(() => {
+    if (!stay?.start || !stay?.end) {
+      setQuote(null);
+      return;
+    }
+    const arrive = isoDay(stay.start);
+    const depart = isoDay(stay.end);
+    const controller = new AbortController();
+    const qs = new URLSearchParams({ arrive, depart });
+    if (selectedOffer?.id) qs.set("offerId", String(selectedOffer.id));
+    fetch(`/api/pricing/quote?${qs}`, { signal: controller.signal })
+      .then(async (r) => {
+        const data = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(data.error || "Could not price this stay.");
+        return data;
+      })
+      .then((data) => {
+        setQuote(data);
+        setNotice("");
+      })
+      .catch((err) => {
+        setQuote(null);
+        if (err.name !== "AbortError") setNotice(err.message || "Could not price this stay.");
+      });
+    return () => controller.abort();
+  }, [stay, selectedOffer?.id]);
 
   useEffect(() => {
     if (step === "payment") payRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -152,6 +300,11 @@ export default function Contact() {
       setNotice("Please select your arrival and departure dates.");
       return;
     }
+    const rangeErr = validateStayRange(isoDay(stay.start), isoDay(stay.end), bookingRules);
+    if (rangeErr) {
+      setNotice(rangeErr);
+      return;
+    }
     if (!guest.name.trim() || !guest.email.trim() || !guest.phone.trim()) {
       setNotice("Please add your name, email address, and phone number.");
       return;
@@ -164,17 +317,33 @@ export default function Contact() {
       setNotice("Please confirm you have read the booking notes.");
       return;
     }
+    if (selectedOffer) {
+      const check = getOfferEligibility(selectedOffer, isoDay(stay.start), isoDay(stay.end));
+      if (!check.eligible) {
+        setOfferIneligibleReasons(check.reasons);
+        setConfirmError("");
+        setDialog("offer-ineligible");
+        return;
+      }
+    }
     setNotice("");
     setConfirmError("");
     setDialog("confirm");
+  };
+
+  const proceedWithoutOffer = () => {
+    clearSelectedOffer();
+    setDialog("confirm");
+    setOfferIneligibleReasons([]);
   };
 
   const confirmBooking = async () => {
     if (sending || !stay?.start || !stay?.end) return;
     setSending(true);
     setConfirmError("");
+    let data;
     try {
-      await send("/api/bookings", {
+      const payload = {
         name: guest.name,
         email: guest.email,
         phone: guest.phone,
@@ -182,7 +351,13 @@ export default function Contact() {
         guests,
         arrive: isoDay(stay.start),
         depart: isoDay(stay.end),
-      });
+      };
+      if (selectedOffer?.id && offerEligibility.eligible !== false) {
+        payload.offerId = selectedOffer.id;
+      }
+      data = await send("/api/bookings", payload);
+      setQuote(data.quote);
+      setPaymentOrderId(data.paymentOrderId);
     } catch (error) {
       setConfirmError(error.message);
       setSending(false);
@@ -190,13 +365,34 @@ export default function Contact() {
     }
     setSending(false);
     setNotice("");
-    setPayNotice("Your booking request has been saved. The owner will confirm availability with you.");
-    setStep("payment");
-    setDialog("success");
+    setPayNotice("");
+    if (!data.quote?.requireDeposit || Number(data.quote?.depositAmount) <= 0) {
+      setPayNotice("Your booking request is recorded. No deposit is required — we will confirm by email.");
+      setStep("details");
+    } else {
+      setStep("payment");
+    }
+    setDialog(null);
   };
 
-  const startPayment = () => {
-    setPayNotice("The payment gateway is not connected yet, so this deposit was not charged. Your details stay on this page until you leave it.");
+  const startPayment = async () => {
+    if (!paymentOrderId) {
+      setPayNotice("Please complete the booking form first.");
+      return;
+    }
+    setPayNotice("");
+    try {
+      const r = await fetch("/api/payments/payhere/init", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderId: paymentOrderId, purpose: "deposit" }),
+      });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.error || "Payment could not start.");
+      submitPayhereForm(data.checkoutUrl, data.fields);
+    } catch (error) {
+      setPayNotice(error.message);
+    }
   };
 
   const enquire = (event) => {
@@ -260,7 +456,7 @@ export default function Contact() {
                   </span>
                   <div>
                     <span>WhatsApp</span>
-                    <a href="https://wa.me/94765900800">+94 76 590 0800</a>
+                    <a href={pub.whatsappUrl}>{pub.contactPhone}</a>
                   </div>
                 </li>
                 <li>
@@ -269,7 +465,7 @@ export default function Contact() {
                   </span>
                   <div>
                     <span>Email</span>
-                    <a href="mailto:info@mistwoodresidence.com">info@mistwoodresidence.com</a>
+                    <a href={`mailto:${pub.contactEmail}`}>{pub.contactEmail}</a>
                   </div>
                 </li>
                 <li>
@@ -278,7 +474,7 @@ export default function Contact() {
                   </span>
                   <div>
                     <span>Address</span>
-                    <strong>Nuwara Eliya, Sri Lanka.</strong>
+                    <strong>{pub.publicAddress}</strong>
                     <small>The exact address will be shared upon booking confirmation.</small>
                   </div>
                 </li>
@@ -326,22 +522,40 @@ export default function Contact() {
           <div className="mh-wrap">
             <p className="mh-kicker gold">Book your stay</p>
             <h2>Your Details for the Stay</h2>
-            <p className="ct-intro">For the train and what to pack, read the <Link to="/about#practical">practical notes</Link>. This form asks only for the details we need. The amount to pay is shown after you continue, and payment comes after that.</p>
+            <p className="ct-intro">
+              For the train and what to pack, read the <Link to="/about#practical">practical notes</Link>.
+              Stays are {bookingRules.minNights}–{bookingRules.maxNights ?? "30+"} nights, up to {pub.maxGuests} guests.
+              Check-in from {formatSettingsTime(pub.checkInTime)} · check-out by {formatSettingsTime(pub.checkOutTime)}.
+              {pub.requireDeposit === false
+                ? " No deposit is collected when you book online."
+                : ` A ${pub.depositPercent}% deposit applies when you book.`}
+            </p>
+            {selectedOffer ? (
+              <SelectedOfferBanner
+                offer={selectedOffer}
+                eligible={stay?.start && stay?.end ? offerEligibility.eligible : null}
+                reasons={offerEligibility.reasons}
+                onRemove={clearSelectedOffer}
+              />
+            ) : null}
             {step === "details" ? (
             <form className="booking-wrap booking-demo" data-reveal="up" onSubmit={book}>
               <fieldset className="booking-fields" disabled={sending}>
               <div className="booking-grid">
-                <Calendar initialStart={stay?.start || initial.start} initialEnd={stay?.end || initial.end} onChange={setStay} />
+                <Calendar
+                  initialStart={stay?.start || initial.start}
+                  initialEnd={stay?.end || initial.end}
+                  bookingRules={bookingRules}
+                  onRuleNotice={setNotice}
+                  onChange={setStay}
+                />
                 <div className="field">
                   <label htmlFor="guests">Number of guests</label>
                   <select id="guests" value={guests} onChange={(event) => setGuests(event.target.value)}>
-                    <option value="1">1 guest</option>
-                    <option value="2">2 guests</option>
-                    <option value="3">3 guests</option>
-                    <option value="4">4 guests</option>
-                    <option value="5">5 guests</option>
-                    <option value="6">6 guests</option>
-                    <option value="7">7 or more</option>
+                    {Array.from({ length: (Number(pub.maxGuests) || 7) >= 7 ? 6 : Math.max(1, Number(pub.maxGuests) || 7) }, (_, i) => i + 1).map((n) => (
+                      <option key={n} value={String(n)}>{n === 1 ? "1 guest" : `${n} guests`}</option>
+                    ))}
+                    {(Number(pub.maxGuests) || 7) >= 7 ? <option value="7">7 or more</option> : null}
                   </select>
                 </div>
                 <button className="btn" type="submit" disabled={sending}>Continue <span>↗</span></button>
@@ -352,7 +566,16 @@ export default function Contact() {
                 <div className="field"><label htmlFor="guest-phone">Phone number, with country code</label><input id="guest-phone" name="phone" type="tel" autoComplete="tel" placeholder="+94, or your country code" required value={guest.phone} onChange={updateGuest} /></div>
                 <div className="field"><label htmlFor="guest-note">Message</label><input id="guest-note" name="note" placeholder="Arrival time or a question" value={guest.note} onChange={updateGuest} /></div>
               </div>
-              <label className="check"><input type="checkbox" name="policies" checked={guest.policies} onChange={updateGuest} /> I have read the <Link to="/policies">booking, cancellation, and refund notes</Link>. I understand the owner still has to approve the final terms.</label>
+              <label className="check"><input type="checkbox" name="policies" checked={guest.policies} onChange={updateGuest} /> I have read the <Link to="/policies">booking, cancellation, and refund notes</Link>.</label>
+              {quote ? (
+                <p className="notice booking-notice" aria-live="polite">
+                  {quote.nights} night(s) · {money(quote.total)} total
+                  {quote.appliedOffer?.name ? ` · ${quote.appliedOffer.name} applied` : ""}
+                  {quote.requireDeposit && quote.depositAmount > 0
+                    ? ` · ${money(quote.depositAmount)} deposit (${quote.depositPercent}%)`
+                    : " · no deposit due now"}
+                </p>
+              ) : null}
               <p aria-live="polite" className="notice booking-notice">{notice}</p>
               </fieldset>
             </form>
@@ -361,18 +584,28 @@ export default function Contact() {
               <p className="pay-summary">{formatStay(stay.start)} to {formatStay(stay.end)} · {Math.round((stay.end - stay.start) / 86400000)} night(s) · {guests === "7" ? "7 or more guests" : `${guests} guest${guests === "1" ? "" : "s"}`} · {guest.name}</p>
               <div className="price-panel">
                 <span className="eyebrow">Amount to pay now</span>
-                <strong>{money(Math.round(SAMPLE_TOTAL * DEPOSIT_SHARE))}</strong>
-                <p className="stay-note">Deposit to reserve the apartment, 30 percent of the sample stay. The owner will replace these figures with the live rate.</p>
-                <div className="price-row"><span>Sample stay total</span><span>{money(SAMPLE_TOTAL)}</span></div>
-                <div className="price-row"><span>Deposit to reserve the apartment, 30%</span><span>{money(Math.round(SAMPLE_TOTAL * DEPOSIT_SHARE))}</span></div>
-                <div className="price-row"><span>Balance due at check-in, 70%</span><span>{money(SAMPLE_TOTAL - Math.round(SAMPLE_TOTAL * DEPOSIT_SHARE))}</span></div>
+                <strong>{money(quote?.depositAmount || 0)}</strong>
+                <p className="stay-note">
+                  {quote?.requireDeposit && (quote?.depositAmount || 0) > 0
+                    ? `Deposit to reserve the apartment (${quote.depositPercent}% of your stay total).`
+                    : "No deposit is required for this stay."}
+                </p>
+                <div className="price-row"><span>Stay total</span><span>{money(quote?.total || 0)}</span></div>
+                <div className="price-row"><span>Deposit now</span><span>{money(quote?.depositAmount || 0)}</span></div>
+                <div className="price-row"><span>Balance due</span><span>{money(quote?.balanceDue || 0)}</span></div>
               </div>
               <div className="pay-gateway">
                 <span className="eyebrow">Payment gateway</span>
-                <h3>Pay the deposit</h3>
-                <p>Card details are entered on the payment gateway, not in the form you just filled. The balance stays due at check-in.</p>
+                <h3>{quote?.requireDeposit && (quote?.depositAmount || 0) > 0 ? "Pay the deposit" : "Booking total"}</h3>
+                <p>
+                  {quote?.requireDeposit && (quote?.depositAmount || 0) > 0
+                    ? "Card details are entered on the payment gateway, not in the form you just filled. The balance stays due at check-in."
+                    : "Your request is saved. We will confirm your stay by email — no online deposit for this property."}
+                </p>
                 <div className="pay-actions">
-                  <button className="btn" type="button" onClick={startPayment}>Pay {money(Math.round(SAMPLE_TOTAL * DEPOSIT_SHARE))} <span>↗</span></button>
+                  {quote?.requireDeposit && (quote?.depositAmount || 0) > 0 ? (
+                  <button className="btn" type="button" onClick={startPayment}>Pay {money(quote?.depositAmount || 0)} <span>↗</span></button>
+                  ) : null}
                   <button className="pay-back" type="button" onClick={() => { setStep("details"); setPayNotice(""); }}>Edit details</button>
                 </div>
               </div>
@@ -386,6 +619,32 @@ export default function Contact() {
         </div>
       </main>
       <HighlandFooter />
+      {dialog === "offer-ineligible" ? (
+        <BookingDialog
+          titleId="offer-ineligible-title"
+          title="Offer not eligible for this stay"
+          kicker="Adjust or continue"
+          onDismiss={dismissDialog}
+        >
+          <p className="booking-dialog-lead">
+            This reservation does not meet the requirements for <strong>{selectedOffer?.name}</strong>. You can
+            go back and change your dates, or continue without the offer.
+          </p>
+          <ul className="booking-dialog-bullets">
+            {offerIneligibleReasons.map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ul>
+          <div className="booking-dialog-actions">
+            <button className="booking-dialog-cancel" type="button" onClick={dismissDialog}>
+              No, keep editing
+            </button>
+            <button className="btn" type="button" onClick={proceedWithoutOffer}>
+              Yes, remove offer and continue
+            </button>
+          </div>
+        </BookingDialog>
+      ) : null}
       {dialog === "confirm" && stay?.start && stay?.end ? (
         <BookingDialog titleId="booking-confirm-title" title="Confirm your stay" kicker="Review before sending" busy={sending} onDismiss={dismissDialog}>
           <p className="booking-dialog-lead">Check the dates and contact details below. Nothing is sent until you choose Continue.</p>
@@ -398,6 +657,12 @@ export default function Contact() {
             <div><dt>Email</dt><dd>{guest.email.trim()}</dd></div>
             <div><dt>Phone</dt><dd>{guest.phone.trim()}</dd></div>
             {guest.note.trim() ? <div><dt>Message</dt><dd>{guest.note.trim()}</dd></div> : null}
+            {selectedOffer ? (
+              <div>
+                <dt>Offer</dt>
+                <dd>{selectedOffer.name}</dd>
+              </div>
+            ) : null}
           </dl>
           {sending ? (
             <div className="booking-dialog-loading" role="status">
@@ -438,14 +703,6 @@ export default function Contact() {
       {dialog === "enquiry-success" ? (
         <BookingDialog titleId="enquiry-success-title" title="Thank you" kicker="Message received" onDismiss={dismissDialog}>
           <p className="booking-dialog-lead">We have received your message. Please check your email for our reply.</p>
-          <div className="booking-dialog-actions">
-            <button className="btn" type="button" onClick={dismissDialog}>Close</button>
-          </div>
-        </BookingDialog>
-      ) : null}
-      {dialog === "success" ? (
-        <BookingDialog titleId="booking-success-title" title="Thank you" kicker="Reservation received" onDismiss={dismissDialog}>
-          <p className="booking-dialog-lead">We have received your reservation request. Please check your email for our reply. The owner will confirm availability before the stay is final.</p>
           <div className="booking-dialog-actions">
             <button className="btn" type="button" onClick={dismissDialog}>Close</button>
           </div>

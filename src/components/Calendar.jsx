@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { colomboTodayIso, isArrivalDateAllowed, validateStayRange } from "../utils/bookingDateRules.js";
 
 const weekday = ["M", "T", "W", "T", "F", "S", "S"];
 
@@ -21,13 +22,32 @@ function monthGrid(year, month) {
   return cells;
 }
 
-export default function Calendar({ onChange, initialStart = null, initialEnd = null }) {
+const DEFAULT_RULES = {
+  minNights: 1,
+  maxNights: null,
+  sameDayBooking: true,
+  advanceBookingDays: null,
+  leadTimeHours: 0,
+  checkInTime: "14:00",
+};
+
+export default function Calendar({
+  onChange,
+  initialStart = null,
+  initialEnd = null,
+  bookingRules = DEFAULT_RULES,
+  onRuleNotice,
+}) {
+  const rules = { ...DEFAULT_RULES, ...bookingRules };
   const today = useMemo(() => startOfDay(new Date()), []);
   const [offset, setOffset] = useState(0);
   const [open, setOpen] = useState(false);
   const [phase, setPhase] = useState(initialStart && !initialEnd ? "end" : "start");
   const [start, setStart] = useState(initialStart);
   const [end, setEnd] = useState(initialEnd);
+  const [unavailable, setUnavailable] = useState([]);
+
+  useEffect(() => { fetch("/api/availability").then((response) => response.ok ? response.json() : { unavailable: [] }).then((data) => setUnavailable(data.unavailable || [])).catch(() => setUnavailable([])); }, []);
 
   useEffect(() => {
     if (!initialStart) return;
@@ -45,18 +65,39 @@ export default function Calendar({ onChange, initialStart = null, initialEnd = n
     return () => document.removeEventListener("click", close);
   }, []);
 
+  const iso = (date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+  const isUnavailable = (date) => unavailable.some((range) => iso(date) >= range.start.slice(0, 10) && iso(date) < range.end.slice(0, 10));
+
+  const arrivalDisabled = (date) => {
+    if (date < today) return true;
+    if (isUnavailable(date)) return true;
+    return !isArrivalDateAllowed(iso(date), rules);
+  };
+
   const choose = (date) => {
     if (phase === "start" || (start && date <= start)) {
+      if (arrivalDisabled(date)) {
+        onRuleNotice?.("That arrival date is not available for booking.");
+        return;
+      }
       setStart(date);
       setEnd(null);
       setPhase("end");
       onChange?.({ start: date, end: null });
+      onRuleNotice?.("");
+      return;
+    }
+    if (isUnavailable(date)) return;
+    const err = validateStayRange(iso(start), iso(date), rules);
+    if (err) {
+      onRuleNotice?.(err);
       return;
     }
     setEnd(date);
     setPhase("start");
     setOpen(false);
     onChange?.({ start, end: date });
+    onRuleNotice?.("");
   };
 
   const months = [0, 1].map((step) => {
@@ -65,6 +106,7 @@ export default function Calendar({ onChange, initialStart = null, initialEnd = n
   });
 
   const summary = start ? `${formatDate(start)}${end ? ` — ${formatDate(end)}` : " — Select departure"}` : "Select your stay dates";
+  const minHint = rules.minNights > 1 ? `Minimum stay: ${rules.minNights} nights.` : "";
 
   return (
     <>
@@ -88,7 +130,7 @@ export default function Calendar({ onChange, initialStart = null, initialEnd = n
                       key={date.toISOString()}
                       type="button"
                       className={`cal-day${(start && +date === +start) || (end && +date === +end) ? " selected" : ""}${start && end && date > start && date < end ? " range" : ""}${+date === +today ? " today" : ""}`}
-                      disabled={date < today}
+                      disabled={phase === "end" && start ? (date <= start || isUnavailable(date)) : arrivalDisabled(date)}
                       aria-label={formatDate(date)}
                       onClick={() => choose(date)}
                     >{date.getDate()}</button>
@@ -101,6 +143,7 @@ export default function Calendar({ onChange, initialStart = null, initialEnd = n
             <div>
               <small className="cal-hint">{phase === "start" ? "Choose your arrival date" : "Now choose your departure date"}</small>
               <div className="cal-summary">{summary}</div>
+              {minHint ? <small className="cal-hint">{minHint}</small> : null}
             </div>
             <button className="cal-done" type="button" onClick={() => setOpen(false)}>Done ✓</button>
           </div>
@@ -113,3 +156,5 @@ export default function Calendar({ onChange, initialStart = null, initialEnd = n
     </>
   );
 }
+
+export { colomboTodayIso };

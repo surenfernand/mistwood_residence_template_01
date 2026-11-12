@@ -1,8 +1,10 @@
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { HighlandFooter, HighlandHeader, PageHero } from "../components/Highland.jsx";
 import ApartmentGallery from "../components/ApartmentGallery.jsx";
 import { usePhotos } from "../photos.jsx";
+import { usePublicSettings } from "../hooks/usePublicSettings.js";
+import { useSiteTitle } from "../hooks/useSiteTitle.js";
 
 const apartmentShots = [
   { src: "/assets/living-wide.jpg", alt: "The living room at Mistwood Residence, open toward the dining table" },
@@ -31,12 +33,14 @@ const apartmentFacts = [
   ["Kitchen with a refrigerator", "kitchen"],
 ];
 
-const faqs = [
-  ["Is the apartment rented as a whole unit?", "Yes. Mistwood Residence is one private apartment reserved for your group."],
-  ["Is parking available?", "Private parking is available for guests."],
-  ["Is Wi-Fi available?", "Complimentary Wi-Fi is available in the apartment."],
-  ["Can guests prepare their own meals?", "Yes. The apartment has an equipped kitchen with a refrigerator and dining area. Meals, groceries, and a cook are not included unless arranged with the owner."],
-];
+function buildFaqs(propertyName) {
+  return [
+    ["Is the apartment rented as a whole unit?", `Yes. ${propertyName} is one private apartment reserved for your group.`],
+    ["Is parking available?", "Private parking is available for guests."],
+    ["Is Wi-Fi available?", "Complimentary Wi-Fi is available in the apartment."],
+    ["Can guests prepare their own meals?", "Yes. The apartment has an equipped kitchen with a refrigerator and dining area. Meals, groceries, and a cook are not included unless arranged with the owner."],
+  ];
+}
 
 function FactIcon({ name }) {
   const common = { viewBox: "0 0 32 32", "aria-hidden": true };
@@ -49,12 +53,14 @@ function FactIcon({ name }) {
 }
 
 export default function Apartments() {
+  const pub = usePublicSettings();
+  const faqs = useMemo(() => buildFaqs(pub.propertyName), [pub.propertyName]);
   const { openPhoto } = usePhotos();
   const [index, setIndex] = useState(0);
   const [openFaq, setOpenFaq] = useState(null);
   const current = stageShots[index];
 
-  useEffect(() => { document.title = "Apartment | Mistwood Residence"; }, []);
+  useSiteTitle("Apartment");
 
   const openGallery = (src) => {
     const start = Math.max(0, apartmentShots.findIndex((shot) => shot.src === src));
@@ -67,7 +73,17 @@ export default function Apartments() {
       <HighlandHeader />
       <main>
         <PageHero kicker="Our Apartment" title="Stay in Comfort" lede="One apartment, reserved as a whole, with the hills beyond the glass." crumb="Apartment" />
-      
+
+        <section className="apt-video-intro" aria-labelledby="apt-video-title">
+          <div className="mh-wrap apt-video-intro-grid">
+            <div>
+              <p className="mh-kicker gold">Inside Mistwood</p>
+              <h2 id="apt-video-title">A closer look at your living space</h2>
+              <p>Settle into a calm, welcoming apartment designed for slow highland mornings and comfortable evenings together.</p>
+            </div>
+            <video src="/assets/mistwood/videos/mistwood-balcony-panorama.mp4" poster="/assets/stay-balcony.jpg" autoPlay muted loop playsInline preload="metadata" controls aria-label={`Panoramic view from the ${pub.propertyName} balcony`} />
+          </div>
+        </section>
 
         <ApartmentGallery />
 
@@ -75,16 +91,16 @@ export default function Apartments() {
           <div className="mh-wrap apt-experience-copy">
             <p className="mh-kicker gold">Beyond Your Stay</p>
             <h2>Experience Nuwara Eliya</h2>
-            <p>Cool air, rolling tea country, gardens, lakes, and quiet hill-country evenings are all close to Mistwood Residence.</p>
+            <p>Cool air, rolling tea country, gardens, lakes, and quiet hill-country evenings are all close to {pub.propertyName}.</p>
             <Link className="apt-gold-link" to="/explore">Explore Nuwara Eliya <span aria-hidden="true">→</span></Link>
           </div>
         </section>
 
         <section className="apt-faq" aria-labelledby="faq-title">
-          <div className="mh-wrap apt-faq-grid"><div><p className="mh-kicker gold" style={{ justifyContent: "left" }}>Helpful Details</p><h2 id="faq-title">Frequently Asked Questions</h2><p>Everything we can confirm about a stay at Mistwood Residence.</p></div><div>{faqs.map(([question, answer], faqIndex) => <article key={question} className={openFaq === faqIndex ? "is-open" : ""}><button type="button" aria-expanded={openFaq === faqIndex} onClick={() => setOpenFaq(openFaq === faqIndex ? null : faqIndex)}><span>{question}</span><b aria-hidden="true">+</b></button><div><p>{answer}</p></div></article>)}</div></div>
+          <div className="mh-wrap apt-faq-grid"><div><p className="mh-kicker gold" style={{ justifyContent: "left" }}>Helpful Details</p><h2 id="faq-title">Frequently Asked Questions</h2><p>Everything we can confirm about a stay at {pub.propertyName}.</p></div><div>{faqs.map(([question, answer], faqIndex) => <article key={question} className={openFaq === faqIndex ? "is-open" : ""}><button type="button" aria-expanded={openFaq === faqIndex} onClick={() => setOpenFaq(openFaq === faqIndex ? null : faqIndex)}><span>{question}</span><b aria-hidden="true">+</b></button><div><p>{answer}</p></div></article>)}</div></div>
         </section>
 
-        <section className="apt-final-cta"><div className="mh-wrap"><p className="mh-kicker gold">Mistwood Residence</p><h2 style={{ justifyContent: "center" }}>Your Highland Escape Awaits</h2><p>Book your stay at Mistwood Residence and enjoy the comfort of a private apartment in the heart of Nuwara Eliya.</p><Link className="apt-gold-link" to="/contact#booking">Book Your Stay <span aria-hidden="true">→</span></Link></div></section>
+        <section className="apt-final-cta"><div className="mh-wrap"><p className="mh-kicker gold">{pub.propertyName}</p><h2 style={{ justifyContent: "center" }}>Your Highland Escape Awaits</h2><p>Book your stay at {pub.propertyName} and enjoy the comfort of a private apartment in the heart of Nuwara Eliya.</p><Link className="apt-gold-link" to="/contact#booking">Book Your Stay <span aria-hidden="true">→</span></Link></div></section>
       </main>
       <HighlandFooter />
     </>

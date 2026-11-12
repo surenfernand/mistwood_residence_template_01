@@ -1,6 +1,7 @@
-import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { HighlandFooter, HighlandHeader, PageHero } from "../components/Highland.jsx";
+import { usePublicSettings } from "../hooks/usePublicSettings.js";
+import { useSiteTitle } from "../hooks/useSiteTitle.js";
 
 const qualities = [
   {
@@ -291,25 +292,26 @@ const facilities = [
 ];
 
 export default function About() {
-  useEffect(() => { document.title = "About Us | Mistwood Residence"; }, []);
+  const pub = usePublicSettings();
+  useSiteTitle("About Us");
 
   return (
     <>
       <HighlandHeader />
       <main>
-        <PageHero kicker="About Us" title="The Story of Mistwood Residence" lede="A Boutique Apartment Stay in the Heart of Nuwara Eliya" crumb="About Us" />
+        <PageHero kicker="About Us" title={`The Story of ${pub.propertyName}`} lede={pub.tagline} crumb="About Us" />
 
         <section className="ab-story">
           <div className="mh-sprig sprig-left" aria-hidden="true" />
           <div className="mh-sprig sprig-right soft" aria-hidden="true" />
           <div className="mh-wrap ab-story-grid">
             <figure className="ab-photo" data-reveal="left">
-              <img alt="The living room at Mistwood Residence, with warm light and the dining table beyond" src="/assets/living-wide.jpg" />
+              <img alt={`The living room at ${pub.propertyName}, with warm light and the dining table beyond`} src="/assets/living-wide.jpg" />
             </figure>
             <div className="ab-story-copy" data-reveal="right">
               <p className="mh-kicker gold ab-kicker">Our Story</p>
               <h2>A Home in the Highlands</h2>
-              <p>Mistwood Residence was created to offer travellers a peaceful and comfortable retreat in the heart of Nuwara Eliya. Surrounded by tea-covered hills, cool mountain air, and serene natural beauty, our apartment combines modern living with the charm of the highlands.</p>
+              <p>{pub.propertyDescription}</p>
             </div>
           </div>
           <ul className="mh-wrap ab-qualities" data-reveal="stagger">
@@ -324,7 +326,7 @@ export default function About() {
             <p className="mh-kicker light">Our Facilities</p>
             <h2>Everything You Need for a Relaxing Stay</h2>
             <svg className="ab-swoosh" viewBox="0 0 88 16" aria-hidden="true"><path d="M4 11c16-9 30-9 42-2 8 5 20 6 38-5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
-            <p className="ab-facilities-lead">Thoughtfully equipped amenities to make your time at Mistwood Residence comfortable and hassle-free.</p>
+            <p className="ab-facilities-lead">Thoughtfully equipped amenities to make your time at {pub.propertyName} comfortable and hassle-free.</p>
             <ul data-reveal="stagger">
               {facilities.map((item) => (
                 <li key={item.label} tabIndex={0}>
@@ -342,7 +344,7 @@ export default function About() {
             <div data-reveal="left">
               <p className="mh-kicker gold ab-kicker">The Location</p>
               <h2>In the Heart of Nuwara Eliya</h2>
-              <p>Mistwood Residence is conveniently located close to Nuwara Eliya’s key attractions, tea estates, gardens, and lakes, making it the ideal base to explore the beauty of the highlands.</p>
+              <p>{pub.propertyName} is conveniently located close to Nuwara Eliya’s key attractions, tea estates, gardens, and lakes, making it the ideal base to explore the beauty of the highlands.</p>
               <Link className="ab-outline" to="/explore">Explore Nearby Attractions <span aria-hidden="true">→</span></Link>
               <p className="ab-note">The street address is sent when a stay is confirmed. From Colombo, the drive climbs into the hill country. By train, the scenic ride ends at Nanu Oya, then a short drive into town. Nuwara Eliya evenings are cool, so bring a warm layer.</p>
             </div>

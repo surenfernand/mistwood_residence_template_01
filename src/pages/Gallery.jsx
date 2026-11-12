@@ -1,8 +1,9 @@
 import { useEffect } from "react";
+import { useSiteTitle } from "../hooks/useSiteTitle.js";
 import { Link } from "react-router-dom";
 
 export default function Gallery() {
-  useEffect(() => { document.title = "Photographs | Mistwood Residence"; }, []);
+  useSiteTitle("Photographs ");
   return (
     <>
       <section className="hero short">

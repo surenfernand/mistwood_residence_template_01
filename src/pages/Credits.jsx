@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useSiteTitle } from "../hooks/useSiteTitle.js";
 import { ATTRACTIONS } from "../data/attractions.js";
 
 const files = [
@@ -14,7 +15,7 @@ const files = [
 ];
 
 export default function Credits() {
-  useEffect(() => { document.title = "Media credits | Mistwood Residence"; }, []);
+  useSiteTitle("Media credits ");
   return (
     <section className="section page-plain">
       <div className="container credits-page">

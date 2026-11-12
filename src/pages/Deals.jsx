@@ -1,56 +1,9 @@
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { HighlandFooter, HighlandHeader, PageHero } from "../components/Highland.jsx";
-
-const featured = {
-  image: "/assets/mistwood/offers/highland-escape.jpg",
-  alt: "Green tea plantations across the hills of Nuwara Eliya",
-  badge: "Most popular",
-  title: "Highland Escape Deal",
-  text: "Book your stay this month and enjoy a special rate for a peaceful highland retreat.",
-  valid: "1 – 30 November 2026",
-  nights: "2 Nights",
-  off: "15%",
-};
-
-const offers = [
-  {
-    image: "/assets/mistwood/offers/long-stay.jpg",
-    alt: "A woman relaxing with a book and coffee beside a window",
-    title: "Long Stay Savings",
-    text: "Planning a longer escape? Enjoy great savings on extended stays.",
-    valid: "All Year Round",
-    nights: "7 Nights",
-    off: "20%",
-  },
-  {
-    image: "/assets/mistwood/offers/family-getaway.jpg",
-    alt: "A family spending time together on a picnic blanket outdoors",
-    title: "Family Getaway",
-    text: "A perfect highland holiday for families, with special savings and extra comfort.",
-    valid: "1 Nov – 20 Dec 2026",
-    nights: "2 Nights",
-    off: "10%",
-  },
-  {
-    image: "/assets/mistwood/offers/romantic-retreat.jpg",
-    alt: "A smiling couple cuddling outdoors under a cosy blanket",
-    title: "Romantic Retreat",
-    text: "A cosy escape for couples with special benefits and a relaxing atmosphere.",
-    valid: "All Year Round",
-    nights: "2 Nights",
-    off: "15%",
-  },
-  {
-    image: "/assets/mistwood/offers/festive-holiday.jpg",
-    alt: "Festive Christmas decorations with gold ornaments and pinecones",
-    title: "Festive Holiday Deal",
-    text: "Celebrate the season in Nuwara Eliya with exclusive holiday rates.",
-    valid: "20 Dec 2026 – 5 Jan 2027",
-    nights: "3 Nights",
-    off: "12%",
-  },
-];
+import { formatOfferPeriod } from "../utils/offerPeriod.js";
+import { usePublicSettings } from "../hooks/usePublicSettings.js";
+import { useSiteTitle } from "../hooks/useSiteTitle.js";
 
 const points = [
   ["Seasonal & Special Rates", "calendar"],
@@ -96,7 +49,8 @@ function PointIcon({ name }) {
   return <CalendarIcon />;
 }
 
-function OfferFacts({ valid, nights }) {
+function OfferFacts({ startDate, endDate, minNights }) {
+  const valid = formatOfferPeriod(startDate, endDate);
   return (
     <ul className="of-meta">
       <li>
@@ -108,7 +62,7 @@ function OfferFacts({ valid, nights }) {
           <path d="M4 16.5V10h16v6.5" fill="none" stroke="currentColor" strokeWidth="1.6" />
           <path d="M4 14h16M7 10V8.2A2.2 2.2 0 0 1 9.2 6h5.6A2.2 2.2 0 0 1 17 8.2V10" fill="none" stroke="currentColor" strokeWidth="1.6" />
         </svg>
-        <span>Min. Stay: {nights}</span>
+        <span>Min. Stay: {minNights} {minNights === 1 ? "Night" : "Nights"}</span>
       </li>
     </ul>
   );
@@ -117,14 +71,67 @@ function OfferFacts({ valid, nights }) {
 function Discount({ off }) {
   return (
     <p className="of-off">
-      <strong>{off}</strong>
+      <strong>{off}%</strong>
       <span>OFF</span>
     </p>
   );
 }
 
+function FeaturedOffer({ offer }) {
+  return (
+    <article className="of-feature">
+      <div className="of-photo">
+        <img alt={offer.imageAlt || offer.name} src={offer.imageUrl} />
+        {offer.badge ? <span className="of-badge">{offer.badge}</span> : null}
+      </div>
+      <div className="of-copy">
+        <div>
+          <h3>{offer.name}</h3>
+          <p>{offer.description}</p>
+          <OfferFacts startDate={offer.startDate} endDate={offer.endDate} minNights={offer.minNights} />
+          <Link className="mh-btn" to={`/contact?offer=${offer.id}#booking`}>
+            Book This Offer <span aria-hidden="true">→</span>
+          </Link>
+        </div>
+        <Discount off={offer.discountPercent} />
+      </div>
+    </article>
+  );
+}
+
+function OfferCard({ offer }) {
+  return (
+    <article className="of-card">
+      <img alt={offer.imageAlt || offer.name} src={offer.imageUrl} />
+      <div>
+        <h3>{offer.name}</h3>
+        <p>{offer.description}</p>
+        <OfferFacts startDate={offer.startDate} endDate={offer.endDate} minNights={offer.minNights} />
+        <Link className="mh-btn" to={`/contact?offer=${offer.id}#booking`}>
+          Book This Offer <span aria-hidden="true">→</span>
+        </Link>
+      </div>
+      <Discount off={offer.discountPercent} />
+    </article>
+  );
+}
+
 export default function Deals() {
-  useEffect(() => { document.title = "Offers | Mistwood Residence"; }, []);
+  const pub = usePublicSettings();
+  const [offers, setOffers] = useState([]);
+  const [loadError, setLoadError] = useState("");
+
+  useSiteTitle("Offers");
+
+  useEffect(() => {
+    fetch("/api/offers")
+      .then((r) => r.json())
+      .then((data) => setOffers(data.offers || []))
+      .catch(() => setLoadError("Offers are temporarily unavailable. Please try again later."));
+  }, []);
+
+  const featured = useMemo(() => offers.find((o) => o.featured) || offers[0] || null, [offers]);
+  const grid = useMemo(() => offers.filter((o) => o.id !== featured?.id), [offers, featured]);
 
   return (
     <>
@@ -132,7 +139,7 @@ export default function Deals() {
       <main>
         <PageHero
           kicker="Special Offers"
-          title="Exclusive Deals at Mistwood Residence"
+          title={`Exclusive Deals at ${pub.propertyName}`}
           lede="Make the most of your stay in Nuwara Eliya with our seasonal offers and special packages."
           crumb="Offers"
         />
@@ -141,36 +148,22 @@ export default function Deals() {
           <div className="mh-wrap">
             <p className="mh-kicker gold">Our offers</p>
             <h2>Handpicked Stays for Every Occasion</h2>
-            <p className="of-lead">Enjoy special rates, seasonal packages, and exclusive deals designed for a memorable highland getaway at Mistwood Residence.</p>
-            <article className="of-feature">
-              <div className="of-photo">
-                <img alt={featured.alt} src={featured.image} />
-                <span className="of-badge">{featured.badge}</span>
+            <p className="of-lead">
+              Enjoy special rates, seasonal packages, and exclusive deals designed for a memorable highland getaway at
+              {pub.propertyName}.
+            </p>
+            {loadError ? <p className="of-lead">{loadError}</p> : null}
+            {!loadError && !offers.length ? (
+              <p className="of-lead">No offers are published at the moment. Check back soon.</p>
+            ) : null}
+            {featured ? <FeaturedOffer offer={featured} /> : null}
+            {grid.length ? (
+              <div className="of-grid">
+                {grid.map((offer) => (
+                  <OfferCard key={offer.id} offer={offer} />
+                ))}
               </div>
-              <div className="of-copy">
-                <div>
-                  <h3>{featured.title}</h3>
-                  <p>{featured.text}</p>
-                  <OfferFacts valid={featured.valid} nights={featured.nights} />
-                  <Link className="mh-btn" to="/contact#booking">Book This Offer <span aria-hidden="true">→</span></Link>
-                </div>
-                <Discount off={featured.off} />
-              </div>
-            </article>
-            <div className="of-grid">
-              {offers.map((offer) => (
-                <article className="of-card" key={offer.title}>
-                  <img alt={offer.alt} src={offer.image} />
-                  <div>
-                    <h3>{offer.title}</h3>
-                    <p>{offer.text}</p>
-                    <OfferFacts valid={offer.valid} nights={offer.nights} />
-                    <Link className="mh-btn" to="/contact#booking">Book This Offer <span aria-hidden="true">→</span></Link>
-                  </div>
-                  <Discount off={offer.off} />
-                </article>
-              ))}
-            </div>
+            ) : null}
           </div>
         </section>
         <section className="of-points" aria-label="What the offers include">
@@ -186,7 +179,7 @@ export default function Deals() {
         <section className="mh-cta">
           <div className="mh-wrap">
             <h2>Ready to Plan Your Stay?</h2>
-            <p>Check availability and book your preferred dates at Mistwood Residence.</p>
+            <p>Check availability and book your preferred dates at {pub.propertyName}.</p>
             <Link className="mh-btn" to="/contact#booking">
               <CalendarIcon />
               Book Your Stay <span aria-hidden="true">→</span>

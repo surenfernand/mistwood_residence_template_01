@@ -1,10 +1,35 @@
 {
   "license": "https://www.pexels.com/license/",
   "photos": [
-    { "file": "highland-escape.jpg", "photographer": "Atlantic Ambience", "source": "https://www.pexels.com/photo/green-mountain-321571/" },
-    { "file": "long-stay.jpg", "photographer": "Andrea Piacquadio", "source": "https://www.pexels.com/photo/woman-reading-magazine-near-glass-window-3764177/" },
-    { "file": "family-getaway.jpg", "photographer": "Nataliya Vaitkevich", "source": "https://www.pexels.com/photo/happy-family-on-a-picnic-blanket-5290393/" },
-    { "file": "romantic-retreat.jpg", "photographer": "Serge Degtyarev", "source": "https://www.pexels.com/photo/affectionate-couple-cuddle-under-blanket-6687974/" },
-    { "file": "festive-holiday.jpg", "photographer": "KoolShooters", "source": "https://www.pexels.com/photo/christmas-decorations-on-the-table-6087631/" }
+    {
+      "file": "highland-escape.jpg",
+      "key": "highland-escape",
+      "label": "Highland escape (tea hills)",
+      "defaultAlt": "Green tea plantations across the hills of Nuwara Eliya"
+    },
+    {
+      "file": "long-stay.jpg",
+      "key": "long-stay",
+      "label": "Long stay (reading by window)",
+      "defaultAlt": "A woman relaxing with a book and coffee beside a window"
+    },
+    {
+      "file": "family-getaway.jpg",
+      "key": "family-getaway",
+      "label": "Family getaway",
+      "defaultAlt": "A family spending time together on a picnic blanket outdoors"
+    },
+    {
+      "file": "romantic-retreat.jpg",
+      "key": "romantic-retreat",
+      "label": "Romantic retreat",
+      "defaultAlt": "A smiling couple cuddling outdoors under a cosy blanket"
+    },
+    {
+      "file": "festive-holiday.jpg",
+      "key": "festive-holiday",
+      "label": "Festive holiday",
+      "defaultAlt": "Festive Christmas decorations with gold ornaments and pinecones"
+    }
   ]
 }
