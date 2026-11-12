@@ -357,3 +357,29 @@ html.admin-reduce-motion .admin-profile b { transition: none !important; }
 /* Dashboard focus: retain the calendar while removing the two secondary operation panels. */
 .admin-operation-grid { grid-template-columns: 1fr; }
 .admin-operation-grid > .admin-panel:not(.admin-calendar-panel) { display: none; }
+
+.availability-content .text-btn {
+  border: 0;
+  padding: 0;
+  color: #8a610d;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+}
+.availability-content .booking-drawer label {
+  display: grid;
+  gap: 6px;
+  margin-top: 14px;
+  font-size: 13px;
+  color: #4f5c54;
+}
+.availability-content .booking-drawer input[type="date"],
+.availability-content .booking-drawer input[type="text"] {
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid #dcd6c9;
+  border-radius: 8px;
+  background: #fff;
+}

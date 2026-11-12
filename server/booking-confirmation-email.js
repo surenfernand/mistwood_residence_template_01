@@ -2,11 +2,12 @@ import nodemailer from "nodemailer";
 import QRCode from "qrcode";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { brandFooterAttachment, brandHeaderAttachment, emailDocument, goldRule } from "./email-layout.js";
+import { getSiteSettings, contactFromSettings } from "./site-settings.js";
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const assetRoot = path.join(projectRoot, "server", "email-assets", "mistwood_customer_confirmation_email", "assets");
 const siteUrl = (process.env.PUBLIC_SITE_URL || "http://localhost:5173").replace(/\/$/, "");
-import { getSiteSettings, contactFromSettings } from "./site-settings.js";
 
 const transporter = process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASSWORD
   ? nodemailer.createTransport({
@@ -25,39 +26,46 @@ const formatMoney = (n) => `LKR ${Number(n || 0).toLocaleString("en-LK")}`;
 
 const cid = (name) => `mistwood-booking-${name}@mistwoodresidence`;
 const attachment = (name, file) => ({ filename: path.basename(file), path: path.join(assetRoot, file), cid: cid(name) });
-
-const baseAttachments = [
-  attachment("header", "header.jpg"),
-  attachment("footer", "footer.jpg"),
-  attachment("check", "icons/check.svg"),
-  attachment("calendar", "icons/calendar.svg"),
-];
+const icon = (name) => `<img src="cid:${cid(name)}" width="28" height="28" alt="" style="display:inline-block;vertical-align:middle;border:0">`;
 
 function bookingHtml(data, ctx) {
   const name = escapeHtml(data.guestName);
+  const property = escapeHtml(ctx.propertyName || "Mistwood Residence");
   const contactPhone = ctx.contactPhone;
   const phoneE164 = contactPhone.replace(/\s/g, "");
   const whatsappUrl = ctx.whatsappUrl;
-  return `<!doctype html><html lang="en"><body style="margin:0;font-family:Georgia,serif;background:#f2f0eb;color:#103e2b">
-<table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:24px">
-<table width="600" style="background:#fffaf5;border-radius:12px;overflow:hidden"><tr><td style="padding:28px">
-<h1 style="font-weight:normal;font-size:28px;margin:0 0 12px">Your reservation is confirmed</h1>
-<p>Dear ${name},</p>
-<p>Thank you for your deposit. ${escapeHtml(ctx.propertyName || "Mistwood Residence")} is reserved for your stay.</p>
-<table style="width:100%;background:#edf1e6;border-radius:10px;margin:16px 0;font-size:14px"><tr><td style="padding:16px">
-<strong>Arrival:</strong> ${escapeHtml(data.checkIn)}<br>
-<strong>Departure:</strong> ${escapeHtml(data.checkOut)}<br>
-<strong>Guests:</strong> ${escapeHtml(data.guests)}<br>
-<strong>Total stay:</strong> ${formatMoney(data.total)}<br>
-<strong>Deposit paid:</strong> ${formatMoney(data.depositPaid)}<br>
-<strong>Balance due:</strong> ${formatMoney(data.balanceDue)}
+
+  const bodyHtml = `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"><tr><td align="center">
+<div style="width:66px;height:66px;border-radius:50%;background:#e3ecdc;line-height:66px;text-align:center;margin:0 auto 12px">${icon("check")}</div>
+<h1 class="hero-title" style="font-family:Georgia,'Times New Roman',serif;font-weight:normal;font-size:34px;line-height:1.15;color:#103e2b;margin:0 0 10px">Your reservation is confirmed</h1>
+${goldRule("16px auto 20px")}
 </td></tr></table>
-<p>Show this QR code on arrival, or keep this email handy. Our team may scan it when you check in.</p>
-<p><img src="cid:booking-qr" alt="Check-in QR code" width="200" height="200" style="display:block;margin:12px auto" /></p>
-<p><a href="${escapeHtml(data.accountUrl)}" style="color:#103e2b">Create your guest account</a> to view your booking and pay the balance online before arrival.</p>
-<p>Questions? <a href="tel:${phoneE164}">${escapeHtml(contactPhone)}</a> · <a href="${whatsappUrl}">WhatsApp</a></p>
-<p>Warm regards,<br>The ${escapeHtml(ctx.propertyName || "Mistwood Residence")} Team</p>
-</td></tr></table></td></tr></table></body></html>`;
+<p style="font-size:16px;line-height:1.65;margin:0 0 12px"><strong style="font-family:Georgia,serif;color:#103e2b">Dear ${name},</strong></p>
+<p style="font-size:16px;line-height:1.65;margin:0 0 16px">Thank you for your deposit. ${property} is reserved for your stay.</p>
+<table role="presentation" style="width:100%;background:#edf1e6;border-radius:14px;margin:0 0 18px" cellspacing="0" cellpadding="0"><tr><td style="padding:18px 20px;font-size:14px;line-height:1.7">
+<strong style="font-family:Georgia,serif;color:#103e2b">Arrival:</strong> ${escapeHtml(data.checkIn)}<br>
+<strong style="font-family:Georgia,serif;color:#103e2b">Departure:</strong> ${escapeHtml(data.checkOut)}<br>
+<strong style="font-family:Georgia,serif;color:#103e2b">Guests:</strong> ${escapeHtml(data.guests)}<br>
+<strong style="font-family:Georgia,serif;color:#103e2b">Total stay:</strong> ${formatMoney(data.total)}<br>
+<strong style="font-family:Georgia,serif;color:#103e2b">Deposit paid:</strong> ${formatMoney(data.depositPaid)}<br>
+<strong style="font-family:Georgia,serif;color:#103e2b">Balance due:</strong> ${formatMoney(data.balanceDue)}
+</td></tr></table>
+<p style="font-size:15px;line-height:1.6;margin:0 0 10px;text-align:center">Show this QR code on arrival, or keep this email handy. Our team may scan it when you check in.</p>
+<p style="text-align:center;margin:0 0 18px"><img src="cid:booking-qr" alt="Check-in QR code" width="200" height="200" style="display:inline-block;margin:0 auto;border:0" /></p>
+<p style="font-size:15px;line-height:1.65;margin:0 0 16px"><a href="${escapeHtml(data.accountUrl)}" style="color:#103e2b;font-weight:600">Create your guest account</a> to view your booking and pay the balance online before arrival.</p>
+<p style="font-size:14px;line-height:1.6;margin:0 0 18px">Questions? <a href="tel:${phoneE164}" style="color:#103e2b">${escapeHtml(contactPhone)}</a> · <a href="${whatsappUrl}" style="color:#103e2b">WhatsApp</a></p>
+<p style="font-size:15px;line-height:1.6;margin:0">Warm regards,<br><strong style="font-family:Georgia,serif;color:#103e2b">The ${property} Team</strong></p>`;
+
+  return emailDocument({
+    title: `${property} — booking confirmed`,
+    bodyHtml,
+    headerCid: cid("header"),
+    footerCid: cid("footer"),
+  });
+}
+
+export function renderBookingConfirmationPreviewHtml(booking, ctx) {
+  return bookingHtml(booking, ctx);
 }
 
 export async function sendBookingConfirmationToGuest(pool, booking) {
@@ -73,7 +81,9 @@ export async function sendBookingConfirmationToGuest(pool, booking) {
     text,
     html: bookingHtml(booking, ctx),
     attachments: [
-      ...baseAttachments,
+      brandHeaderAttachment(cid("header")),
+      brandFooterAttachment(cid("footer")),
+      attachment("check", "icons/check.svg"),
       { filename: "check-in-qr.png", content: qrBuffer, cid: "booking-qr" },
     ],
   });

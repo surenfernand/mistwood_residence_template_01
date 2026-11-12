@@ -1,5 +1,5 @@
 import { SettingsCard } from "./SettingsControls.jsx";
-import { IconBell, IconCalendar, IconCard, IconLink, IconLock, IconMail } from "./SettingsPanelIcons.jsx";
+import { IconBell, IconCard, IconLock, IconMail } from "./SettingsPanelIcons.jsx";
 import { formatActivityWhen } from "../../../utils/formatActivityWhen.js";
 
 function IntegrationCard({ icon, title, description, statusNode, actionLabel, onAction, actionPrimary }) {
@@ -32,8 +32,6 @@ export default function SettingsIntegrationsPanel({
   const view = integrations || {};
   const payhere = view.payhere || {};
   const email = view.email || {};
-  const google = view.googleCalendar || {};
-  const meta = view.metaSocial || {};
 
   const filtered =
     data?.activityFilter === "all"
@@ -87,43 +85,6 @@ export default function SettingsIntegrationsPanel({
           actionLabel="⚙ Manage"
           onAction={() => onManageSocial?.("notifications")}
         />
-
-        <IntegrationCard
-          icon={<IconCalendar />}
-          title="Google Calendar"
-          description="Sync bookings and room events with your Google Calendar."
-          statusNode={
-            google.connected ? (
-              <span className="settings-badge is-ok">✓ Connected</span>
-            ) : (
-              <span className="settings-badge is-warn">● Not connected</span>
-            )
-          }
-          actionLabel="🔗 Connect"
-          actionPrimary={!google.connected}
-          onAction={() => {
-            if (!google.connected) {
-              window.alert(
-                "Google Calendar is not connected yet. Add GOOGLE_CALENDAR_CLIENT_ID and refresh token environment variables on the server, then restart the API.",
-              );
-            }
-          }}
-        />
-
-        <IntegrationCard
-          icon={<IconLink />}
-          title="Meta & social"
-          description="Link your social channels to power bookings, updates, and guest engagement."
-          statusNode={
-            meta.configured ? (
-              <span className="settings-badge is-ok">✓ {meta.linkedCount} link{meta.linkedCount === 1 ? "" : "s"} active</span>
-            ) : (
-              <span className="settings-badge is-muted">ⓘ Optional — no links yet</span>
-            )
-          }
-          actionLabel="⚙ Manage"
-          onAction={() => onManageSocial?.("website")}
-        />
       </div>
 
       <p className="settings-secure-banner">
@@ -131,8 +92,8 @@ export default function SettingsIntegrationsPanel({
         <span>
           <strong>Secure environment variables</strong>
           Secret keys (API, SMTP, payment gateways) are stored on the server environment and are not shown in this
-          panel. PayHere mode and SMTP/Resend come from <code>.env</code>; social URLs are edited under Website &amp;
-          reviews.
+          panel. PayHere mode and SMTP/Resend come from <code>.env</code>; footer social links are stored in site
+          settings.
         </span>
       </p>
 
@@ -149,8 +110,6 @@ export default function SettingsIntegrationsPanel({
             <option value="all">All integrations</option>
             <option value="payhere">PayHere</option>
             <option value="email">Email delivery</option>
-            <option value="meta">Meta & social</option>
-            <option value="google">Google Calendar</option>
           </select>
         </div>
         <ul className="settings-activity-list">
@@ -167,7 +126,7 @@ export default function SettingsIntegrationsPanel({
             <li>
               <span className="settings-activity-status is-info">ⓘ info</span>
               <strong>No activity yet</strong>
-              <span>Save website or notification settings, or complete a payment, to see events here.</span>
+              <span>Save notification settings or complete a payment to see events here.</span>
             </li>
           )}
         </ul>

@@ -7,7 +7,6 @@ import { SettingsSaveBar } from "../components/admin/settings/SettingsControls.j
 import SettingsGeneralPanel from "../components/admin/settings/SettingsGeneralPanel.jsx";
 import SettingsIntegrationsPanel from "../components/admin/settings/SettingsIntegrationsPanel.jsx";
 import SettingsNotificationsPanel from "../components/admin/settings/SettingsNotificationsPanel.jsx";
-import SettingsWebsitePanel from "../components/admin/settings/SettingsWebsitePanel.jsx";
 import {
   SETTINGS_TABS,
   createSettingsUiState,
@@ -147,16 +146,13 @@ export default function AdminSettings() {
             {tab === "notifications" ? (
               <SettingsNotificationsPanel data={draft.notifications} onPatch={patchSection("notifications")} />
             ) : null}
-            {tab === "website" ? (
-              <SettingsWebsitePanel data={draft.website} onPatch={patchSection("website")} />
-            ) : null}
             {tab === "integrations" ? (
               <SettingsIntegrationsPanel
                 integrations={integrations}
                 activity={integrationActivity}
                 data={draft.integrations}
                 onPatch={patchSection("integrations")}
-                onManageSocial={(targetTab) => setTab(targetTab || "website")}
+                onManageSocial={(targetTab) => setTab(targetTab || "notifications")}
               />
             ) : null}
           </div>

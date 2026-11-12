@@ -20,6 +20,11 @@ export function issueCheckInToken() {
 }
 
 export async function createCheckoutRequest(client, entry) {
+  if (await availabilityConflict(client, entry.arrive, entry.depart)) {
+    throw Object.assign(new Error("Those dates overlap an existing stay or blocked period. Please choose other dates."), {
+      status: 409,
+    });
+  }
   const quote = await calculateStayQuote(client, entry.arrive, entry.depart, {
     selectedOfferId: entry.offerId ?? null,
   });

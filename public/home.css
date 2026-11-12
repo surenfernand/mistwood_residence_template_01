@@ -3569,6 +3569,18 @@ body.home .experience-card h3 {
   text-align: center;
 }
 
+.apt-final-cta-copy {
+  max-width: 720px;
+  margin-inline: auto;
+  text-align: center;
+}
+
+.apt-final-cta-copy h2 {
+  margin: 0 auto 16px;
+  text-align: center;
+  text-wrap: balance;
+}
+
 .apt-experience h2,
 .apt-final-cta h2 {
   max-width: 690px;
@@ -3582,7 +3594,8 @@ body.home .experience-card h3 {
   line-height: 1.7;
 }
 
-.apt-experience p {
+.apt-experience p,
+.apt-final-cta-copy p {
   margin-right: auto;
   margin-left: auto;
 }
@@ -3636,6 +3649,183 @@ body.home .experience-card h3 {
 .apt-plan span {
   color: #687066;
   font-size: 14px;
+}
+
+.apt-sleeping {
+  padding: 88px 0;
+  background: #faf7f0;
+}
+
+.apt-sleeping-card {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(28px, 4vw, 44px);
+  border: 1px solid #e6e0d4;
+  border-radius: 22px;
+  background: linear-gradient(150deg, #fcfaf5 0%, #f8f4ec 55%, #f3eee3 100%);
+  box-shadow: 0 18px 48px rgba(31, 56, 42, 0.08);
+}
+
+.apt-sleeping-leaf {
+  position: absolute;
+  top: 12px;
+  right: 20px;
+  width: clamp(72px, 10vw, 104px);
+  opacity: 0.22;
+  pointer-events: none;
+  transform: rotate(12deg);
+}
+
+.apt-sleeping-head {
+  max-width: 720px;
+  margin-bottom: clamp(24px, 4vw, 36px);
+}
+
+.apt-sleeping-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px;
+  color: #b4873e;
+  font: 700 11px/1 "Familjen Grotesk", Outfit, sans-serif;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.apt-sleeping-kicker svg {
+  width: 18px;
+  height: 18px;
+}
+
+.apt-sleeping-head h2 {
+  margin: 0 0 12px;
+  color: #1e3b2c;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: clamp(2rem, 3.6vw, 3.25rem);
+  line-height: 1.08;
+}
+
+.apt-sleeping-head p {
+  margin: 0;
+  color: #5c655c;
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+.apt-sleeping-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(260px, 0.75fr);
+  gap: clamp(20px, 3vw, 28px);
+  align-items: start;
+}
+
+.apt-sleeping-table-wrap {
+  overflow: auto;
+  border: 1px solid #dfe8e0;
+  border-radius: 16px;
+  background: #fff;
+}
+
+.apt-sleeping-table {
+  width: 100%;
+  min-width: 520px;
+  border-collapse: collapse;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.apt-sleeping-table thead th {
+  padding: 14px 18px;
+  border-bottom: 1px solid #dfe8e0;
+  color: #3a5244;
+  background: #eef5ef;
+  font: 700 12px/1.2 Outfit, sans-serif;
+  letter-spacing: 0.06em;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.apt-sleeping-table tbody th,
+.apt-sleeping-table tbody td {
+  padding: 16px 18px;
+  border-bottom: 1px solid #ebe6dc;
+  color: #4b5d52;
+  vertical-align: middle;
+}
+
+.apt-sleeping-table tbody th {
+  color: #1f3b2c;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.apt-sleeping-table tbody tr:last-child th,
+.apt-sleeping-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.apt-sleeping-bed {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #3d4c44;
+}
+
+.apt-sleeping-bed svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  color: #b4873e;
+}
+
+.apt-sleeping-aside {
+  padding: 22px 20px;
+  border: 1px solid #e3dccf;
+  border-radius: 16px;
+  background: linear-gradient(165deg, #f3f0e8 0%, #ebe4d6 100%);
+}
+
+.apt-sleeping-aside h3 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 14px;
+  color: #1f3b2c;
+  font: 700 17px/1.25 "Playfair Display", Georgia, serif;
+}
+
+.apt-sleeping-aside h3 svg {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  color: #b4873e;
+}
+
+.apt-sleeping-aside ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.apt-sleeping-aside li {
+  position: relative;
+  padding-left: 26px;
+  color: #4d5c54;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.apt-sleeping-aside li + li {
+  margin-top: 12px;
+}
+
+.apt-sleeping-aside li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: #5d9469;
+  font-weight: 700;
 }
 
 .apt-faq {
@@ -3728,8 +3918,17 @@ body.home .experience-card h3 {
   .apt-space,
   .apt-gallery-section,
   .apt-plan,
+  .apt-sleeping,
   .apt-faq {
     padding: 64px 0;
+  }
+
+  .apt-sleeping-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .apt-sleeping-table {
+    min-width: 0;
   }
 
   .apt-space-grid,
@@ -4406,6 +4605,13 @@ body.home .experience-card h3 {
   margin: 0 auto;
   color: #5c564e;
   line-height: 1.7;
+}
+
+.ct-book .booking-offer-banner {
+  max-width: 920px;
+  margin-top: 28px;
+  margin-inline: auto;
+  text-align: left;
 }
 
 .ct-book .booking-wrap {

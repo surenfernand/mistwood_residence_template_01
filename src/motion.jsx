@@ -4,7 +4,7 @@ import { useLocation } from "react-router-dom";
 const HERO = "/assets/mistwood/backgrounds/tea-sunrise.jpg";
 
 export function MotionBoot() {
-  const { pathname } = useLocation();
+  const { pathname, search, hash } = useLocation();
   const revealRef = useRef(null);
 
   useEffect(() => {
@@ -47,11 +47,18 @@ export function MotionBoot() {
   useEffect(() => {
     const reveal = revealRef.current;
     if (!reveal) return undefined;
-    const frame = requestAnimationFrame(() => {
+    const scan = () => {
       document.querySelectorAll("[data-reveal]:not(.is-in)").forEach((el) => reveal.observe(el));
-    });
-    return () => cancelAnimationFrame(frame);
-  }, [pathname]);
+    };
+    const frame = requestAnimationFrame(scan);
+    const delayed = window.setTimeout(scan, 200);
+    const afterLoad = window.setTimeout(scan, 450);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.clearTimeout(delayed);
+      window.clearTimeout(afterLoad);
+    };
+  }, [pathname, search, hash]);
 
   return <div className="mv-progress" aria-hidden="true" />;
 }

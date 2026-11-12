@@ -33,6 +33,8 @@ export function apiSettingsToUiState(api) {
     },
     booking: {
       ...base.booking,
+      nightlyRate: api.nightlyRate ?? base.booking.nightlyRate,
+      rateCurrency: api.rateCurrency ?? base.booking.rateCurrency,
       minNights: api.minNights ?? base.booking.minNights,
       maxNights: api.maxNights ?? base.booking.maxNights,
       maxGuests: api.maxGuests ?? base.booking.maxGuests,
@@ -78,6 +80,7 @@ export function uiDraftToApiFields(draft) {
     contactPhone: g.phone,
     whatsappUrl: whatsappUrlFromPhone(g.whatsapp),
     publicAddress: g.address,
+    nightlyRate: b.nightlyRate,
     minNights: b.minNights,
     maxNights: b.maxNights,
     maxGuests: b.maxGuests,
@@ -100,11 +103,21 @@ export function uiDraftToApiFields(draft) {
   };
 }
 
+function settingsValuesEqual(key, a, b) {
+  if (key === "nightlyRate" || key === "depositPercent") {
+    const na = Number(a);
+    const nb = Number(b);
+    if (Number.isFinite(na) && Number.isFinite(nb)) return na === nb;
+  }
+  return JSON.stringify(a) === JSON.stringify(b);
+}
+
 export function diffApiSettings(baselineApi, draftUi) {
   const next = uiDraftToApiFields(draftUi);
   const patch = {};
   for (const [key, value] of Object.entries(next)) {
-    if (JSON.stringify(baselineApi?.[key]) !== JSON.stringify(value)) {
+    if (key === "nightlyRate" && !Number.isFinite(Number(value))) continue;
+    if (!settingsValuesEqual(key, baselineApi?.[key], value)) {
       patch[key] = value;
     }
   }

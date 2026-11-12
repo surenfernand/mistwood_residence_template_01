@@ -148,8 +148,9 @@ export function validateSettingsPatch(patch) {
 
     if (camel === "depositPercent") {
       const n = Number(value);
-      if (!Number.isFinite(n) || n < 0 || n > 100) errors.push("Deposit percent must be between 0 and 100.");
-      else next[snake] = n;
+      if (!Number.isFinite(n) || n < 1 || n > 100) {
+        errors.push("Deposit percent must be between 1 and 100.");
+      } else next[snake] = n;
       continue;
     }
 
@@ -212,7 +213,10 @@ export function validateSettingsPatch(patch) {
 }
 
 export async function updateSiteSettings(pool, patch, adminId) {
-  const { errors, fields } = validateSettingsPatch(patch);
+  const siteOnly = { ...(patch || {}) };
+  delete siteOnly.nightlyRate;
+  delete siteOnly.rateCurrency;
+  const { errors, fields } = validateSettingsPatch(siteOnly);
   if (errors.length) {
     throw Object.assign(new Error(errors[0]), { status: 400, details: errors });
   }
@@ -225,7 +229,20 @@ export async function updateSiteSettings(pool, patch, adminId) {
   sets.push(`updated_at = now()`, `updated_by_admin_id = $${keys.length + 1}`);
   const values = [...keys.map((k) => fields[k]), adminId];
 
-  await pool.query(`update site_settings set ${sets.join(", ")} where id = 1`, values);
+  try {
+    await pool.query(`update site_settings set ${sets.join(", ")} where id = 1`, values);
+  } catch (err) {
+    if (err.code === "23514") {
+      throw Object.assign(
+        new Error("One or more values are outside allowed limits (e.g. deposit % must be 1–100)."),
+        { status: 400 },
+      );
+    }
+    if (err.code === "23503") {
+      throw Object.assign(new Error("Could not save settings. Sign in again and retry."), { status: 400 });
+    }
+    throw err;
+  }
   invalidateSiteSettingsCache();
   return getSiteSettings(pool);
 }

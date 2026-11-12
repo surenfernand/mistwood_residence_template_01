@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "start": "node --env-file=.env server/index.js",
     "api": "node --trace-warnings --env-file=.env server/index.js",
+    "api:watch": "node --watch --trace-warnings --env-file=.env server/index.js",
     "seed:bookings": "node --env-file=.env server/seed-bookings.js",
     "dev:all": "npx concurrently --kill-others-on-fail -n web,api -c blue,green \"npm run dev\" \"npm run api\""
   },

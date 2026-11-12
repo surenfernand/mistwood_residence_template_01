@@ -218,7 +218,11 @@ export default function Home() {
                 </div>
               </article>
               <article>
-                <video src="/assets/mistwood/videos/mistwood-balcony-mist.mp4" poster="/assets/stay-balcony.jpg" autoPlay muted loop playsInline preload="metadata" aria-label="Misty morning view from the Mistwood Residence balcony" />
+                <img
+                  src="/assets/gallery/balcony-view-mountains.jpg"
+                  alt="Balcony at Mistwood Residence with a view over the green hills"
+                  loading="lazy"
+                />
                 <div className="mh-way-copy">
                   <svg viewBox="0 0 32 32" aria-hidden="true"><path d="m4 23 8-9 5 5 4-4 7 8M4 27h24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /><path d="m18 10 3-3 3 3" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
                   <h3>Take in the View</h3>

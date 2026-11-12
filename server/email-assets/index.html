@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mistwood — email template previews</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: "Segoe UI", system-ui, sans-serif;
+        color: #1a2e24;
+        background: linear-gradient(160deg, #f4f0e6, #e8efe4 45%, #f7f4ec);
+      }
+      .wrap {
+        max-width: 880px;
+        margin: 0 auto;
+        padding: 48px 24px 72px;
+      }
+      h1 {
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: clamp(1.9rem, 4vw, 2.6rem);
+        margin: 0 0 8px;
+        color: #0e3c2b;
+      }
+      .lead {
+        margin: 0 0 32px;
+        color: #5c655c;
+        line-height: 1.6;
+        max-width: 640px;
+      }
+      .grid {
+        display: grid;
+        gap: 16px;
+      }
+      article {
+        display: grid;
+        gap: 10px;
+        padding: 20px 22px;
+        border: 1px solid #dbe4d6;
+        border-radius: 14px;
+        background: #fffdf8;
+        box-shadow: 0 10px 28px rgba(24, 56, 42, 0.06);
+      }
+      article h2 {
+        margin: 0;
+        font-size: 1.15rem;
+        color: #123d2d;
+      }
+      article p {
+        margin: 0;
+        font-size: 14px;
+        line-height: 1.55;
+        color: #5f6962;
+      }
+      .links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 4px;
+      }
+      a.btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 10px 16px;
+        border-radius: 999px;
+        font-size: 13px;
+        font-weight: 600;
+        text-decoration: none;
+      }
+      a.btn-primary {
+        color: #fff;
+        background: #0c452e;
+      }
+      a.btn-outline {
+        color: #0c452e;
+        border: 1px solid #c5d4c8;
+        background: #fff;
+      }
+      .tag {
+        display: inline-block;
+        margin-top: 6px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: #e8f0e8;
+        color: #3d5248;
+        font-size: 11px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+      .note {
+        margin-top: 28px;
+        padding: 14px 16px;
+        border-radius: 12px;
+        background: #fff8e8;
+        border: 1px solid #e8d4a8;
+        font-size: 13px;
+        line-height: 1.55;
+        color: #5a4a2a;
+      }
+      code { font-size: 12px; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>Email template previews</h1>
+      <p class="lead">
+        Open each design in the browser while <code>npm run dev</code> is running.         All templates share a <strong>700px</strong> frame, the same header/footer artwork, and <strong>38px</strong> left/right body padding.
+        Use <strong>Preview (sample data)</strong> for a realistic view; use <strong>Source (placeholders)</strong> to see <code>{{variables}}</code> from the README.
+        You can open the same URLs in Microsoft Edge — copy the link or use <code>http://localhost:5173/dev/email-templates/</code>.
+      </p>
+      <div class="grid">
+        <article>
+          <span class="tag">Guest</span>
+          <h2>Contact enquiry confirmation</h2>
+          <p>Sent after a visitor submits the Contact form (<code>server/email.js</code>).</p>
+          <div class="links">
+            <a class="btn btn-primary" href="mistwood_customer_confirmation_email/preview.html" target="_blank" rel="noopener">Preview (sample data)</a>
+            <a class="btn btn-outline" href="mistwood_customer_confirmation_email/index.html" target="_blank" rel="noopener">Source (placeholders)</a>
+          </div>
+        </article>
+        <article>
+          <span class="tag">Admin</span>
+          <h2>New enquiry notification</h2>
+          <p>Alerts staff when a contact form is submitted (<code>server/admin-enquiry-email.js</code>).</p>
+          <div class="links">
+            <a class="btn btn-primary" href="mistwood_admin_email/preview.html" target="_blank" rel="noopener">Preview (sample data)</a>
+            <a class="btn btn-outline" href="mistwood_admin_email/index.html" target="_blank" rel="noopener">Source (placeholders)</a>
+          </div>
+        </article>
+        <article>
+          <span class="tag">Admin</span>
+          <h2>Password reset</h2>
+          <p>Admin forgot-password link (<code>server/admin-password-reset-email.js</code>).</p>
+          <div class="links">
+            <a class="btn btn-primary" href="mistwood_password_reset/preview.html" target="_blank" rel="noopener">Preview (sample data)</a>
+            <a class="btn btn-outline" href="mistwood_password_reset/index.html" target="_blank" rel="noopener">Source (placeholders)</a>
+          </div>
+        </article>
+        <article>
+          <span class="tag">Admin</span>
+          <h2>Team invitation</h2>
+          <p>Invite link for new admin users (<code>server/admin-invite-email.js</code>).</p>
+          <div class="links">
+            <a class="btn btn-primary" href="mistwood_admin_invite/preview.html" target="_blank" rel="noopener">Preview (sample data)</a>
+            <a class="btn btn-outline" href="mistwood_admin_invite/index.html" target="_blank" rel="noopener">Source (placeholders)</a>
+          </div>
+        </article>
+        <article>
+          <span class="tag">Guest · runtime HTML</span>
+          <h2>Booking confirmation</h2>
+          <p>After PayHere deposit (<code>server/booking-confirmation-email.js</code>). Uses the same branded frame; QR shown in preview.</p>
+          <div class="links">
+            <a class="btn btn-primary" href="/api/dev/email-previews/booking-guest" target="_blank" rel="noopener">Preview (sample data)</a>
+          </div>
+        </article>
+        <article>
+          <span class="tag">Admin · runtime HTML</span>
+          <h2>New paid booking notification</h2>
+          <p>Internal alert (<code>server/booking-admin-notification-email.js</code>).</p>
+          <div class="links">
+            <a class="btn btn-primary" href="/api/dev/email-previews/booking-admin" target="_blank" rel="noopener">Preview (sample data)</a>
+          </div>
+        </article>
+      </div>
+      <p class="note">
+        <strong>Tip:</strong> In Edge, press <kbd>Ctrl</kbd>+<kbd>L</kbd>, paste
+        <code>http://localhost:5173/dev/email-templates/</code>, and step through each <strong>Preview</strong> link.
+        Folder README files under <code>server/email-assets/</code> list variables and assets.
+      </p>
+    </div>
+  </body>
+</html>

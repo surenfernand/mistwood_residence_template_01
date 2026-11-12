@@ -654,27 +654,38 @@ html:not([data-theme="light"]) .switch-icon.moon { display: block; }
 .booking-offer-banner {
   position: relative;
   display: grid;
-  grid-template-columns: 120px 1fr;
-  gap: 18px;
-  align-items: start;
-  margin-bottom: 18px;
-  padding: 18px 48px 18px 18px;
-  border: 1px solid #d9e4d0;
-  border-radius: 16px;
-  background: linear-gradient(135deg, #f7faf4 0%, #fffef9 55%, #f3efe4 100%);
-  box-shadow: 0 8px 24px rgba(40, 31, 13, 0.06);
+  grid-template-columns: minmax(200px, 280px) minmax(0, 1fr);
+  gap: 0 28px;
+  align-items: stretch;
+  overflow: hidden;
+  margin-bottom: 22px;
+  padding: 22px 56px 22px 22px;
+  border: 1px solid #d5e5d8;
+  border-radius: 20px;
+  background: linear-gradient(145deg, #f9fbf7 0%, #fffffd 42%, #f6f2e8 100%);
+  box-shadow: 0 14px 40px rgba(24, 61, 45, 0.08);
 }
 .booking-offer-banner.is-warning {
-  border-color: #e8c89a;
-  background: linear-gradient(135deg, #fff8ef 0%, #fffdf9 100%);
+  border-color: #e5c48a;
+  background: linear-gradient(145deg, #fff9f1 0%, #fffdf9 55%, #f8f0e4 100%);
+}
+.booking-offer-banner-leaf {
+  position: absolute;
+  top: -8px;
+  right: 48px;
+  width: 88px;
+  opacity: 0.2;
+  pointer-events: none;
+  transform: rotate(8deg);
 }
 .booking-offer-banner-close {
   position: absolute;
-  top: 10px;
-  right: 10px;
+  top: 14px;
+  right: 14px;
+  z-index: 2;
   display: grid;
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   place-items: center;
   border: 1px solid #ddd6c8;
   border-radius: 50%;
@@ -684,40 +695,174 @@ html:not([data-theme="light"]) .switch-icon.moon { display: block; }
   font-size: 22px;
   line-height: 1;
   cursor: pointer;
+  box-shadow: 0 4px 12px rgba(24, 40, 30, 0.06);
 }
 .booking-offer-banner-close:hover { border-color: #9a6f2b; color: #3d2e1a; }
+.booking-offer-banner-media {
+  position: relative;
+  min-height: 100%;
+}
 .booking-offer-banner-photo {
+  display: block;
   width: 100%;
-  aspect-ratio: 4 / 3;
-  border-radius: 12px;
+  height: 100%;
+  min-height: 210px;
+  border-radius: 14px;
   object-fit: cover;
 }
-.booking-offer-banner-copy h3 {
-  margin: 4px 0 8px;
-  color: #123d2d;
-  font: 600 22px/1.2 "Playfair Display", Georgia, serif;
+.booking-offer-banner-photo.is-empty {
+  min-height: 210px;
+  background: linear-gradient(160deg, #e8efe4, #d9e8dc);
 }
-.booking-offer-banner-copy > p {
-  margin: 0 0 10px;
+.booking-offer-banner-chip {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px 7px 10px;
+  border-radius: 999px;
+  color: #2a2418;
+  background: linear-gradient(135deg, #f3d58a 0%, #e8ba52 100%);
+  box-shadow: 0 6px 16px rgba(120, 82, 16, 0.22);
+  font: 700 10px/1 "Familjen Grotesk", Outfit, sans-serif;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.booking-offer-banner-chip svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+.booking-offer-banner-body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 16px;
+  min-width: 0;
+  padding: 6px 0;
+}
+.booking-offer-banner-head {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+.booking-offer-banner-mark {
+  display: grid;
+  flex-shrink: 0;
+  width: 52px;
+  height: 52px;
+  place-items: center;
+  border-radius: 50%;
+  color: #9a6f2b;
+  background: linear-gradient(145deg, #fff8e8 0%, #f3e2b8 100%);
+  box-shadow: inset 0 0 0 1px rgba(154, 111, 43, 0.18);
+}
+.booking-offer-banner-mark svg {
+  width: 26px;
+  height: 26px;
+}
+.booking-offer-banner-titles {
+  flex: 1;
+  min-width: 0;
+}
+.booking-offer-banner-titles h3 {
+  margin: 2px 0 8px;
+  color: #123d2d;
+  font: 600 clamp(22px, 2.4vw, 30px)/1.15 "Playfair Display", Georgia, serif;
+}
+.booking-offer-banner-desc {
+  margin: 0;
+  color: #4f5e56;
+  font-size: 15px;
+  line-height: 1.55;
+}
+.booking-offer-banner-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  margin: 0;
+  padding: 14px 0;
+  border-block: 1px solid #e2ebe4;
+}
+.booking-offer-banner-stat {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 0 16px;
+  color: #3d4c44;
+}
+.booking-offer-banner-stat + .booking-offer-banner-stat {
+  border-left: 1px solid #e2ebe4;
+}
+.booking-offer-banner-stat:first-child { padding-left: 0; }
+.booking-offer-banner-stat-icon {
+  display: grid;
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border-radius: 50%;
+  color: #9a6f2b;
+  background: #f4f8f2;
+}
+.booking-offer-banner-stat-icon svg {
+  width: 18px;
+  height: 18px;
+}
+.booking-offer-banner-stat-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 13px;
+  line-height: 1.35;
+}
+.booking-offer-banner-stat-copy strong {
+  color: #173d2d;
+  font-size: 15px;
+  font-weight: 700;
+}
+.booking-offer-banner-stat-copy span {
   color: #5f6962;
+}
+.booking-offer-banner-alert {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  color: #2f4a3c;
+  background: #e7f2ea;
   font-size: 14px;
   line-height: 1.45;
 }
-.booking-offer-banner-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 14px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  color: #3d4c44;
-  font-size: 13px;
+.booking-offer-banner-alert.is-warning {
+  color: #6b3f12;
+  background: #faf0df;
 }
-.booking-offer-banner-meta strong { color: #9a6f2b; }
+.booking-offer-banner-alert strong { font-weight: 700; }
+.booking-offer-banner-alert-icon {
+  display: grid;
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  border-radius: 50%;
+  color: #fff;
+  background: #2d6b4f;
+  font: 700 12px/1 Outfit, sans-serif;
+  text-transform: lowercase;
+}
+.booking-offer-banner-alert.is-warning .booking-offer-banner-alert-icon {
+  background: #b86a1f;
+}
 .booking-offer-banner-note,
 .booking-offer-banner-warn {
-  margin: 12px 0 0;
-  font-size: 13px;
+  max-width: 920px;
+  margin: 16px auto;
+  font-size: 14px;
   line-height: 1.45;
 }
 .booking-offer-banner-warn { color: #8b4a12; }
@@ -729,9 +874,30 @@ html:not([data-theme="light"]) .switch-icon.moon { display: block; }
   font-size: 14px;
   line-height: 1.5;
 }
-@media (max-width: 640px) {
-  .booking-offer-banner { grid-template-columns: 1fr; padding-right: 48px; }
-  .booking-offer-banner-photo { max-height: 160px; }
+@media (max-width: 820px) {
+  .booking-offer-banner {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding: 18px 48px 18px 18px;
+  }
+  .booking-offer-banner-photo,
+  .booking-offer-banner-photo.is-empty {
+    min-height: 180px;
+    max-height: 220px;
+  }
+  .booking-offer-banner-stats {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 12px 0;
+  }
+  .booking-offer-banner-stat {
+    padding: 0;
+  }
+  .booking-offer-banner-stat + .booking-offer-banner-stat {
+    border-left: none;
+    padding-top: 12px;
+    border-top: 1px solid #e2ebe4;
+  }
 }
 .booking-grid { display: grid; grid-template-columns: 1fr 1fr 180px auto; gap: 14px; align-items: end; }
 .field label {
@@ -829,6 +995,31 @@ html:not([data-theme="light"]) .switch-icon.moon { display: block; }
 .cal-foot small,
 .cal-summary { color: var(--muted); font-size: 12px; }
 .cal-summary:not(:empty) { color: var(--gold); }
+.cal-foot-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.cal-reset {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 10px 14px;
+  background: transparent;
+  color: var(--muted);
+  font: 600 11px/1 "Familjen Grotesk", sans-serif;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+.cal-reset:not(:disabled):hover {
+  border-color: color-mix(in srgb, var(--brass) 60%, var(--line));
+  color: var(--ink);
+}
+.cal-reset:disabled {
+  opacity: .4;
+  cursor: not-allowed;
+}
 .cal-done {
   border: 0;
   border-radius: 999px;
@@ -926,14 +1117,36 @@ html:not([data-theme="light"]) .switch-icon.moon { display: block; }
 .social-main {
   width: 58px;
   height: 58px;
-  border: 2px solid #c9a45f;
-  background: #063f2c;
-  color: #e8c96a;
-  box-shadow: 0 8px 22px rgba(6, 63, 44, .32);
-  transition: transform .2s ease, background .2s ease, color .2s ease;
+  border: 2px solid rgba(201, 164, 95, 0.35);
+  background: transparent;
+  color: rgba(232, 201, 106, 0.55);
+  box-shadow: none;
+  opacity: 0.42;
+  transition:
+    opacity .22s ease,
+    transform .2s ease,
+    background .22s ease,
+    color .22s ease,
+    border-color .22s ease,
+    box-shadow .22s ease;
 }
 .social-dock:hover .social-main,
-.social-dock.open .social-main { transform: translateY(-1px); background: #0c5339; color: #f3e0b4; }
+.social-dock:focus-within .social-main,
+.social-dock.open .social-main,
+.social-main:hover,
+.social-main:focus-visible {
+  opacity: 1;
+  transform: translateY(-1px);
+  border-color: #c9a45f;
+  background: #063f2c;
+  color: #e8c96a;
+  box-shadow: 0 8px 22px rgba(6, 63, 44, 0.32);
+}
+.social-dock:hover .social-main:hover,
+.social-dock.open .social-main:hover {
+  background: #0c5339;
+  color: #f3e0b4;
+}
 .social-dock:hover .social-actions a:hover,
 .social-dock.open .social-actions a:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(0, 0, 0, .28); }
 .social-actions a[aria-label="Facebook"] { background: #1877f2; }
@@ -1199,12 +1412,7 @@ html:not([data-theme="light"]) .switch-icon.moon { display: block; }
   background: var(--bg);
   padding: 80px 0 96px;
 }
-.apt-video-intro { padding: 42px 0 0; background: var(--bg); }
-.apt-video-intro-grid { display: grid; grid-template-columns: minmax(0, .78fr) minmax(0, 1.22fr); gap: 42px; align-items: center; padding: 36px; border: 1px solid rgba(172, 141, 85, .3); border-radius: 20px; background: linear-gradient(135deg, #fffdf8, #f2f5ec); }
-.apt-video-intro h2 { margin: 10px 0 14px; color: #183c2c; font: 700 clamp(30px, 3vw, 44px)/1.1 "Playfair Display", Georgia, serif; }
-.apt-video-intro p:not(.mh-kicker) { max-width: 480px; margin: 0; color: var(--muted); font-size: 16px; line-height: 1.7; }
-.apt-video-intro video { display: block; width: 100%; aspect-ratio: 16 / 9; border-radius: 14px; object-fit: cover; background: #163a2b; box-shadow: 0 16px 36px rgba(18, 39, 27, .16); }
-body:not(.home) .apt-gallery { padding-top: 150px; }
+body:not(.home) .apt-gallery { padding-top: 64px; }
 .apt-gallery-inner { position: relative; }
 .apt-gallery-head { max-width: 720px; margin: 0 auto 32px; text-align: center; }
 .apt-gallery-eyebrow {
@@ -1236,20 +1444,23 @@ body:not(.home) .apt-gallery { padding-top: 150px; }
   color: var(--ink);
 }
 .apt-gallery-sub { max-width: 620px; margin: 0 auto; color: var(--muted); font-size: 16px; line-height: 1.7; }
-.apt-gallery-video-feature { display: grid; grid-template-columns: minmax(0, .75fr) minmax(320px, 1.25fr); gap: 32px; align-items: center; max-width: 1040px; margin: 0 auto 38px; padding: 26px; border: 1px solid rgba(172, 141, 85, .27); border-radius: 18px; background: linear-gradient(135deg, #fffdf8, #f2f5ec); }
-.apt-gallery-video-feature .eyebrow { color: #b58b41; font-size: 11px; letter-spacing: .18em; text-transform: uppercase; }
-.apt-gallery-video-feature h3 { margin: 10px 0; color: #183c2c; font: 700 clamp(25px, 2.6vw, 35px)/1.12 "Playfair Display", Georgia, serif; }
-.apt-gallery-video-feature p { margin: 0; color: var(--muted); line-height: 1.7; }
-.apt-gallery-video-feature video { display: block; width: 100%; aspect-ratio: 16 / 9; border-radius: 12px; object-fit: cover; background: #163a2b; box-shadow: 0 12px 28px rgba(18, 39, 27, .14); }
+
+.apt-gallery-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(280px, .65fr);
+  gap: 28px 36px;
+  align-items: start;
+  margin-top: 8px;
+}
+.apt-gallery-main { min-width: 0; }
 
 /* Filters */
 .apt-gallery-filters {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
-  gap: 12px;
-  max-width: 1000px;
-  margin: 0 auto 40px;
+  justify-content: flex-start;
+  gap: 10px;
+  margin: 0 0 22px;
 }
 .apt-filter {
   display: inline-flex;
@@ -1272,63 +1483,163 @@ body:not(.home) .apt-gallery { padding-top: 150px; }
 .apt-filter.is-on svg { color: #dcc38c; }
 .apt-filter:focus-visible { outline: 2px solid var(--apt-gold); outline-offset: 2px; }
 
-/* Masonry collage */
-.apt-gallery-grid { column-count: 3; column-gap: 18px; }
+/* Preview grid (3×3) */
+.apt-gallery-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
 .apt-tile {
+  position: relative;
   display: block;
   width: 100%;
-  margin: 0 0 18px;
+  margin: 0;
   padding: 0;
   border: 0;
-  background: none;
-  border-radius: 16px;
+  background: #10271d;
+  border-radius: 14px;
   overflow: hidden;
   cursor: pointer;
-  break-inside: avoid;
-  box-shadow: 0 10px 26px rgba(28, 24, 20, .1);
-  transition: transform .3s, box-shadow .3s;
+  aspect-ratio: 4 / 3;
+  box-shadow: 0 8px 22px rgba(28, 24, 20, .1);
+  transition: transform .25s, box-shadow .25s;
 }
-.apt-tile img { display: block; width: 100%; height: auto; border-radius: 16px; transition: transform .5s ease; }
-.apt-tile:hover { box-shadow: 0 16px 36px rgba(28, 24, 20, .18); }
-.apt-tile:hover img { transform: scale(1.04); }
+.apt-tile img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform .45s ease;
+}
+.apt-tile:hover { box-shadow: 0 14px 30px rgba(28, 24, 20, .16); }
+.apt-tile:hover img { transform: scale(1.05); }
 .apt-tile:focus-visible { outline: 2px solid var(--apt-gold); outline-offset: 3px; }
 
-.apt-tile-video {
-  margin: 0 0 18px;
-  padding: 0;
-  background: #10271d;
-  cursor: default;
+.apt-tile-more::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(165deg, rgba(15, 48, 34, .55), rgba(8, 26, 19, .72));
+  backdrop-filter: blur(2px);
 }
-.apt-tile-video video {
+.apt-tile-more-copy {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px;
+  color: #fff;
+  text-align: center;
+}
+.apt-tile-more-copy svg { opacity: .9; }
+.apt-tile-more-copy strong {
+  font: 600 15px/1.25 "Familjen Grotesk", sans-serif;
+  letter-spacing: .01em;
+}
+
+/* Video sidebar */
+.apt-gallery-video-aside {
+  padding: 26px 24px 22px;
+  border: 1px solid rgba(172, 141, 85, .28);
+  border-radius: 18px;
+  background: linear-gradient(165deg, #fffdf8 0%, #f3f6ef 55%, #eef3e8 100%);
+  box-shadow: 0 12px 32px rgba(22, 40, 30, .06);
+}
+.apt-gallery-video-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px;
+  color: #b58b41;
+  font: 600 11px/1 "Familjen Grotesk", sans-serif;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+}
+.apt-gallery-video-kicker svg { color: #c9a45c; }
+.apt-gallery-video-aside h3 {
+  margin: 0 0 12px;
+  color: #183c2c;
+  font: 700 clamp(22px, 2.2vw, 30px)/1.15 "Playfair Display", Georgia, serif;
+}
+.apt-gallery-video-lede {
+  margin: 0 0 20px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.65;
+}
+.apt-gallery-featured-videos { display: grid; gap: 16px; }
+.apt-video-card {
+  border-radius: 14px;
+  overflow: hidden;
+  background: #10271d;
+  box-shadow: 0 10px 24px rgba(18, 39, 27, .14);
+}
+.apt-video-card-hit {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  margin: 0;
+  cursor: pointer;
+  aspect-ratio: 16 / 10;
+  background: #163a2b;
+}
+.apt-video-card-hit img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.apt-video-card-play {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(12, 28, 21, .22);
+  transition: background .2s;
+}
+.apt-video-card-hit:hover .apt-video-card-play { background: rgba(12, 28, 21, .32); }
+.apt-video-card-player {
   display: block;
   width: 100%;
   aspect-ratio: 16 / 10;
   object-fit: cover;
-  border-radius: 16px 16px 0 0;
   background: #163a2b;
 }
-.apt-tile-video figcaption {
-  padding: 10px 14px 12px;
-  color: #f5f3eb;
-  font: 600 12px/1.3 "Familjen Grotesk", sans-serif;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+.apt-video-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px 11px;
+  color: #f3f0e6;
+  font: 600 12px/1.2 "Familjen Grotesk", sans-serif;
+  background: linear-gradient(180deg, rgba(8, 22, 16, .15), rgba(8, 22, 16, .92));
 }
-.apt-gallery-videos .apt-tile-video:hover {
-  transform: none;
-  box-shadow: 0 10px 26px rgba(28, 24, 20, .1);
+.apt-video-card-meta-icon {
+  display: flex;
+  opacity: .85;
+}
+.apt-video-card-meta-icon svg { width: 16px; height: 16px; stroke: #dcc38c; }
+.apt-video-card-title { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.apt-video-card-duration {
+  flex: none;
+  opacity: .88;
+  font-variant-numeric: tabular-nums;
 }
 
 @media (max-width: 980px) {
-  .apt-video-intro-grid { grid-template-columns: 1fr; gap: 24px; padding: 24px; }
-  .apt-gallery-video-feature { grid-template-columns: 1fr; gap: 20px; }
-  .apt-gallery { padding-top: 130px; }
-  .apt-gallery-grid { column-count: 2; }
+  .apt-gallery { padding-top: 48px; }
+  .apt-gallery-layout { grid-template-columns: 1fr; gap: 32px; }
+  .apt-gallery-video-aside { max-width: 520px; }
 }
 @media (max-width: 620px) {
-  .apt-gallery { padding-top: 116px; }
-  .apt-gallery-grid { column-count: 2; column-gap: 12px; }
-  .apt-tile { margin-bottom: 12px; }
+  .apt-gallery { padding-top: 40px; padding-bottom: 72px; }
+  .apt-gallery-preview-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
   .apt-gallery-filters {
     flex-wrap: nowrap;
     justify-content: flex-start;
@@ -1339,7 +1650,4 @@ body:not(.home) .apt-gallery { padding-top: 150px; }
   }
   .apt-gallery-filters::-webkit-scrollbar { display: none; }
   .apt-filter { flex: 0 0 auto; }
-}
-@media (max-width: 430px) {
-  .apt-gallery-grid { column-count: 1; }
 }

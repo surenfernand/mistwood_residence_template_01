@@ -1,0 +1,4 @@
+/* Mistwood email preview — shared frame */
+body{margin:0}
+.email{box-shadow:0 10px 28px rgba(24,56,42,.07)}
+@media (max-width:600px){.info-cell{padding:14px 5px!important}.explore-photo{display:none!important}}

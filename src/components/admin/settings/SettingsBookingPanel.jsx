@@ -19,6 +19,19 @@ export default function SettingsBookingPanel({ data, onPatch }) {
       </p>
 
       <div className="settings-booking-grid">
+        <SettingsCard title="Base pricing" icon={<IconCard />}>
+          <SettingsStepper
+            label="Nightly rate"
+            description="Default price per night before seasonal rates and offers."
+            value={data.nightlyRate}
+            unit={data.rateCurrency || "LKR"}
+            onChange={setNum("nightlyRate")}
+            min={1000}
+            max={1000000}
+            step={500}
+          />
+        </SettingsCard>
+
         <SettingsCard title="Stay requirements" icon={<IconUsersStub />}>
           <SettingsStepper
             label="Minimum nights"
@@ -118,7 +131,7 @@ export default function SettingsBookingPanel({ data, onPatch }) {
             value={data.depositPercent}
             unit="%"
             onChange={setNum("depositPercent")}
-            min={0}
+            min={1}
             max={100}
           />
         </SettingsCard>

@@ -1,6 +1,12 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { usePhotos } from "../photos.jsx";
-import { GALLERY_FILTERS, GALLERY_PHOTOS, GALLERY_VIDEOS } from "../data/galleryPhotos.js";
+import {
+  FEATURED_VIDEOS,
+  GALLERY_FILTERS,
+  GALLERY_PHOTOS,
+} from "../data/galleryPhotos.js";
+
+const PREVIEW_COUNT = 8;
 
 function FilterIcon({ name }) {
   const common = {
@@ -21,13 +27,6 @@ function FilterIcon({ name }) {
           <rect x="3" y="5" width="18" height="14" rx="2" />
           <circle cx="8.5" cy="10" r="1.6" />
           <path d="m5 17 5-4 4 3 2-2 3 3" />
-        </svg>
-      );
-    case "Overview":
-      return (
-        <svg {...common}>
-          <circle cx="12" cy="12" r="9" />
-          <path d="m10 8 6 4-6 4Z" fill="currentColor" stroke="none" />
         </svg>
       );
     case "Bedrooms":
@@ -64,34 +63,92 @@ function FilterIcon({ name }) {
           <path d="M4 9h16" />
         </svg>
       );
-    case "Details":
-      return (
-        <svg {...common}>
-          <path d="M12 3c2.5 3 5 5.5 5 9a5 5 0 0 1-10 0c0-3.5 2.5-6 5-9Z" />
-        </svg>
-      );
     default:
       return null;
   }
 }
 
+function VideoKickerIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
+      <rect x="2" y="5" width="15" height="14" rx="2" />
+      <path d="m17 9 5-2.5v11L17 15V9Z" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+function PlayIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true">
+      <circle cx="12" cy="12" r="11" fill="rgba(255,255,255,.22)" stroke="#fff" strokeWidth="1.5" />
+      <path d="m10 8.5 7 3.5-7 3.5Z" fill="#fff" />
+    </svg>
+  );
+}
+
+function FeaturedVideoCard({ item }) {
+  const videoRef = useRef(null);
+  const [playing, setPlaying] = useState(false);
+
+  const start = () => {
+    setPlaying(true);
+    requestAnimationFrame(() => {
+      const el = videoRef.current;
+      if (!el) return;
+      el.play().catch(() => {});
+    });
+  };
+
+  return (
+    <article className="apt-video-card">
+      {playing ? (
+        <video
+          ref={videoRef}
+          className="apt-video-card-player"
+          src={item.src}
+          poster={item.poster}
+          controls
+          playsInline
+          preload="metadata"
+          aria-label={item.alt}
+        />
+      ) : (
+        <button type="button" className="apt-video-card-hit" onClick={start} aria-label={`Play video: ${item.title}`}>
+          <img src={item.poster} alt="" loading="lazy" />
+          <span className="apt-video-card-play">
+            <PlayIcon />
+          </span>
+        </button>
+      )}
+      <div className="apt-video-card-meta">
+        <span className="apt-video-card-meta-icon" aria-hidden="true">
+          <VideoKickerIcon />
+        </span>
+        <span className="apt-video-card-title">{item.title}</span>
+        <time className="apt-video-card-duration" dateTime={`PT${item.duration.replace(":", "M")}S`}>
+          {item.duration}
+        </time>
+      </div>
+    </article>
+  );
+}
+
 export default function ApartmentGallery() {
   const { openPhoto } = usePhotos();
   const [active, setActive] = useState("All Photos");
+  const totalPhotos = GALLERY_PHOTOS.length;
 
-  const filters = useMemo(
+  const tabFilters = useMemo(
     () =>
       GALLERY_FILTERS.filter((name) => {
+        if (name === "Overview" || name === "Details") return false;
         if (name === "All Photos") return true;
-        if (name === "Overview") return GALLERY_VIDEOS.length > 0;
         return GALLERY_PHOTOS.some((p) => p.category === name);
       }),
     [],
   );
 
   const visiblePhotos = useMemo(() => {
-    if (active === "Overview") return [];
-
     if (active !== "All Photos") return GALLERY_PHOTOS.filter((p) => p.category === active);
 
     const buckets = new Map();
@@ -99,7 +156,7 @@ export default function ApartmentGallery() {
       if (!buckets.has(photo.category)) buckets.set(photo.category, []);
       buckets.get(photo.category).push(photo);
     }
-    const order = filters.filter((name) => name !== "All Photos" && name !== "Overview");
+    const order = GALLERY_FILTERS.filter((name) => name !== "All Photos" && name !== "Overview");
     const mixed = [];
     let added = true;
     while (added) {
@@ -113,14 +170,24 @@ export default function ApartmentGallery() {
       }
     }
     return mixed;
-  }, [active, filters]);
+  }, [active, tabFilters]);
 
-  const showVideos = active === "Overview";
+  const preview = visiblePhotos.slice(0, PREVIEW_COUNT);
+  const moreCount = Math.max(0, visiblePhotos.length - PREVIEW_COUNT);
+  const moreBackdrop = visiblePhotos[PREVIEW_COUNT] || visiblePhotos[visiblePhotos.length - 1];
 
   const open = (photo) => {
     const index = visiblePhotos.indexOf(photo);
     openPhoto({ ...photo, gallery: visiblePhotos, index });
   };
+
+  const openFromStart = () => {
+    const first = visiblePhotos[0];
+    if (!first) return;
+    openPhoto({ ...first, gallery: visiblePhotos, index: 0 });
+  };
+
+  const filterLabel = (name) => (name === "All Photos" ? `All Photos (${totalPhotos})` : name);
 
   return (
     <section className="apt-gallery" aria-labelledby="apt-gallery-title">
@@ -129,58 +196,77 @@ export default function ApartmentGallery() {
           <span className="eyebrow apt-gallery-eyebrow">The apartment gallery</span>
           <h2 id="apt-gallery-title">A closer look at Mistwood</h2>
           <p className="apt-gallery-sub">
-            See every room in detail with a complete set of photos, so you know what to expect before booking.
+            Browse the rooms, then watch a short walkthrough and highland views before you book.
           </p>
         </header>
 
-        <div className="apt-gallery-filters" role="tablist" aria-label="Filter photos by room">
-          {filters.map((name) => (
-            <button
-              key={name}
-              type="button"
-              role="tab"
-              aria-selected={active === name}
-              aria-pressed={active === name}
-              className={active === name ? "apt-filter is-on" : "apt-filter"}
-              onClick={() => setActive(name)}
-            >
-              <FilterIcon name={name} />
-              <span>{name}</span>
-            </button>
-          ))}
-        </div>
+        <div className="apt-gallery-layout">
+          <div className="apt-gallery-main">
+            <div className="apt-gallery-filters" role="tablist" aria-label="Filter photos by room">
+              {tabFilters.map((name) => (
+                <button
+                  key={name}
+                  type="button"
+                  role="tab"
+                  aria-selected={active === name}
+                  className={active === name ? "apt-filter is-on" : "apt-filter"}
+                  onClick={() => setActive(name)}
+                >
+                  <FilterIcon name={name} />
+                  <span>{filterLabel(name)}</span>
+                </button>
+              ))}
+            </div>
 
-        {showVideos ? (
-          <div className="apt-gallery-grid apt-gallery-videos">
-            {GALLERY_VIDEOS.map((item) => (
-              <figure className="apt-tile apt-tile-video" key={item.src}>
-                <video
-                  src={item.src}
-                  // poster={item.poster}
-                  controls
-                  playsInline
-                  preload="metadata"
-                  aria-label={item.alt}
-                />
-                {item.label ? <figcaption>{item.label}</figcaption> : null}
-              </figure>
-            ))}
+            <div className="apt-gallery-preview-grid">
+              {preview.map((photo) => (
+                <button
+                  type="button"
+                  className="apt-tile"
+                  key={photo.src}
+                  onClick={() => open(photo)}
+                  aria-label={`Open photo: ${photo.alt}`}
+                >
+                  <img src={photo.src} alt={photo.alt} loading="lazy" />
+                </button>
+              ))}
+              {moreCount > 0 ? (
+                <button
+                  type="button"
+                  className="apt-tile apt-tile-more"
+                  onClick={openFromStart}
+                  aria-label={`View all ${visiblePhotos.length} photos in this set`}
+                >
+                  <img src={moreBackdrop.src} alt="" loading="lazy" aria-hidden="true" />
+                  <span className="apt-tile-more-copy">
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
+                      <rect x="3" y="5" width="18" height="14" rx="2" />
+                      <circle cx="8.5" cy="10" r="1.6" />
+                      <path d="m5 17 5-4 4 3 2-2 3 3" />
+                    </svg>
+                    <strong>+{moreCount} More Photos</strong>
+                  </span>
+                </button>
+              ) : null}
+            </div>
           </div>
-        ) : (
-          <div className="apt-gallery-grid">
-            {visiblePhotos.map((photo) => (
-              <button
-                type="button"
-                className="apt-tile"
-                key={photo.src}
-                onClick={() => open(photo)}
-                aria-label={`Open photo: ${photo.alt}`}
-              >
-                <img src={photo.src} alt={photo.alt} loading="lazy" />
-              </button>
-            ))}
-          </div>
-        )}
+
+          <aside className="apt-gallery-video-aside" aria-labelledby="apt-gallery-video-title">
+            <p className="apt-gallery-video-kicker">
+              <VideoKickerIcon />
+              <span>In video</span>
+            </p>
+            <h3 id="apt-gallery-video-title">Experience Mistwood in Motion</h3>
+            <p className="apt-gallery-video-lede">
+              Get a real feel for the space with our short videos—from a full apartment walkthrough to the beautiful highland surroundings.
+            </p>
+            <div className="apt-gallery-featured-videos">
+              {FEATURED_VIDEOS.map((item) => (
+                <FeaturedVideoCard key={item.src} item={item} />
+              ))}
+            </div>
+          </aside>
+        </div>
       </div>
     </section>
   );

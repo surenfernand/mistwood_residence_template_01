@@ -23,7 +23,25 @@ export const GALLERY_FILTERS = [
   "Details",
 ];
 
-/** Apartment walk-through and view clips (Overview filter). */
+/** Hero clips shown beside the photo grid on the Apartment page. */
+export const FEATURED_VIDEOS = [
+  {
+    src: "/assets/mistwood/videos/mistwood-living-room.mp4",
+    poster: "/assets/room.jpg",
+    alt: "Walk-through of the Mistwood Residence apartment",
+    title: "Apartment Walkthrough",
+    duration: "01:48",
+  },
+  {
+    src: "/assets/mistwood/videos/mistwood-highland-view.mp4",
+    poster: "/assets/hills.jpg",
+    alt: "Highland views around Mistwood Residence",
+    title: "Highland Views",
+    duration: "00:56",
+  },
+];
+
+/** Apartment walk-through and view clips (legacy / full list). */
 export const GALLERY_VIDEOS = [
   {
     src: "/assets/mistwood/videos/mistwood-living-room.mp4",

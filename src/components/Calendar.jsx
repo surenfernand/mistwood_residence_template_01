@@ -66,6 +66,17 @@ export default function Calendar({
   }, []);
 
   const iso = (date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+
+  /** Nights where guests occupy the apartment: [arrive, depart) — matches server `daterange(..., '[)')`. */
+  const stayOverlapsUnavailable = (arriveIso, departIso) => {
+    if (!arriveIso || !departIso || departIso <= arriveIso) return false;
+    return unavailable.some((range) => {
+      const blockStart = range.start.slice(0, 10);
+      const blockEnd = range.end.slice(0, 10);
+      return arriveIso < blockEnd && blockStart < departIso;
+    });
+  };
+
   const isUnavailable = (date) => unavailable.some((range) => iso(date) >= range.start.slice(0, 10) && iso(date) < range.end.slice(0, 10));
 
   const arrivalDisabled = (date) => {
@@ -88,15 +99,29 @@ export default function Calendar({
       return;
     }
     if (isUnavailable(date)) return;
-    const err = validateStayRange(iso(start), iso(date), rules);
+    const arriveIso = iso(start);
+    const departIso = iso(date);
+    const err = validateStayRange(arriveIso, departIso, rules);
     if (err) {
       onRuleNotice?.(err);
+      return;
+    }
+    if (stayOverlapsUnavailable(arriveIso, departIso)) {
+      onRuleNotice?.("Your stay includes nights that are already booked. Pick different dates.");
       return;
     }
     setEnd(date);
     setPhase("start");
     setOpen(false);
     onChange?.({ start, end: date });
+    onRuleNotice?.("");
+  };
+
+  const resetDates = () => {
+    setStart(null);
+    setEnd(null);
+    setPhase("start");
+    onChange?.({ start: null, end: null });
     onRuleNotice?.("");
   };
 
@@ -130,7 +155,13 @@ export default function Calendar({
                       key={date.toISOString()}
                       type="button"
                       className={`cal-day${(start && +date === +start) || (end && +date === +end) ? " selected" : ""}${start && end && date > start && date < end ? " range" : ""}${+date === +today ? " today" : ""}`}
-                      disabled={phase === "end" && start ? (date <= start || isUnavailable(date)) : arrivalDisabled(date)}
+                      disabled={
+                        phase === "end" && start
+                          ? date <= start
+                            || isUnavailable(date)
+                            || stayOverlapsUnavailable(iso(start), iso(date))
+                          : arrivalDisabled(date)
+                      }
                       aria-label={formatDate(date)}
                       onClick={() => choose(date)}
                     >{date.getDate()}</button>
@@ -145,7 +176,17 @@ export default function Calendar({
               <div className="cal-summary">{summary}</div>
               {minHint ? <small className="cal-hint">{minHint}</small> : null}
             </div>
-            <button className="cal-done" type="button" onClick={() => setOpen(false)}>Done ✓</button>
+            <div className="cal-foot-actions">
+              <button
+                className="cal-reset"
+                type="button"
+                disabled={!start && !end}
+                onClick={resetDates}
+              >
+                Reset dates
+              </button>
+              <button className="cal-done" type="button" onClick={() => setOpen(false)}>Done ✓</button>
+            </div>
           </div>
         </div>
       </div>

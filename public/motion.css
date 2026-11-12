@@ -163,6 +163,11 @@ html.motion [data-reveal="right"] { transform: translate3d(36px, 0, 0); }
 html.motion [data-reveal="image"] { transform: scale(.97); }
 html.motion [data-reveal="stagger"] { opacity: 1; transform: none; }
 html.motion [data-reveal].is-in { opacity: 1; transform: none; }
+html.motion .ct-book .booking-wrap,
+html.motion .ct-book .booking-offer-banner {
+  opacity: 1;
+  transform: none;
+}
 html.motion [data-reveal="stagger"] > * {
   opacity: 0;
   transform: translate3d(0, 22px, 0);

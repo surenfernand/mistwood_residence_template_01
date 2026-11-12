@@ -9,6 +9,8 @@ import { sendEnquiryConfirmation } from "./email.js";
 import { sendAdminEnquiryNotification } from "./admin-enquiry-email.js";
 import { sendAdminPasswordReset } from "./admin-password-reset-email.js";
 import { sendAdminInvite } from "./admin-invite-email.js";
+import { renderBookingConfirmationPreviewHtml } from "./booking-confirmation-email.js";
+import { renderBookingAdminNotificationPreviewHtml } from "./booking-admin-notification-email.js";
 import { calculateStayQuote, estimateStayTotal } from "./pricing.js";
 import { buildPayhereFields, payhereCheckoutUrl, payhereConfigured } from "./payhere.js";
 import { createCheckoutRequest, fulfillPayherePayment } from "./booking-payment.js";
@@ -35,11 +37,13 @@ import {
   issueGuestSetupToken,
   GUEST_SESSION_COOKIE,
 } from "./guest-auth.js";
+import { attachPricingToSettings, setPropertyBaseRate } from "./property-rates.js";
 import {
   getSiteSettings,
   getPublicSettings,
   updateSiteSettings,
   validateBookingAgainstSettings,
+  contactFromSettings,
 } from "./site-settings.js";
 import {
   buildIntegrationsAdminView,
@@ -672,6 +676,58 @@ app.get("/api/admin/availability", requirePermission("dashboard", "availability"
   } catch (error) { next(error); }
 });
 
+async function blockRangeConflict(pool, startDate, endDate, exceptBlockId = null) {
+  const blockClause = exceptBlockId
+    ? "select 1 from availability_blocks where id <> $3 and daterange(start_date,end_date,'[)') && daterange($1::date,$2::date,'[)')"
+    : "select 1 from availability_blocks where daterange(start_date,end_date,'[)') && daterange($1::date,$2::date,'[)')";
+  const params = exceptBlockId ? [startDate, endDate, exceptBlockId] : [startDate, endDate];
+  const { rowCount } = await pool.query(
+    `select 1 from bookings where status in ('confirmed','checked_in') and daterange(check_in,check_out,'[)') && daterange($1::date,$2::date,'[)')
+     union all ${blockClause}
+     union all select 1 from booking_requests where status in ('new','contacted','pending_payment','confirmed') and daterange(arrive,depart,'[)') && daterange($1::date,$2::date,'[)')
+     limit 1`,
+    params,
+  );
+  return Boolean(rowCount);
+}
+
+app.post("/api/admin/availability/blocks", requirePermission("dashboard", "availability"), async (req, res, next) => {
+  const startDate = text(req.body?.startDate, 10);
+  const endDate = text(req.body?.endDate, 10);
+  const reason = text(req.body?.reason, 200) || "Blocked";
+  if (!isDay(startDate) || !isDay(endDate) || endDate <= startDate) {
+    return res.status(400).json({ error: "Choose a valid start and end date (check-out must be after check-in)." });
+  }
+  try {
+    if (await blockRangeConflict(pool, startDate, endDate)) {
+      return res.status(409).json({ error: "Those dates overlap a booking, hold, or existing block." });
+    }
+    const { rows } = await pool.query(
+      `insert into availability_blocks (start_date, end_date, reason, created_by_admin_id)
+       values ($1::date, $2::date, $3, $4)
+       returning id, start_date::text as "startDate", end_date::text as "endDate", reason`,
+      [startDate, endDate, reason, req.admin.id],
+    );
+    await logAdminAccess(req.admin.id, `availability.blocked:${rows[0].id}`, req.ip);
+    res.status(201).json({ block: rows[0], message: "Dates blocked." });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.delete("/api/admin/availability/blocks/:id", requirePermission("dashboard", "availability"), async (req, res, next) => {
+  const id = Number.parseInt(req.params.id, 10);
+  if (!Number.isSafeInteger(id) || id < 1) return res.status(400).json({ error: "Invalid block ID." });
+  try {
+    const result = await pool.query("delete from availability_blocks where id = $1 returning id", [id]);
+    if (!result.rowCount) return res.status(404).json({ error: "Block not found." });
+    await logAdminAccess(req.admin.id, `availability.unblocked:${id}`, req.ip);
+    res.json({ message: "Block removed." });
+  } catch (error) {
+    next(error);
+  }
+});
+
 app.get("/api/availability", async (_req, res, next) => {
   try { const [bookings, blocks] = await Promise.all([pool.query("select check_in::text as start, check_out::text as end from bookings where status in ('confirmed','checked_in')"), pool.query("select start_date::text as start, end_date::text as end from availability_blocks")]); res.json({ unavailable: [...bookings.rows, ...blocks.rows] }); } catch (error) { next(error); }
 });
@@ -1255,6 +1311,7 @@ app.post("/api/admin/users", requirePermission("users"), async (req, res, next) 
           email,
           roleName: role.name,
           setupUrl: `${siteUrl}/admin/reset-password?token=${encodeURIComponent(token)}`,
+          invitedBy: req.admin.name,
         });
       } catch (emailError) {
         console.error("Admin invite email could not be sent:", emailError.message);
@@ -1305,6 +1362,7 @@ app.post("/api/admin/users/:id/resend-invite", requirePermission("users"), async
       email: target.email,
       roleName: target.roleName,
       setupUrl: `${siteUrl}/admin/reset-password?token=${encodeURIComponent(token)}`,
+      invitedBy: req.admin.name,
     });
     await logAdminAccess(req.admin.id, `user.invite_resent:${id}`, req.ip);
     res.json({ message: "Invitation resent." });
@@ -1414,11 +1472,12 @@ app.get("/api/settings/public", async (_req, res, next) => {
 
 app.get("/api/admin/settings", requirePermission("settings"), async (_req, res, next) => {
   try {
-    const [settings, integrations, integrationActivity] = await Promise.all([
+    const [baseSettings, integrations, integrationActivity] = await Promise.all([
       getSiteSettings(pool),
       buildIntegrationsAdminView(pool),
       listIntegrationActivity(pool),
     ]);
+    const settings = await attachPricingToSettings(pool, baseSettings);
     res.json({ settings, integrations, integrationActivity });
   } catch (error) {
     next(error);
@@ -1427,11 +1486,29 @@ app.get("/api/admin/settings", requirePermission("settings"), async (_req, res, 
 
 app.patch("/api/admin/settings", requirePermission("settings"), async (req, res, next) => {
   try {
-    const patch = req.body || {};
-    const settings = await updateSiteSettings(pool, patch, req.admin.id);
-    await logSettingsIntegrationEvents(pool, patch).catch((err) => {
-      console.error("Integration activity log failed:", err.message);
-    });
+    const body = req.body || {};
+    const sitePatch = { ...body };
+    const hasNightlyRate = "nightlyRate" in sitePatch;
+    const nightlyRate = sitePatch.nightlyRate;
+    delete sitePatch.nightlyRate;
+
+    let settings;
+    if (Object.keys(sitePatch).length) {
+      settings = await updateSiteSettings(pool, sitePatch, req.admin.id);
+      await logSettingsIntegrationEvents(pool, sitePatch).catch((err) => {
+        console.error("Integration activity log failed:", err.message);
+      });
+    } else {
+      settings = await getSiteSettings(pool);
+    }
+
+    if (hasNightlyRate) {
+      const rate = await setPropertyBaseRate(pool, nightlyRate);
+      settings = { ...settings, nightlyRate: rate.nightlyRate, rateCurrency: rate.currency };
+    } else {
+      settings = await attachPricingToSettings(pool, settings);
+    }
+
     const [integrations, integrationActivity] = await Promise.all([
       buildIntegrationsAdminView(pool),
       listIntegrationActivity(pool),
@@ -1824,8 +1901,8 @@ app.post("/api/bookings", async (req, res) => {
     });
   } catch (error) {
     await client.query("rollback").catch(() => {});
-    if (error.status === 400) {
-      return res.status(400).json({ error: error.message, code: error.code || "bad_request" });
+    if (error.status === 400 || error.status === 409) {
+      return res.status(error.status).json({ error: error.message, code: error.code || "bad_request" });
     }
     console.error(error);
     res.status(500).json({ error: "We could not start your booking. Please try again." });
@@ -1849,6 +1926,50 @@ app.post("/api/guest/setup-token", async (req, res, next) => {
     next(error);
   }
 });
+
+if (process.env.NODE_ENV !== "production") {
+  app.get("/api/dev/email-previews/booking-guest", async (_req, res, next) => {
+    try {
+      let ctx = contactFromSettings(await getSiteSettings(pool));
+      const booking = {
+        guestName: "Priya Mendis",
+        guestEmail: "priya.mendis@example.com",
+        checkIn: "14 March 2026",
+        checkOut: "17 March 2026",
+        guests: "6 guests",
+        total: 285000,
+        depositPaid: 85500,
+        balanceDue: 199500,
+        accountUrl: `${(process.env.PUBLIC_SITE_URL || "http://localhost:5173").replace(/\/$/, "")}/account/setup?token=preview`,
+        checkInUrl: `${(process.env.PUBLIC_SITE_URL || "http://localhost:5173").replace(/\/$/, "")}/check-in/preview-token`,
+      };
+      let html = renderBookingConfirmationPreviewHtml(booking, ctx);
+      html = html.replace(
+        'src="cid:booking-qr"',
+        'src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=preview-check-in"',
+      );
+      res.type("html").send(html);
+    } catch (error) {
+      next(error);
+    }
+  });
+  app.get("/api/dev/email-previews/booking-admin", (_req, res) => {
+    const site = (process.env.PUBLIC_SITE_URL || "http://localhost:5173").replace(/\/$/, "");
+    const html = renderBookingAdminNotificationPreviewHtml({
+      requestId: 1042,
+      bookingId: 88,
+      guestName: "Priya Mendis",
+      guestEmail: "priya.mendis@example.com",
+      guestPhone: "+94 77 123 4567",
+      checkIn: "14 Mar 2026",
+      checkOut: "17 Mar 2026",
+      total: 285000,
+      depositPaid: 85500,
+      checkInUrl: `${site}/check-in/preview-token`,
+    });
+    res.type("html").send(html);
+  });
+}
 
 app.use("/api", (_req, res) => res.status(404).json({ error: "Not found" }));
 

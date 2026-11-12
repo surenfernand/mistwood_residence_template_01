@@ -1,14 +1,29 @@
-<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Reset Your Admin Password | Mistwood Residence</title><link rel="stylesheet" href="styles.css"></head>
-<body style="margin:0;padding:0;background:#f5f2ed;color:#172b25;font-family:Arial,Helvetica,sans-serif"><div class="email-shell" style="max-width:720px;margin:0 auto;background:#fffaf5">
-<img src="assets/header.jpg" alt="Mistwood Residence, Nuwara Eliya" style="width:100%;height:auto;display:block">
-<main style="padding:34px 54px 52px;text-align:center">
-<div class="lock-circle" style="margin:0 auto 20px;width:72px;height:72px;border-radius:50%;background:#e4eadb;display:flex;align-items:center;justify-content:center"><img src="assets/lock.svg" width="39" height="39" alt="Security lock"></div>
-<h1 style="font-family:Georgia,'Times New Roman',serif;color:#0e3c2b;font-size:36px;line-height:1.15;margin:0">Reset Your Admin Password</h1><div style="width:85px;height:3px;background:#a37c26;margin:24px auto 34px"></div>
-<div style="text-align:left;font-size:17px;line-height:1.75"><h2 style="font-family:Georgia,serif;font-size:24px;color:#103d2b;margin:0 0 10px">Hello {{admin_name}},</h2><p style="margin:0 0 10px">We received a request to reset the password for your Mistwood Residence admin account.</p><p style="margin:0 0 26px">Click the button below to create a new password:</p></div>
-<a class="reset-button" href="{{reset_url}}" style="display:inline-block;background:#0c452e;color:#ffffff;text-decoration:none;font-size:19px;font-weight:bold;border-radius:11px;padding:19px 42px;margin:0 auto 15px">Reset Your Password</a>
-<p style="font-size:16px;line-height:1.6;margin:12px 0 26px">This link will expire in <strong style="color:#0c452e">30 minutes</strong> for your security.</p>
-<div class="security-note" style="background:#e9eddf;border-radius:15px;padding:22px 25px;text-align:left;display:flex;align-items:center;gap:18px"><img src="assets/shield.svg" width="48" height="48" alt="Security shield"><div><h3 style="font-family:Georgia,serif;color:#0e3c2b;font-size:22px;margin:0 0 6px">Didn't request this?</h3><p style="margin:0;font-size:15px;line-height:1.6">If you didn't ask to reset your password, you can safely ignore this email. Your password will remain unchanged.</p></div></div>
-<p style="font-size:14px;line-height:1.7;margin:26px 0 0">If the button doesn't work, copy this secure link into your browser:<br><a href="{{reset_url}}" style="color:#0c452e;overflow-wrap:anywhere">{{reset_url}}</a></p>
-<p style="font-size:15px;line-height:1.6;margin:24px 0 0">Need help? Contact the property's verified support address.</p>
-</main><img src="assets/footer.jpg" alt="Mistwood Residence branded footer — contact details shown are design placeholders" style="width:100%;height:auto;display:block"></div></body></html>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Reset Your Admin Password | Mistwood Residence</title>
+<link rel="stylesheet" href="styles.css" />
+<style>@media only screen and (max-width:600px){.email-body-pad{padding:12px 18px 24px!important}h1.hero-title{font-size:27px!important}}</style></head>
+<body style="margin:0;padding:0;background:#f2f0eb;font-family:Arial,Helvetica,sans-serif;color:#1a2822">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#f2f0eb">
+<tr><td align="center" style="padding:18px 8px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="700" class="email" style="width:100%;max-width:700px;background:#fffaf5">
+<tr><td style="line-height:0"><img src="../mistwood_customer_confirmation_email/assets/header.jpg" alt="Mistwood Residence, Nuwara Eliya" width="700" style="width:100%;height:auto;display:block;border:0"></td></tr>
+<tr><td class="email-body-pad body-pad" style="padding:22px 38px 32px"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"><tr><td align="center">
+<div style="margin:0 auto 16px;width:66px;height:66px;border-radius:50%;background:#e3ecdc;line-height:66px;text-align:center"><img src="assets/lock.svg" width="36" height="36" alt=""></div>
+<h1 class="hero-title" style="font-family:Georgia,'Times New Roman',serif;color:#103e2b;font-size:34px;line-height:1.15;margin:0;font-weight:normal">Reset Your Admin Password</h1>
+<div style="width:80px;height:3px;background:#a47d25;margin:20px auto 28px"></div>
+</td></tr></table>
+<div style="text-align:left;font-size:16px;line-height:1.75"><h2 style="font-family:Georgia,serif;font-size:22px;color:#103d2b;margin:0 0 10px">Hello {{admin_name}},</h2>
+<p style="margin:0 0 10px">We received a request to reset the password for your Mistwood Residence admin account.</p>
+<p style="margin:0 0 22px">Click the button below to create a new password:</p></div>
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"><tr><td align="center" style="padding:0 0 18px">
+<a href="{{reset_url}}" style="display:inline-block;background:#0c452e;color:#ffffff;text-decoration:none;font-size:18px;font-weight:bold;border-radius:11px;padding:17px 38px">Reset Your Password</a>
+</td></tr></table>
+<p style="font-size:15px;line-height:1.6;margin:0 0 22px;text-align:center">This link will expire in <strong style="color:#0c452e">30 minutes</strong> for your security.</p>
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#e9eddf;border-radius:14px"><tr>
+<td width="72" style="padding:20px 0 20px 20px;vertical-align:middle;text-align:center"><img src="assets/shield.svg" width="44" height="44" alt=""></td>
+<td style="padding:20px 22px 20px 12px;text-align:left"><h3 style="font-family:Georgia,serif;color:#103e2b;font-size:20px;margin:0 0 6px">Didn&rsquo;t request this?</h3>
+<p style="margin:0;font-size:14px;line-height:1.6">If you didn&rsquo;t ask to reset your password, you can safely ignore this email. Your password will remain unchanged.</p></td>
+</tr></table>
+<p style="font-size:14px;line-height:1.7;margin:22px 0 0;text-align:left">If the button doesn&rsquo;t work, copy this secure link into your browser:<br><a href="{{reset_url}}" style="color:#0c452e;overflow-wrap:anywhere">{{reset_url}}</a></p>
+<p style="font-size:14px;line-height:1.6;margin:20px 0 0;text-align:left;color:#657269">Need help? Contact the property&rsquo;s verified support address.</p></td></tr>
+<tr><td style="line-height:0"><img src="../mistwood_customer_confirmation_email/assets/footer.jpg" alt="Mistwood Residence footer" width="700" style="width:100%;height:auto;display:block;border:0"></td></tr>
+</table></td></tr></table></body></html>

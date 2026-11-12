@@ -1,2 +1,4 @@
-/* Browser preview enhancements. Core email styling is inline for mail-client support. */
-*{box-sizing:border-box}body{margin:0}.email-shell{box-shadow:0 12px 45px rgba(20,43,33,.09)}.reset-button:hover{background:#176341!important}.reset-button:focus-visible{outline:3px solid #b38a35;outline-offset:4px}@media(max-width:600px){main{padding:28px 22px 36px!important}h1{font-size:29px!important}.security-note{padding:18px!important;gap:12px!important}.reset-button{padding:17px 24px!important;font-size:17px!important}}
+/* Mistwood email preview — shared frame */
+body{margin:0}
+.email{box-shadow:0 10px 28px rgba(24,56,42,.07)}
+@media (max-width:600px){.info-cell{padding:14px 5px!important}.explore-photo{display:none!important}}
