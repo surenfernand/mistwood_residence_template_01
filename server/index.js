@@ -729,7 +729,16 @@ app.delete("/api/admin/availability/blocks/:id", requirePermission("dashboard", 
 });
 
 app.get("/api/availability", async (_req, res, next) => {
-  try { const [bookings, blocks] = await Promise.all([pool.query("select check_in::text as start, check_out::text as end from bookings where status in ('confirmed','checked_in')"), pool.query("select start_date::text as start, end_date::text as end from availability_blocks")]); res.json({ unavailable: [...bookings.rows, ...blocks.rows] }); } catch (error) { next(error); }
+  try {
+    const [bookings, pendingRequests, blocks] = await Promise.all([
+      pool.query("select check_in::text as start, check_out::text as end, 'booked' as type from bookings where status in ('confirmed','checked_in')"),
+      pool.query("select arrive::text as start, depart::text as end, 'pending' as type from booking_requests where status = 'pending_payment'"),
+      pool.query("select start_date::text as start, end_date::text as end, 'blocked' as type from availability_blocks"),
+    ]);
+    res.json({ unavailable: [...bookings.rows, ...pendingRequests.rows, ...blocks.rows] });
+  } catch (error) {
+    next(error);
+  }
 });
 
 app.get("/api/pricing/quote", async (req, res, next) => {

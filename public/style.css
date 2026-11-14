@@ -619,6 +619,7 @@ html:not([data-theme="light"]) .switch-icon.moon { display: block; }
 .map-intro { margin: -8px 0 22px; color: var(--muted); }
 .attraction-map { position: relative; }
 .attraction-map-canvas { width: 100%; height: 440px; background: #dce8db; }
+.attraction-map-fallback { display: grid; min-height: 220px; place-items: center; margin: 0; padding: 32px; color: #31543d; background: #dce8db; text-align: center; }
 .attraction-map-pin { border: 0; background: transparent; filter: drop-shadow(0 3px 3px rgba(10, 35, 23, .3)); }
 .attraction-map-pin:hover { filter: brightness(1.08) drop-shadow(0 4px 4px rgba(10, 35, 23, .4)); }
 .attraction-map-pin:focus-visible { outline: 2px solid #9a6f2b; outline-offset: 3px; border-radius: 8px; }
@@ -980,6 +981,10 @@ html:not([data-theme="light"]) .switch-icon.moon { display: block; }
 }
 .cal-day:hover:not(:disabled) { background: color-mix(in srgb, var(--brass) 35%, transparent); }
 .cal-day:disabled { opacity: .28; cursor: not-allowed; }
+.cal-day:disabled.is-booked,.cal-day:disabled.is-pending,.cal-day:disabled.is-blocked { opacity: 1; color: #fff; }
+.cal-day:disabled.is-booked { background: #315f8d; }
+.cal-day:disabled.is-pending { background: #9a6f2b; }
+.cal-day:disabled.is-blocked { background: #7b4141; }
 .cal-day.selected { background: var(--brass); color: #1a140c; }
 .cal-day.range { background: color-mix(in srgb, var(--brass) 28%, transparent); border-radius: 4px; }
 .cal-day.today { outline: 1px solid var(--brass); }
@@ -994,6 +999,10 @@ html:not([data-theme="light"]) .switch-icon.moon { display: block; }
 }
 .cal-foot small,
 .cal-summary { color: var(--muted); font-size: 12px; }
+.cal-legend { display: flex; flex-wrap: wrap; gap: 8px 12px; margin-top: 13px; color: var(--muted); font: 600 11px/1 "Familjen Grotesk", sans-serif; }
+.cal-legend span { display: inline-flex; align-items: center; gap: 5px; }
+.cal-legend i { width: 10px; height: 10px; border-radius: 3px; background: #f3f0e8; border: 1px solid var(--line); }
+.cal-legend i.booked { background: #315f8d; border-color: #315f8d; }.cal-legend i.pending { background: #9a6f2b; border-color: #9a6f2b; }.cal-legend i.blocked { background: #7b4141; border-color: #7b4141; }
 .cal-summary:not(:empty) { color: var(--gold); }
 .cal-foot-actions {
   display: flex;

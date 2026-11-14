@@ -133,6 +133,7 @@ export async function calculateStayQuote(pool, arrive, depart, options = {}) {
     }
   } else {
     for (const offer of offersResult.rows) {
+      if (!checkSelectedOfferEligibility(offer, arriveDay, departDay, nights).eligible) continue;
       const saved = offerSavings(nightRates, offer);
       if (saved > offerDiscount) {
         offerDiscount = saved;

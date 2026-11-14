@@ -12,6 +12,7 @@ import Deals from "./pages/Deals.jsx";
 import Contact from "./pages/Contact.jsx";
 import Policies from "./pages/Policies.jsx";
 import Credits from "./pages/Credits.jsx";
+import NotFound from "./pages/NotFound.jsx";
 import AdminLogin from "./pages/AdminLogin.jsx";
 import AdminDashboard from "./pages/AdminDashboard.jsx";
 import AdminResetPassword from "./pages/AdminResetPassword.jsx";
@@ -95,6 +96,7 @@ function AnimatedRoutes() {
           <Route path="/policies" element={<Policies />} />
           <Route path="/credits" element={<Credits />} />
         </Route>
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </div>
   );

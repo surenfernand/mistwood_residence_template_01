@@ -103,7 +103,7 @@ export function HighlandFooter() {
           <Link to="/">Home</Link>
           <Link to="/about">About Us</Link>
           <Link to="/apartments">Apartment</Link>
-          <Link to="/#offers">Monthly Deals</Link>
+          <Link to="/deals">Monthly Deals</Link>
           <Link to="/explore">Explore</Link>
           <Link to="/contact">Contact Us</Link>
         </div>

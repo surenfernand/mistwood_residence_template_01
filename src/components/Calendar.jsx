@@ -77,7 +77,16 @@ export default function Calendar({
     });
   };
 
-  const isUnavailable = (date) => unavailable.some((range) => iso(date) >= range.start.slice(0, 10) && iso(date) < range.end.slice(0, 10));
+  const availabilityType = (date) => {
+    const day = iso(date);
+    const matches = unavailable.filter((range) => day >= range.start.slice(0, 10) && day < range.end.slice(0, 10));
+    if (matches.some((range) => range.type === "blocked")) return "blocked";
+    if (matches.some((range) => range.type === "booked")) return "booked";
+    if (matches.some((range) => range.type === "pending")) return "pending";
+    return "";
+  };
+
+  const isUnavailable = (date) => Boolean(availabilityType(date));
 
   const arrivalDisabled = (date) => {
     if (date < today) return true;
@@ -150,25 +159,30 @@ export default function Calendar({
                 <h4>{month.label}</h4>
                 <div className="cal-grid">
                   {weekday.map((name, index) => <span className="weekday" key={`${month.label}-${name}-${index}`}>{name}</span>)}
-                  {month.cells.map((date, index) => date ? (
-                    <button
+                  {month.cells.map((date, index) => date ? (() => {
+                    const type = availabilityType(date);
+                    const disabled = phase === "end" && start
+                      ? date <= start || Boolean(type) || stayOverlapsUnavailable(iso(start), iso(date))
+                      : arrivalDisabled(date);
+                    const availabilityLabel = type ? `, ${type === "booked" ? "booked" : type === "pending" ? "pending confirmation" : "owner blocked"}` : ", available";
+                    return <button
                       key={date.toISOString()}
                       type="button"
-                      className={`cal-day${(start && +date === +start) || (end && +date === +end) ? " selected" : ""}${start && end && date > start && date < end ? " range" : ""}${+date === +today ? " today" : ""}`}
-                      disabled={
-                        phase === "end" && start
-                          ? date <= start
-                            || isUnavailable(date)
-                            || stayOverlapsUnavailable(iso(start), iso(date))
-                          : arrivalDisabled(date)
-                      }
-                      aria-label={formatDate(date)}
+                      className={`cal-day${type ? ` is-${type}` : ""}${(start && +date === +start) || (end && +date === +end) ? " selected" : ""}${start && end && date > start && date < end ? " range" : ""}${+date === +today ? " today" : ""}`}
+                      disabled={disabled}
+                      aria-label={`${formatDate(date)}${availabilityLabel}`}
                       onClick={() => choose(date)}
-                    >{date.getDate()}</button>
-                  ) : <span key={`pad-${month.label}-${index}`} />)}
+                    >{date.getDate()}</button>;
+                  })() : <span key={`pad-${month.label}-${index}`} />)}
                 </div>
               </div>
             ))}
+          </div>
+          <div className="cal-legend" aria-label="Calendar availability legend">
+            <span><i className="available" />Available</span>
+            <span><i className="booked" />Booked</span>
+            <span><i className="pending" />Pending</span>
+            <span><i className="blocked" />Owner blocked</span>
           </div>
           <div className="cal-foot">
             <div>

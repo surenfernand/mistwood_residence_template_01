@@ -1,5 +1,7 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import L from "leaflet";
+import "leaflet.markercluster";
 import "leaflet/dist/leaflet.css";
 import "leaflet.markercluster/dist/MarkerCluster.css";
 import "leaflet.markercluster/dist/MarkerCluster.Default.css";
@@ -50,6 +52,7 @@ const mapAttractions = [
 export default function Explore() {
   const pub = usePublicSettings();
   const mapRef = useRef(null);
+  const [mapError, setMapError] = useState(false);
   useSiteTitle("Explore");
   useEffect(() => {
     if (!mapRef.current) return undefined;
@@ -58,7 +61,7 @@ export default function Explore() {
     let resizeObserver;
     let rafId;
     let fitTimer;
-    Promise.all([import("leaflet"), import("leaflet.markercluster")]).then(([{ default: L }]) => {
+    try {
       if (cancelled || !mapRef.current) return;
       map = L.map(mapRef.current, { scrollWheelZoom: true });
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: "© OpenStreetMap contributors" }).addTo(map);
@@ -109,7 +112,9 @@ export default function Explore() {
         fitTimer = setTimeout(() => map && map.fitBounds(bounds, { padding: [28, 28], maxZoom: 13 }), 200);
       });
       resizeObserver.observe(mapRef.current);
-    });
+    } catch {
+      if (!cancelled) setMapError(true);
+    }
     return () => {
       cancelled = true;
       cancelAnimationFrame(rafId);
@@ -162,7 +167,7 @@ export default function Explore() {
             <h2>Places to Visit Around Nuwara Eliya</h2>
             <p className="map-intro">Select a landmark to open its location in Google Maps.</p>
             <div className="map-card attraction-map">
-              <div className="attraction-map-canvas" ref={mapRef} aria-label="Interactive map of attractions around Nuwara Eliya" />
+              {mapError ? <p className="attraction-map-fallback" role="alert">The interactive map is unavailable right now. Use the link below to view Nuwara Eliya in Google Maps.</p> : <div className="attraction-map-canvas" ref={mapRef} aria-label="Interactive map of attractions around Nuwara Eliya" />}
               <div className="map-note"><a className="text-link" href="https://www.google.com/maps/search/?api=1&query=Nuwara+Eliya+Sri+Lanka" rel="noopener noreferrer" target="_blank">Open the Nuwara Eliya map ↗</a></div>
             </div>
           </div>
