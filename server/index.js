@@ -590,13 +590,34 @@ app.post("/api/admin/auth/logout", async (req, res) => {
   res.status(204).end();
 });
 
-app.get("/api/admin/dashboard", requirePermission("dashboard"), async (_req, res) => {
-  const [{ rows: bookings }, { rows: enquiries }, { rows: recentBookingRequests }] = await Promise.all([
-    pool.query("select count(*)::int as count from booking_requests where created_at >= date_trunc('month', now())"),
-    pool.query("select count(*)::int as count from enquiries where created_at >= date_trunc('month', now())"),
-    pool.query("select id, name, guests, arrive, depart, created_at as \"createdAt\" from booking_requests order by created_at desc limit 5"),
-  ]);
-  res.json({ bookingRequestsThisMonth: bookings[0].count, enquiriesThisMonth: enquiries[0].count, recentBookingRequests });
+app.get("/api/admin/dashboard", requirePermission("dashboard"), async (_req, res, next) => {
+  try {
+    const [newRequests, unansweredEnquiries, arrivals, departures, confirmed, revenue, recentBookingRequests, upcomingStays] = await Promise.all([
+      pool.query("select count(*)::int as count from booking_requests where status = 'new'"),
+      pool.query("select count(*)::int as count from enquiries where status in ('new', 'in_progress')"),
+      pool.query("select count(*)::int as count from bookings where check_in = (now() at time zone 'Asia/Colombo')::date and status = 'confirmed'"),
+      pool.query("select count(*)::int as count from bookings where check_out = (now() at time zone 'Asia/Colombo')::date and status = 'checked_in'"),
+      pool.query("select count(*)::int as count from bookings where status = 'confirmed' and created_at >= (date_trunc('month', now() at time zone 'Asia/Colombo') at time zone 'Asia/Colombo')"),
+      pool.query("select coalesce(sum(total_amount), 0)::numeric as total from bookings where status in ('confirmed', 'checked_in', 'checked_out') and created_at >= (date_trunc('month', now() at time zone 'Asia/Colombo') at time zone 'Asia/Colombo')"),
+      pool.query('select id, name, guests, arrive::text as arrive, depart::text as depart, status, created_at as "createdAt" from booking_requests order by created_at desc limit 5'),
+      pool.query(`select id, guest_name as "guestName", check_in::text as "checkIn", check_out::text as "checkOut", guests, status
+                    from bookings
+                   where status in ('confirmed', 'checked_in') and check_in >= (now() at time zone 'Asia/Colombo')::date and check_in < (now() at time zone 'Asia/Colombo')::date + 7
+                   order by check_in limit 5`),
+    ]);
+    res.json({
+      newBookingRequests: newRequests.rows[0].count,
+      unansweredEnquiries: unansweredEnquiries.rows[0].count,
+      arrivalsToday: arrivals.rows[0].count,
+      departuresToday: departures.rows[0].count,
+      confirmedBookingsThisMonth: confirmed.rows[0].count,
+      estimatedRevenueThisMonth: Number(revenue.rows[0].total || 0),
+      recentBookingRequests: recentBookingRequests.rows,
+      upcomingStays: upcomingStays.rows,
+    });
+  } catch (error) {
+    next(error);
+  }
 });
 
 app.get("/api/admin/notifications", requirePermission("dashboard"), async (req, res, next) => {
@@ -649,6 +670,31 @@ app.get("/api/admin/booking-requests", requirePermission("bookings"), async (req
       pool.query(`select count(*)::int as count from booking_requests ${where}`, values), pool.query("select status, count(*)::int as count from booking_requests group by status"), pool.query("select distinct source from booking_requests order by source"),
     ]);
     res.json({ requests: list.rows, total: total.rows[0].count, limit, offset, sources: sources.rows.map((row) => row.source), summary: Object.fromEntries(summary.rows.map((row) => [row.status, row.count])) });
+  } catch (error) { next(error); }
+});
+
+app.get("/api/admin/booking-requests.csv", requirePermission("bookings"), async (req, res, next) => {
+  const query = text(req.query.q, 100), status = text(req.query.status, 30), source = text(req.query.source, 60), from = text(req.query.from, 10), to = text(req.query.to, 10);
+  if (status && !bookingRequestStatuses.includes(status)) return res.status(400).json({ error: "Invalid booking status." });
+  if ((from && !isDay(from)) || (to && !isDay(to)) || (from && to && from > to)) return res.status(400).json({ error: "Invalid submission date range." });
+  const clauses = [], values = [];
+  const add = (sql, value) => { values.push(value); clauses.push(sql.replace("?", `$${values.length}`)); };
+  if (status) add("status = ?", status); if (source) add("source = ?", source); if (from) add("created_at >= ?::date", from); if (to) add("created_at < (?::date + interval '1 day')", to);
+  if (query) { values.push(`%${query}%`); const parameter = `$${values.length}`; clauses.push(`(name ilike ${parameter} or email ilike ${parameter} or phone ilike ${parameter} or cast(id as text) ilike ${parameter})`); }
+  const where = clauses.length ? `where ${clauses.join(" and ")}` : "";
+  const cell = (value) => `"${String(value ?? "").replaceAll('"', '""')}"`;
+  try {
+    const { rows } = await pool.query(
+      `select id, name, email, phone, guests, arrive::text as arrive, depart::text as depart, source, status, created_at as "createdAt"
+         from booking_requests ${where} order by created_at desc`,
+      values,
+    );
+    const csv = [["Request ID", "Guest name", "Email", "Phone", "Guests", "Arrival", "Departure", "Source", "Status", "Submitted"], ...rows.map((row) => [
+      `BR-${row.id}`, row.name, row.email, row.phone, row.guests, row.arrive, row.depart, row.source, row.status, row.createdAt,
+    ])].map((row) => row.map(cell).join(",")).join("\r\n");
+    res.setHeader("Content-Type", "text/csv; charset=utf-8");
+    res.setHeader("Content-Disposition", "attachment; filename=booking-requests.csv");
+    res.send(`\uFEFF${csv}`);
   } catch (error) { next(error); }
 });
 
@@ -1124,6 +1170,62 @@ app.get("/api/admin/rates", requirePermission("rates"), async (_req, res, next) 
   } catch (error) {
     next(error);
   }
+});
+
+function validateSeasonalRateBody(body) {
+  const name = text(body?.name, 100);
+  const startDate = text(body?.startDate, 10);
+  const endDate = text(body?.endDate, 10);
+  const nightlyRate = Number(body?.nightlyRate);
+  if (!name) return { error: "Enter a name for the seasonal rate." };
+  if (!isDay(startDate) || !isDay(endDate) || endDate <= startDate) return { error: "Choose a valid start and end date." };
+  if (!Number.isFinite(nightlyRate) || nightlyRate < 100 || nightlyRate > 10_000_000) return { error: "Enter a nightly rate between 100 and 10,000,000." };
+  return { value: { name, startDate, endDate, nightlyRate, active: body?.active !== false } };
+}
+
+app.post("/api/admin/rates/seasonal", requirePermission("rates"), async (req, res, next) => {
+  const parsed = validateSeasonalRateBody(req.body);
+  if (parsed.error) return res.status(400).json({ error: parsed.error });
+  try {
+    const { rows } = await pool.query("select count(*)::int as count from seasonal_rates");
+    if (rows[0].count >= 4) return res.status(400).json({ error: "You can configure up to four seasonal rate overrides." });
+    const value = parsed.value;
+    const created = await pool.query(
+      `insert into seasonal_rates (name, start_date, end_date, nightly_rate, active)
+       values ($1, $2::date, $3::date, $4, $5)
+       returning id, name, start_date::text as "startDate", end_date::text as "endDate", nightly_rate as "nightlyRate", active`,
+      [value.name, value.startDate, value.endDate, value.nightlyRate, value.active],
+    );
+    res.status(201).json({ seasonalRate: created.rows[0] });
+  } catch (error) { next(error); }
+});
+
+app.patch("/api/admin/rates/seasonal/:id", requirePermission("rates"), async (req, res, next) => {
+  const id = Number.parseInt(req.params.id, 10);
+  if (!Number.isSafeInteger(id) || id < 1) return res.status(400).json({ error: "Invalid seasonal rate." });
+  const parsed = validateSeasonalRateBody(req.body);
+  if (parsed.error) return res.status(400).json({ error: parsed.error });
+  try {
+    const value = parsed.value;
+    const updated = await pool.query(
+      `update seasonal_rates set name = $1, start_date = $2::date, end_date = $3::date, nightly_rate = $4, active = $5
+        where id = $6
+        returning id, name, start_date::text as "startDate", end_date::text as "endDate", nightly_rate as "nightlyRate", active`,
+      [value.name, value.startDate, value.endDate, value.nightlyRate, value.active, id],
+    );
+    if (!updated.rowCount) return res.status(404).json({ error: "Seasonal rate not found." });
+    res.json({ seasonalRate: updated.rows[0] });
+  } catch (error) { next(error); }
+});
+
+app.delete("/api/admin/rates/seasonal/:id", requirePermission("rates"), async (req, res, next) => {
+  const id = Number.parseInt(req.params.id, 10);
+  if (!Number.isSafeInteger(id) || id < 1) return res.status(400).json({ error: "Invalid seasonal rate." });
+  try {
+    const result = await pool.query("delete from seasonal_rates where id = $1", [id]);
+    if (!result.rowCount) return res.status(404).json({ error: "Seasonal rate not found." });
+    res.json({ ok: true });
+  } catch (error) { next(error); }
 });
 
 app.post("/api/admin/rates/offers", requirePermission("rates"), async (req, res, next) => {

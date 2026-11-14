@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AdminSidebar, { AdminMenuToggle } from "../components/admin/AdminSidebar.jsx";
 import AdminUserTools from "../components/admin/AdminUserTools.jsx";
-import { addDays, formatAdminDate, isoDay } from "../utils/adminDates.js";
+import { formatAdminDate, isoDay } from "../utils/adminDates.js";
 import { useSiteTitle } from "../hooks/useSiteTitle.js";
 
 export default function AdminBookingsToday() {
@@ -11,12 +11,11 @@ export default function AdminBookingsToday() {
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
   const [busyId, setBusyId] = useState(null);
-  const from = addDays(isoDay(), -7);
-  const to = addDays(isoDay(), 7);
+  const today = isoDay();
 
   const load = useCallback(async () => {
     try {
-      const r = await fetch(`/api/admin/bookings/movements?from=${from}&to=${to}`);
+      const r = await fetch(`/api/admin/bookings/movements?from=${today}&to=${today}`);
       if (r.status === 401) return navigate("/admin/login", { replace: true });
       const x = await r.json();
       if (!r.ok) throw Error(x.error);
@@ -25,7 +24,7 @@ export default function AdminBookingsToday() {
     } catch (e) {
       setError(e.message || "Could not load movements.");
     }
-  }, [from, navigate, to]);
+  }, [navigate, today]);
 
   useSiteTitle("Today's movements");
   useEffect(() => {
@@ -60,7 +59,7 @@ export default function AdminBookingsToday() {
           <div>
             <p>Admin panel</p>
             <h1>Today&apos;s movements</h1>
-            <span>Arrivals and departures from {formatAdminDate(from)} to {formatAdminDate(to)}.</span>
+            <span>Arrivals and departures for {formatAdminDate(today)}.</span>
           </div>
           <img src="/assets/mistwood/decorations/leaf-branch.png" alt="" />
           <AdminUserTools />
@@ -100,7 +99,7 @@ function MovementColumn({ title, rows, actionLabel, actionStatus, canAct, busyId
   return (
     <section className="booking-list-card" style={{ padding: 16 }}>
       <h2 style={{ marginTop: 0 }}>{title}</h2>
-      {!rows.length ? <p className="booking-empty">None in this window.</p> : null}
+      {!rows.length ? <p className="booking-empty">None today.</p> : null}
       <ul className="booking-history" style={{ listStyle: "none", padding: 0 }}>
         {rows.map((row) => (
           <li key={`${title}-${row.id}`} style={{ display: "block", marginBottom: 12, paddingBottom: 12, borderBottom: "1px solid #ece8df" }}>

@@ -184,6 +184,7 @@ export default function AdminBookingRequests() {
   const total = (s) => data?.summary?.[s] || 0;
   const set = (k) => (e) => setFilters((v) => ({ ...v, [k]: e.target.value }));
   const reset = () => setFilters({ q: "", status: "", source: "" });
+  const csvUrl = `/api/admin/booking-requests.csv?${new URLSearchParams(Object.entries(filters).filter(([, value]) => value))}`;
 
   const applyStatus = async (id, status) => {
     setStatusBusy(true);
@@ -263,6 +264,9 @@ export default function AdminBookingRequests() {
               <button type="button" className="booking-reset" onClick={reset}>
                 ↻ Reset
               </button>
+              <a className="booking-reset" href={csvUrl}>
+                Export CSV
+              </a>
             </div>
             {error ? <p className="booking-error">{error}</p> : null}
             <div className="booking-table-wrap">
