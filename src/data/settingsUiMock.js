@@ -58,7 +58,7 @@ export function createSettingsUiState() {
       rateCurrency: "LKR",
       minNights: 1,
       maxNights: 30,
-      maxGuests: 6,
+      maxGuests: 8,
       advanceBookingDays: 365,
       sameDayBooking: true,
       leadTimeHours: 2,

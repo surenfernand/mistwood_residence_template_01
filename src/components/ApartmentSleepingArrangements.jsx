@@ -25,11 +25,11 @@ const SLEEPING_ROWS = [
   },
 ];
 
-const HIGHLIGHTS = [
+const HIGHLIGHTS = (maxGuests) => [
   "The entire apartment is rented as one unit for private use.",
   "3 sleeping rooms plus a servant room with a single bed.",
   "Triple room has an attached bathroom; both double rooms share a common bathroom.",
-  "Maximum adult capacity is 8 guests when including the servant room.",
+  `Maximum adult capacity is ${maxGuests} guests when including the servant room.`,
   "Well suited for families and small groups.",
 ];
 
@@ -50,7 +50,7 @@ function RowIcon({ name }) {
   );
 }
 
-export default function ApartmentSleepingArrangements({ propertyName }) {
+export default function ApartmentSleepingArrangements({ propertyName, maxGuests }) {
   return (
     <section className="apt-sleeping" aria-labelledby="apt-sleeping-title">
       <div className="mh-wrap">
@@ -111,7 +111,7 @@ export default function ApartmentSleepingArrangements({ propertyName }) {
                 Important to know
               </h3>
               <ul>
-                {HIGHLIGHTS.map((item) => (
+                {HIGHLIGHTS(maxGuests).map((item) => (
                   <li key={item}>{item}</li>
                 ))}
               </ul>

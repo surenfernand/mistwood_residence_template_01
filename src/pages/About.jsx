@@ -361,15 +361,6 @@ export default function About() {
           </div>
         </section>
 
-        <section className="ab-voices" id="voices" aria-label="Guest posts and reviews from Facebook">
-          <div className="mh-wrap ab-voices-head">
-            <p className="mh-kicker gold">From Social</p>
-            <h2>What guests have been sharing</h2>
-            <p>Reviews, posts, and comments from people who have stayed.</p>
-          </div>
-          <VoiceRow items={guestNotes} direction="to-left" />
-        </section>
-
         <section className="ab-stay-showcase" id="meals" aria-label="Meals and apartment photographs">
           <svg className="ab-stay-hills" viewBox="0 0 1600 360" preserveAspectRatio="none" aria-hidden="true">
             <path d="M0 245C164 155 300 172 440 236c147 67 260 50 392-13 192-92 360-39 501 43 102 59 193 43 267-7v156H0Z" fill="currentColor" opacity=".34" />

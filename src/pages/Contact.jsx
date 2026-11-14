@@ -52,8 +52,11 @@ function isoDay(date) {
 }
 
 function guestLabel(guests) {
-  if (guests === "7") return "7 or more";
   return `${guests} guest${guests === "1" ? "" : "s"}`;
+}
+
+function isInternationalPhone(value) {
+  return /^\+[1-9]\d{7,14}$/.test(String(value || "").replace(/[\s().-]/g, ""));
 }
 
 function BookingDialog({ titleId, title, kicker, busy = false, onDismiss, children }) {
@@ -449,6 +452,10 @@ export default function Contact() {
       setNotice("Please enter an email address we can reply to.");
       return;
     }
+    if (!isInternationalPhone(guest.phone)) {
+      setNotice("Please enter a phone number with a country code, for example +94 76 590 0800.");
+      return;
+    }
     if (!guest.policies) {
       setNotice("Please confirm you have read the booking notes.");
       return;
@@ -692,10 +699,9 @@ export default function Contact() {
                 <div className="field">
                   <label htmlFor="guests">Number of guests</label>
                   <select id="guests" value={guests} onChange={(event) => setGuests(event.target.value)}>
-                    {Array.from({ length: (Number(pub.maxGuests) || 7) >= 7 ? 6 : Math.max(1, Number(pub.maxGuests) || 7) }, (_, i) => i + 1).map((n) => (
+                    {Array.from({ length: Math.max(1, Number(pub.maxGuests) || 8) }, (_, i) => i + 1).map((n) => (
                       <option key={n} value={String(n)}>{n === 1 ? "1 guest" : `${n} guests`}</option>
                     ))}
-                    {(Number(pub.maxGuests) || 7) >= 7 ? <option value="7">7 or more</option> : null}
                   </select>
                 </div>
                 <button className="btn" type="submit" disabled={sending}>Continue <span>↗</span></button>
@@ -703,7 +709,7 @@ export default function Contact() {
               <div className="form-columns">
                 <div className="field"><label htmlFor="guest-name">Full name</label><input id="guest-name" name="name" autoComplete="name" placeholder="The name on the booking" required value={guest.name} onChange={updateGuest} /></div>
                 <div className="field"><label htmlFor="guest-email">Email address</label><input id="guest-email" name="email" type="email" autoComplete="email" placeholder="Where we should reply" required value={guest.email} onChange={updateGuest} /></div>
-                <div className="field"><label htmlFor="guest-phone">Phone number, with country code</label><input id="guest-phone" name="phone" type="tel" autoComplete="tel" placeholder="+94, or your country code" required value={guest.phone} onChange={updateGuest} /></div>
+                <div className="field"><label htmlFor="guest-phone">Phone number, with country code</label><input id="guest-phone" name="phone" type="tel" autoComplete="tel" placeholder="+94 76 590 0800" pattern="\+[1-9][0-9\s().-]{7,18}" title="Use a phone number with a country code, for example +94 76 590 0800." required value={guest.phone} onChange={updateGuest} /></div>
                 <div className="field"><label htmlFor="guest-note">Message</label><input id="guest-note" name="note" placeholder="Arrival time or a question" value={guest.note} onChange={updateGuest} /></div>
               </div>
               <label className="check"><input type="checkbox" name="policies" checked={guest.policies} onChange={updateGuest} /> I have read the <Link to="/policies">booking, cancellation, and refund notes</Link>.</label>
@@ -721,7 +727,7 @@ export default function Contact() {
             </form>
             ) : stay?.start && stay?.end ? (
             <div className="booking-wrap pay-step" ref={payRef}>
-              <p className="pay-summary">{formatStay(stay.start)} to {formatStay(stay.end)} · {Math.round((stay.end - stay.start) / 86400000)} night(s) · {guests === "7" ? "7 or more guests" : `${guests} guest${guests === "1" ? "" : "s"}`} · {guest.name}</p>
+              <p className="pay-summary">{formatStay(stay.start)} to {formatStay(stay.end)} · {Math.round((stay.end - stay.start) / 86400000)} night(s) · {guestLabel(guests)} · {guest.name}</p>
               <div className="price-panel">
                 <span className="eyebrow">Amount to pay now</span>
                 <strong>{money(quote?.depositAmount || 0)}</strong>

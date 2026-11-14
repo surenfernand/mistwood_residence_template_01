@@ -140,7 +140,12 @@ export default function Calendar({
   });
 
   const summary = start ? `${formatDate(start)}${end ? ` — ${formatDate(end)}` : " — Select departure"}` : "Select your stay dates";
-  const minHint = rules.minNights > 1 ? `Minimum stay: ${rules.minNights} nights.` : "";
+  const bookingHints = [
+    "Departure must be after arrival.",
+    rules.minNights > 1 ? `Minimum stay: ${rules.minNights} nights.` : null,
+    rules.maxNights != null ? `Maximum stay: ${rules.maxNights} nights.` : null,
+    rules.advanceBookingDays != null ? `Bookings open up to ${rules.advanceBookingDays} days ahead.` : null,
+  ].filter(Boolean);
 
   return (
     <>
@@ -188,7 +193,9 @@ export default function Calendar({
             <div>
               <small className="cal-hint">{phase === "start" ? "Choose your arrival date" : "Now choose your departure date"}</small>
               <div className="cal-summary">{summary}</div>
-              {minHint ? <small className="cal-hint">{minHint}</small> : null}
+              <div className="cal-rules" aria-label="Booking date rules">
+                {bookingHints.map((hint) => <small className="cal-hint" key={hint}>{hint}</small>)}
+              </div>
             </div>
             <div className="cal-foot-actions">
               <button

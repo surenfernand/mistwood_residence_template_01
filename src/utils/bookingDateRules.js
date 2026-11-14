@@ -42,6 +42,9 @@ export function isArrivalDateAllowed(iso, rules) {
 }
 
 export function validateStayRange(arriveIso, departIso, rules) {
+  if (!arriveIso || !departIso || departIso <= arriveIso) {
+    return "Departure date must be after arrival date.";
+  }
   const nights = nightCount(arriveIso, departIso);
   const min = Number(rules.minNights) || 1;
   const max = rules.maxNights != null ? Number(rules.maxNights) : null;

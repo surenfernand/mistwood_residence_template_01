@@ -41,7 +41,7 @@ export default function Apartments() {
           </div>
         </section>
 
-        <ApartmentSleepingArrangements propertyName={pub.propertyName} />
+        <ApartmentSleepingArrangements propertyName={pub.propertyName} maxGuests={pub.maxGuests} />
 
         <section className="apt-faq" aria-labelledby="faq-title">
           <div className="mh-wrap apt-faq-grid"><div><p className="mh-kicker gold" style={{ justifyContent: "left" }}>Helpful Details</p><h2 id="faq-title">Frequently Asked Questions</h2><p>Everything we can confirm about a stay at {pub.propertyName}.</p></div><div>{faqs.map(([question, answer], faqIndex) => <article key={question} className={openFaq === faqIndex ? "is-open" : ""}><button type="button" aria-expanded={openFaq === faqIndex} onClick={() => setOpenFaq(openFaq === faqIndex ? null : faqIndex)}><span>{question}</span><b aria-hidden="true">+</b></button><div><p>{answer}</p></div></article>)}</div></div>

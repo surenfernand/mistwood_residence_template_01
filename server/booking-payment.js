@@ -14,6 +14,7 @@ import {
 
 const siteUrl = () => (process.env.PUBLIC_SITE_URL || "http://localhost:5173").replace(/\/$/, "");
 const tokenHash = (token) => crypto.createHash("sha256").update(token).digest("hex");
+const PAYMENT_HOLD_MINUTES = 15;
 
 export function issueCheckInToken() {
   return crypto.randomBytes(24).toString("base64url");
@@ -35,9 +36,9 @@ export async function createCheckoutRequest(client, entry) {
   const { rows } = await client.query(
     `insert into booking_requests (
       name, email, phone, note, guests, arrive, depart, status,
-      quoted_total, quoted_deposit, pricing_snapshot, payment_order_id
-    ) values ($1, $2, $3, $4, $5, $6::date, $7::date, 'pending_payment', $8, $9, $10::jsonb, $11)
-    returning id, payment_order_id as "paymentOrderId", quoted_total as "quotedTotal", quoted_deposit as "quotedDeposit"`,
+      quoted_total, quoted_deposit, pricing_snapshot, payment_order_id, hold_expires_at
+    ) values ($1, $2, $3, $4, $5, $6::date, $7::date, 'pending_payment', $8, $9, $10::jsonb, $11, now() + ($12 * interval '1 minute'))
+    returning id, payment_order_id as "paymentOrderId", quoted_total as "quotedTotal", quoted_deposit as "quotedDeposit", hold_expires_at as "holdExpiresAt"`,
     [
       entry.name,
       entry.email,
@@ -50,6 +51,7 @@ export async function createCheckoutRequest(client, entry) {
       quote.depositAmount,
       JSON.stringify(quote),
       orderId,
+      PAYMENT_HOLD_MINUTES,
     ],
   );
   return { request: rows[0], quote };
@@ -96,15 +98,21 @@ export async function ensureBookingForPaidRequest(client, requestId, quote) {
   return { bookingId: rows[0].id, rawToken };
 }
 
-async function availabilityConflict(client, arrive, depart) {
+async function availabilityConflict(client, arrive, depart, excludeRequestId = null) {
   const { rowCount } = await client.query(
     `select 1 from bookings where status in ('confirmed','checked_in')
        and daterange(check_in,check_out,'[)') && daterange($1::date,$2::date,'[)')
      union all
      select 1 from availability_blocks
        where daterange(start_date,end_date,'[)') && daterange($1::date,$2::date,'[)')
+     union all
+     select 1 from booking_requests
+       where status = 'pending_payment'
+         and hold_expires_at > now()
+         and ($3::bigint is null or id <> $3::bigint)
+         and daterange(arrive,depart,'[)') && daterange($1::date,$2::date,'[)')
      limit 1`,
-    [arrive, depart],
+    [arrive, depart, excludeRequestId],
   );
   return Boolean(rowCount);
 }
@@ -140,7 +148,7 @@ export async function fulfillPayherePayment(pool, body) {
 
     const { rows: reqRows } = await client.query(
       `select id, name, email, phone, guests, arrive::text as arrive, depart::text as depart,
-              quoted_total, quoted_deposit, pricing_snapshot, status
+              quoted_total, quoted_deposit, pricing_snapshot, status, hold_expires_at as "holdExpiresAt"
          from booking_requests where payment_order_id = $1 for update`,
       [baseOrderId],
     );
@@ -167,7 +175,16 @@ export async function fulfillPayherePayment(pool, body) {
     let rawToken = null;
 
     if (paymentType === "deposit") {
-      if (await availabilityConflict(client, request.arrive, request.depart)) {
+      if (request.holdExpiresAt && new Date(request.holdExpiresAt).getTime() <= Date.now()) {
+        await client.query(
+          "update booking_requests set needs_attention = true, status = 'cancelled', status_changed_at = now(), updated_at = now() where id = $1",
+          [request.id],
+        );
+        await client.query("commit");
+        await notifyNeedsAttention(pool, request.id).catch((e) => console.error("Expired hold notification failed:", e.message));
+        return { expired: true, requestId: request.id };
+      }
+      if (await availabilityConflict(client, request.arrive, request.depart, request.id)) {
         await client.query(
           "update booking_requests set needs_attention = true, status = 'pending_payment', updated_at = now() where id = $1",
           [request.id],
@@ -192,7 +209,7 @@ export async function fulfillPayherePayment(pool, body) {
       );
 
       await client.query(
-        "update booking_requests set status = 'confirmed', status_changed_at = now(), updated_at = now() where id = $1",
+        "update booking_requests set status = 'confirmed', hold_expires_at = null, status_changed_at = now(), updated_at = now() where id = $1",
         [request.id],
       );
     } else {

@@ -9,7 +9,7 @@ create table if not exists site_settings (
   deposit_percent numeric(5,2) not null default 30 check (deposit_percent > 0 and deposit_percent <= 100),
   min_nights integer not null default 1 check (min_nights >= 1),
   max_nights integer check (max_nights is null or max_nights >= 1),
-  max_guests integer not null default 7 check (max_guests >= 1),
+  max_guests integer not null default 8 check (max_guests >= 1),
   advance_booking_days integer check (advance_booking_days is null or advance_booking_days >= 1),
   check_in_time text not null default '14:00',
   check_out_time text not null default '11:00',

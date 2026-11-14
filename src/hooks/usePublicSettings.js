@@ -16,7 +16,7 @@ const DEFAULTS = {
   footerTagline: "One apartment in Nuwara Eliya, reserved as a whole for your group.",
   minNights: 1,
   maxNights: 30,
-  maxGuests: 7,
+  maxGuests: 8,
   advanceBookingDays: 365,
   checkInTime: "14:00",
   checkOutTime: "11:00",

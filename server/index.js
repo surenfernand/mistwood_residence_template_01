@@ -176,6 +176,8 @@ const text = (value, max) => (typeof value === "string" ? value.trim().slice(0, 
 const isEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 const isDay = (value) => /^\d{4}-\d{2}-\d{2}$/.test(value);
 const normalisedEmail = (value) => text(value, 200).toLowerCase();
+const normalisedPhone = (value) => text(value, 50).replace(/[\s().-]/g, "");
+const isInternationalPhone = (value) => /^\+[1-9]\d{7,14}$/.test(value);
 const tokenHash = (token) => crypto.createHash("sha256").update(token).digest("hex");
 
 function hashPassword(password, salt = crypto.randomBytes(16).toString("hex")) {
@@ -732,7 +734,7 @@ app.get("/api/availability", async (_req, res, next) => {
   try {
     const [bookings, pendingRequests, blocks] = await Promise.all([
       pool.query("select check_in::text as start, check_out::text as end, 'booked' as type from bookings where status in ('confirmed','checked_in')"),
-      pool.query("select arrive::text as start, depart::text as end, 'pending' as type from booking_requests where status = 'pending_payment'"),
+      pool.query("select arrive::text as start, depart::text as end, 'pending' as type from booking_requests where status = 'pending_payment' and hold_expires_at > now()"),
       pool.query("select start_date::text as start, end_date::text as end, 'blocked' as type from availability_blocks"),
     ]);
     res.json({ unavailable: [...bookings.rows, ...pendingRequests.rows, ...blocks.rows] });
@@ -1758,7 +1760,7 @@ app.post("/api/admin/bookings", requirePermission("bookings"), async (req, res, 
   const entry = {
     name: text(body.name, 200),
     email: text(body.email, 200),
-    phone: text(body.phone, 50),
+    phone: normalisedPhone(body.phone),
     guests: parseGuestCount(body.guests),
     checkIn: text(body.checkIn, 10),
     checkOut: text(body.checkOut, 10),
@@ -1881,7 +1883,7 @@ app.post("/api/bookings", async (req, res) => {
     depart: text(body.depart, 10),
     offerId: Number.isInteger(offerIdRaw) && offerIdRaw > 0 ? offerIdRaw : null,
   };
-  if (!entry.name || !entry.phone || !isEmail(entry.email)) return res.status(400).json({ error: "Please add your name, email address, and phone number." });
+  if (!entry.name || !isEmail(entry.email) || !isInternationalPhone(entry.phone)) return res.status(400).json({ error: "Please add your name, a valid email address, and a phone number with a country code." });
   if (!isDay(entry.arrive) || !isDay(entry.depart) || entry.depart <= entry.arrive) return res.status(400).json({ error: "Please select valid arrival and departure dates." });
   try {
     await validateBookingAgainstSettings(pool, entry);

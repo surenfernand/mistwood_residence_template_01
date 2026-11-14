@@ -39,14 +39,14 @@ export function HighlandHeader() {
       <Link className="brand mh-brand" to="/" aria-label={pub.propertyName}>
         <img className="mh-logo" alt={pub.propertyName} src={pub.logoUrl || "/assets/mistwood/branding/logo.png"} />
       </Link>
-      <nav className={menu ? "nav mh-nav open" : "nav mh-nav"} aria-label="Primary">
+      <nav id="primary-navigation" className={menu ? "nav mh-nav open" : "nav mh-nav"} aria-label="Primary">
         {nav.map(([to, label]) => (
           <NavLink key={label} to={to} end={to === "/"} className={({ isActive }) => (isActive ? "is-current" : undefined)} onClick={() => setMenu(false)}>{label}</NavLink>
         ))}
       </nav>
       <div className="mh-tools">
         <Link className="mh-book" to="/contact#booking">Book Your Stay</Link>
-        <button aria-label="Toggle navigation" className="menu-btn" type="button" onClick={() => setMenu((value) => !value)}>
+        <button aria-label="Toggle navigation" aria-controls="primary-navigation" aria-expanded={menu} className="menu-btn" type="button" onClick={() => setMenu((value) => !value)}>
           <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
         </button>
       </div>
