@@ -6,7 +6,7 @@ export function useAdminMobilePopover(rootRef, open) {
     const root = rootRef.current;
     if (!root) return undefined;
 
-    const mq = window.matchMedia("(max-width: 800px)");
+    const mq = window.matchMedia("(max-width: 1024px)");
 
     const place = () => {
       if (!mq.matches || !open) {

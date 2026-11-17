@@ -261,12 +261,14 @@ export default function AdminBookingRequests() {
                   <option key={s}>{s}</option>
                 ))}
               </select>
-              <button type="button" className="booking-reset" onClick={reset}>
-                ↻ Reset
-              </button>
-              <a className="booking-reset" href={csvUrl}>
-                Export CSV
-              </a>
+              <div className="booking-filter-actions">
+                <button type="button" className="booking-reset" onClick={reset}>
+                  ↻ Reset
+                </button>
+                <a className="booking-reset booking-export" href={csvUrl} download>
+                  Export CSV
+                </a>
+              </div>
             </div>
             {error ? <p className="booking-error">{error}</p> : null}
             <div className="booking-table-wrap">

@@ -1,4 +1,6 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+
+const EMPTY_PERMISSIONS = Object.freeze([]);
 
 let cachedSession = null;
 let inflight = null;
@@ -67,8 +69,11 @@ export function useAdminSession() {
     };
   }, []);
 
-  const permissions = admin?.permissions || [];
-  const can = (code) => permissions.includes(code);
+  const permissions = useMemo(
+    () => (Array.isArray(admin?.permissions) ? admin.permissions : EMPTY_PERMISSIONS),
+    [admin?.permissions],
+  );
+  const can = useCallback((code) => permissions.includes(code), [permissions]);
 
   return { admin, loading, permissions, can };
 }

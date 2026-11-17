@@ -81,8 +81,14 @@ export default function AdminUsers() {
 
   const defaultInviteRoleId = useMemo(() => {
     const roles = data.roles || [];
-    return roles.find((r) => r.name === "Manager")?.id || roles[0]?.id || "";
+    const id = roles.find((r) => r.name === "Manager")?.id || roles[0]?.id || "";
+    return id ? String(id) : "";
   }, [data.roles]);
+
+  useEffect(() => {
+    if (!defaultInviteRoleId) return;
+    setForm((current) => (current.roleId ? current : { ...current, roleId: defaultInviteRoleId }));
+  }, [defaultInviteRoleId]);
 
   async function inviteUser(event) {
     event.preventDefault();
@@ -96,7 +102,7 @@ export default function AdminUsers() {
         body: JSON.stringify({
           name: form.name.trim(),
           email: form.email.trim(),
-          roleId: Number(form.roleId),
+          roleId: Number.parseInt(form.roleId || defaultInviteRoleId, 10),
         }),
       });
       const body = await response.json().catch(() => ({}));
@@ -210,7 +216,7 @@ export default function AdminUsers() {
               <label>
                 Role
                 <select
-                  value={form.roleId || defaultInviteRoleId}
+                  value={form.roleId || defaultInviteRoleId || ""}
                   onChange={(e) => setForm((f) => ({ ...f, roleId: e.target.value }))}
                   required
                   disabled={busy || metrics.active >= MAX_USERS}
