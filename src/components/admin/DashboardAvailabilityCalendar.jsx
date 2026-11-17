@@ -28,8 +28,14 @@ function PanelTitle({ title, actionTo }) {
 export default function DashboardAvailabilityCalendar({ onMonthStats }) {
   const pub = usePublicSettings();
   const [month, setMonth] = useState(currentMonthKey);
+  const [monthStep, setMonthStep] = useState(0);
   const [data, setData] = useState(null);
   const [loadError, setLoadError] = useState("");
+
+  const changeMonth = (delta) => {
+    setMonthStep(delta);
+    setMonth((value) => addMonths(value, delta));
+  };
 
   useEffect(() => {
     let active = true;
@@ -74,35 +80,46 @@ export default function DashboardAvailabilityCalendar({ onMonthStats }) {
       <PanelTitle title="Availability Calendar" actionTo="/admin/availability" />
       {loadError ? <p className="admin-empty" style={{ margin: "0 0 10px", textAlign: "left" }}>{loadError}</p> : null}
       <div className="admin-calendar-layout">
-        <div>
-          <div className="admin-month">
-            <button type="button" aria-label="Previous month" onClick={() => setMonth((value) => addMonths(value, -1))}>
-              ‹
-            </button>
-            <strong>{readableMonth(month)}</strong>
-            <button type="button" aria-label="Next month" onClick={() => setMonth((value) => addMonths(value, 1))}>
-              ›
-            </button>
-          </div>
-          <div className="admin-weekdays">
-            {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((label) => (
-              <span key={label}>{label}</span>
-            ))}
-          </div>
-          <div className="admin-days">
-            {cells.map(({ key, day, inMonth }) => {
-              const entry = calendar[key];
-              const title = inMonth && entry?.name ? entry.name : undefined;
-              return (
-                <span
-                  key={key}
-                  className={dayStatusClass(entry, inMonth, key === todayKey)}
-                  title={title}
-                >
-                  {day}
-                </span>
-              );
-            })}
+        <div className="admin-calendar-grid-host">
+          <div
+            key={month}
+            className={
+              monthStep > 0
+                ? "admin-calendar-grid-anim is-forward"
+                : monthStep < 0
+                  ? "admin-calendar-grid-anim is-back"
+                  : "admin-calendar-grid-anim"
+            }
+          >
+            <div className="admin-month">
+              <button type="button" aria-label="Previous month" onClick={() => changeMonth(-1)}>
+                ‹
+              </button>
+              <strong>{readableMonth(month)}</strong>
+              <button type="button" aria-label="Next month" onClick={() => changeMonth(1)}>
+                ›
+              </button>
+            </div>
+            <div className="admin-weekdays">
+              {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((label) => (
+                <span key={label}>{label}</span>
+              ))}
+            </div>
+            <div className="admin-days">
+              {cells.map(({ key, day, inMonth }) => {
+                const entry = calendar[key];
+                const title = inMonth && entry?.name ? entry.name : undefined;
+                return (
+                  <span
+                    key={key}
+                    className={dayStatusClass(entry, inMonth, key === todayKey)}
+                    title={title}
+                  >
+                    {day}
+                  </span>
+                );
+              })}
+            </div>
           </div>
         </div>
         <div className="admin-calendar-key">

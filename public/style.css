@@ -620,27 +620,49 @@ html:not([data-theme="light"]) .switch-icon.moon { display: block; }
 .attraction-map { position: relative; }
 .attraction-map-canvas { width: 100%; height: 440px; background: #dce8db; }
 .attraction-map-fallback { display: grid; min-height: 220px; place-items: center; margin: 0; padding: 32px; color: #31543d; background: #dce8db; text-align: center; }
-.attraction-map-pin { border: 0; background: transparent; filter: drop-shadow(0 3px 3px rgba(10, 35, 23, .3)); }
-.attraction-map-pin:hover { filter: brightness(1.08) drop-shadow(0 4px 4px rgba(10, 35, 23, .4)); }
-.attraction-map-pin:focus-visible { outline: 2px solid #9a6f2b; outline-offset: 3px; border-radius: 8px; }
+/* Leaflet markers are <img> or divs; global img { width:100% } must not apply inside the map. */
+.attraction-map .leaflet-marker-pane img.leaflet-marker-icon {
+  width: auto !important;
+  max-width: none !important;
+  max-height: none !important;
+  height: auto !important;
+  object-fit: contain !important;
+}
+.attraction-map .leaflet-marker-icon.attraction-map-pin-marker {
+  border: 0;
+  background: url("/assets/mistwood/icons/forest-gold-map-pin.png") center / contain no-repeat;
+  filter: drop-shadow(0 3px 3px rgba(10, 35, 23, .3));
+}
+.attraction-map .leaflet-marker-icon.attraction-map-pin-marker:hover {
+  filter: brightness(1.08) drop-shadow(0 4px 4px rgba(10, 35, 23, .4));
+}
+.attraction-map .leaflet-marker-icon.attraction-map-pin-marker:focus-visible {
+  outline: 2px solid #9a6f2b;
+  outline-offset: 3px;
+  border-radius: 8px;
+}
 .attraction-map .leaflet-control-zoom a { color: #174d36; }
 .attraction-map .leaflet-popup-content-wrapper { overflow: hidden; padding: 0; border-radius: 14px; box-shadow: 0 12px 28px rgba(10, 35, 23, .28); }
 .attraction-map .leaflet-popup-content { width: 260px !important; margin: 0; }.attraction-map .leaflet-popup-tip { background: #fff; }
 .attraction-map .marker-cluster { background: transparent; }
-.attraction-cluster-icon {
-  display: flex;
+.attraction-map .leaflet-marker-icon.attraction-cluster-icon {
+  display: flex !important;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  box-sizing: border-box;
   border-radius: 999px;
   background: linear-gradient(180deg, #0c5339 0%, #063f2c 100%);
   border: 2px solid #e1cc97;
   color: #fff;
   font: 600 14px/1 Outfit, sans-serif;
+  line-height: 1;
   box-shadow: 0 4px 10px rgba(10, 35, 23, .4);
 }
-.attraction-cluster-icon span { display: block; }
+.attraction-map .attraction-cluster-icon span {
+  display: block;
+  line-height: 1;
+  text-align: center;
+}
 .attraction-popup-card img { display: block; width: 100%; height: 122px; object-fit: cover; }.attraction-popup-card div { padding: 13px 14px 15px; }.attraction-popup-card h3 { margin: 0 0 6px; color: #183d2b; font: 600 17px/1.2 "Playfair Display", Georgia, serif; }.attraction-popup-card p { margin: 0 0 11px; color: #5b655d; font: 13px/1.45 Outfit, sans-serif; }.attraction-popup-card a { color: #9a6f2b; font: 700 12px/1 Outfit, sans-serif; text-decoration: none; }
 @media (max-width: 600px) { .map-frame, .attraction-map-canvas { height: 360px; } }
 

@@ -4,7 +4,6 @@ import L from "leaflet";
 import "leaflet.markercluster";
 import "leaflet/dist/leaflet.css";
 import "leaflet.markercluster/dist/MarkerCluster.css";
-import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 import { HighlandFooter, HighlandHeader, PageHero } from "../components/Highland.jsx";
 import Attractions from "../components/Attractions.jsx";
 import { usePublicSettings } from "../hooks/usePublicSettings.js";
@@ -65,12 +64,12 @@ export default function Explore() {
       if (cancelled || !mapRef.current) return;
       map = L.map(mapRef.current, { scrollWheelZoom: true });
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: "© OpenStreetMap contributors" }).addTo(map);
-      const pin = L.icon({
-        iconUrl: "/assets/mistwood/icons/forest-gold-map-pin.png",
-        className: "attraction-map-pin",
+      const pin = L.divIcon({
+        className: "attraction-map-pin-marker",
+        html: "",
         iconSize: [34, 46],
-        iconAnchor: [17, 44],
-        popupAnchor: [0, -42],
+        iconAnchor: [17, 46],
+        popupAnchor: [0, -44],
       });
       // Group nearby pins so the dense town-centre attractions don't overlap;
       // a cluster shows a count and expands (or spiderfies) when selected.
@@ -83,6 +82,7 @@ export default function Explore() {
             html: `<span>${c.getChildCount()}</span>`,
             className: "attraction-cluster-icon",
             iconSize: [40, 40],
+            iconAnchor: [20, 20],
           }),
       });
       mapAttractions.forEach((place) => {

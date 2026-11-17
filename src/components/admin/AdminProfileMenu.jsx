@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AdminIcon from "./AdminIcon.jsx";
+import { useAdminMobilePopover } from "../../hooks/useAdminMobilePopover.js";
 import { formatLastLogin } from "../../utils/formatLastLogin.js";
 import { clearAdminSessionCache, useAdminSession } from "../../utils/adminSession.js";
 
@@ -14,6 +15,8 @@ export default function AdminProfileMenu({ open = false, onOpenChange, onLogout 
   const { admin } = useAdminSession();
   const name = admin?.name || "Admin";
   const roleName = admin?.roleName || admin?.role || "Admin";
+
+  useAdminMobilePopover(rootRef, open);
 
   useEffect(() => {
     if (!open) return undefined;

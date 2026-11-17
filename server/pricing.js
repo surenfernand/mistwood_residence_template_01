@@ -68,7 +68,7 @@ export function checkSelectedOfferEligibility(offer, arrive, depart, nights) {
 }
 
 /**
- * Full stay quote: per-night seasonal/base rates, special offer discount,
+ * Full stay quote: per-night base rate, special offer discount,
  * then highest applicable long-stay discount on the post-offer subtotal.
  * @param {import("pg").Pool | import("pg").PoolClient} pool
  * @param {string} arrive
@@ -86,9 +86,8 @@ export async function calculateStayQuote(pool, arrive, depart, options = {}) {
   const requireDeposit = site.requireDeposit !== false;
   const depositPercent = requireDeposit ? Number(site.depositPercent) || 30 : 0;
 
-  const [baseResult, seasonalResult, offersResult, longStayResult] = await Promise.all([
+  const [baseResult, offersResult, longStayResult] = await Promise.all([
     pool.query("select nightly_rate, currency from property_rates where active order by id desc limit 1"),
-    pool.query("select id, name, start_date, end_date, nightly_rate, active from seasonal_rates where active order by start_date"),
     pool.query("select id, name, discount_percent, start_date, end_date, active, min_nights from special_offers where active order by start_date"),
     pool.query("select id, min_nights, discount_percent, active from long_stay_discounts where active order by min_nights"),
   ]);
@@ -98,7 +97,7 @@ export async function calculateStayQuote(pool, arrive, depart, options = {}) {
 
   const nightRates = [];
   const nights = eachNight(arriveDay, departDay, (night) => {
-    const rate = rateForNight(night, baseRate, seasonalResult.rows);
+    const rate = rateForNight(night, baseRate, []);
     nightRates.push([night, rate]);
   });
 

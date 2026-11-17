@@ -1,5 +1,4 @@
 import { CHECK_IN_OPTIONS, CHECK_OUT_OPTIONS } from "../../../data/settingsUiMock.js";
-import SeasonalRatesPanel from "./SeasonalRatesPanel.jsx";
 import { usePublicSettings } from "../../../hooks/usePublicSettings.js";
 import { formatSettingsTime } from "../../../utils/formatSettingsTime.js";
 import { SettingsCard, SettingsStepper, SettingsToggle } from "./SettingsControls.jsx";
@@ -23,7 +22,7 @@ export default function SettingsBookingPanel({ data, onPatch }) {
         <SettingsCard title="Base pricing" icon={<IconCard />}>
           <SettingsStepper
             label="Nightly rate"
-            description="Default price per night before seasonal rates and offers."
+            description="Default price per night before special offers and long-stay discounts."
             value={data.nightlyRate}
             unit={data.rateCurrency || "LKR"}
             onChange={setNum("nightlyRate")}
@@ -32,8 +31,6 @@ export default function SettingsBookingPanel({ data, onPatch }) {
             step={500}
           />
         </SettingsCard>
-
-        <SeasonalRatesPanel currency={data.rateCurrency || "LKR"} />
 
         <SettingsCard title="Stay requirements" icon={<IconUsersStub />}>
           <SettingsStepper

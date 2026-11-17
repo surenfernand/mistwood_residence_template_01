@@ -214,12 +214,19 @@ html.admin-compact-sidebar .admin-main { width: calc(100% - 220px); margin-left:
 html.admin-reduce-motion .admin-sidebar,
 html.admin-reduce-motion .admin-notification-panel,
 html.admin-reduce-motion .admin-profile-panel,
-html.admin-reduce-motion .admin-profile b { transition: none !important; }
+html.admin-reduce-motion .admin-profile b,
+html.admin-reduce-motion .admin-calendar-grid-anim { transition: none !important; animation: none !important; }
 .admin-dashboard-content { padding: 0 12px 24px; }.admin-welcome { position: relative; display: grid; min-height: 114px; align-items: center; overflow: hidden; border-radius: 13px; color: #fff; }.admin-welcome > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: brightness(.68); }.admin-welcome::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(10, 50, 33, .72), transparent); }.admin-welcome div { position: relative; z-index: 1; padding: 22px 52px; }.admin-welcome p { margin: 0; font: 500 29px/1.15 "Playfair Display", Georgia, serif; }.admin-welcome span { font-size: 16px; }
 .admin-metrics { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 7px; margin: 12px 0 16px; }.admin-metric, .admin-panel { border: 1px solid #e4e0d7; border-radius: 11px; background: rgba(255, 255, 255, .7); box-shadow: 0 3px 10px rgba(40, 31, 13, .04); }.admin-metric { display: flex; min-height: 84px; align-items: flex-start; gap: 13px; padding: 13px; }.admin-metric > svg, .admin-panel-title > span > svg, .admin-mini-stat > svg { color: #987018; }.admin-metric > svg { margin-top: 6px; }.admin-metric span { display: block; font-size: 12px; line-height: 1.25; }.admin-metric span small { display: block; font-size: 10px; }.admin-metric strong { display: block; margin-top: 6px; font: 600 28px/1 "Playfair Display", Georgia, serif; }.admin-metric:last-child strong { font-size: 21px; }
 .admin-grid { display: grid; gap: 10px; margin-top: 10px; }.admin-operation-grid { grid-template-columns: 1.72fr .92fr 1.08fr; }.admin-panel { min-width: 0; padding: 12px; }.admin-panel-title { display: flex; min-height: 28px; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }.admin-panel-title > span { display: flex; align-items: center; gap: 12px; }.admin-panel-title h2 { margin: 0; font: 600 18px/1.1 "Playfair Display", Georgia, serif; }.admin-panel-title button, .admin-panel-title a { display: inline-flex; align-items: center; gap: 5px; border: 0; padding: 0; color: #8a610d; background: transparent; font: 500 12px/1 Outfit, sans-serif; text-decoration: none; }
 .admin-panel-title a:hover { text-decoration: underline; }
-.admin-calendar-layout { display: grid; grid-template-columns: 1.55fr 1fr; gap: 12px; }.admin-month { display: flex; justify-content: space-between; align-items: center; margin: 0 8px 8px; }.admin-month strong { font: 600 14px/1 "Playfair Display", Georgia, serif; }.admin-month button { border: 0; background: transparent; font-size: 25px; line-height: 1; }.admin-weekdays, .admin-days { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; }.admin-weekdays { margin-bottom: 4px; font-size: 10px; }.admin-days span { min-height: 29px; display: grid; place-items: center; border: 1px solid #f0ede7; font-size: 11px; }.admin-days .is-booked { background: #f6d2d1; }.admin-days .is-pending { background: #f9e6aa; }.admin-days .is-blocked { background: #d4e8f7; }.admin-days .is-outside { color: #b0aca4; background: #f7f6f3; }.admin-days .is-available { background: #ddefd8; }.admin-days .is-today { border-radius: 50%; color: #fff; background: #245940; }.admin-calendar-key { display: grid; align-content: start; gap: 7px; padding-top: 30px; font-size: 10px; }.admin-calendar-key span { display: flex; align-items: center; gap: 7px; }.admin-calendar-key i { width: 20px; height: 16px; border-radius: 4px; }.admin-calendar-key .available { background: #ddefd8; }.admin-calendar-key .booked { background: #f6d2d1; }.admin-calendar-key .hold { background: #f9e6aa; }.admin-calendar-key .blocked { background: #d4e8f7; }.admin-calendar-key .maintenance { background: #dedbf3; }.admin-calendar-key hr { width: 100%; margin: 3px 0; border: 0; border-top: 1px solid #e5e0d6; }.admin-calendar-key small { font-size: 10px; line-height: 1.5; }
+.admin-calendar-layout { display: grid; grid-template-columns: 1.55fr 1fr; gap: 12px; }
+.admin-calendar-grid-host { overflow: hidden; min-width: 0; }
+@keyframes admin-cal-grid-forward { from { opacity: .45; transform: translateX(16px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes admin-cal-grid-back { from { opacity: .45; transform: translateX(-16px); } to { opacity: 1; transform: translateX(0); } }
+.admin-calendar-grid-anim.is-forward { animation: admin-cal-grid-forward .26s cubic-bezier(.22, .9, .24, 1); }
+.admin-calendar-grid-anim.is-back { animation: admin-cal-grid-back .26s cubic-bezier(.22, .9, .24, 1); }
+.admin-month { display: flex; justify-content: space-between; align-items: center; margin: 0 8px 8px; }.admin-month strong { font: 600 14px/1 "Playfair Display", Georgia, serif; transition: opacity .18s ease; }.admin-month button { border: 0; background: transparent; font-size: 25px; line-height: 1; color: #174d37; border-radius: 6px; transition: color .15s ease, transform .15s ease, background .15s ease; }.admin-month button:hover { color: #0d3324; background: rgba(232, 237, 223, .9); }.admin-month button:active { transform: scale(.94); }.admin-weekdays, .admin-days { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; }.admin-weekdays { margin-bottom: 4px; font-size: 10px; }.admin-days span { min-height: 29px; display: grid; place-items: center; border: 1px solid #f0ede7; font-size: 11px; transition: background-color .2s ease, color .2s ease; }.admin-days .is-booked { background: #f6d2d1; }.admin-days .is-pending { background: #f9e6aa; }.admin-days .is-blocked { background: #d4e8f7; }.admin-days .is-outside { color: #b0aca4; background: #f7f6f3; }.admin-days .is-available { background: #ddefd8; }.admin-days .is-today { border-radius: 50%; color: #fff; background: #245940; }.admin-calendar-key { display: grid; align-content: start; gap: 7px; padding-top: 30px; font-size: 10px; }.admin-calendar-key span { display: flex; align-items: center; gap: 7px; }.admin-calendar-key i { width: 20px; height: 16px; border-radius: 4px; }.admin-calendar-key .available { background: #ddefd8; }.admin-calendar-key .booked { background: #f6d2d1; }.admin-calendar-key .hold { background: #f9e6aa; }.admin-calendar-key .blocked { background: #d4e8f7; }.admin-calendar-key .maintenance { background: #dedbf3; }.admin-calendar-key hr { width: 100%; margin: 3px 0; border: 0; border-top: 1px solid #e5e0d6; }.admin-calendar-key small { font-size: 10px; line-height: 1.5; }
 .admin-quick-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }.admin-quick-actions button { display: grid; min-height: 91px; place-items: center; gap: 7px; border: 0; border-radius: 10px; color: #0f4933; background: #e8eddf; font: 500 13px/1.15 Outfit, sans-serif; }.admin-quick-actions button:hover { background: #dce8d4; }.admin-alerts { display: grid; gap: 6px; }.admin-alerts button { display: flex; align-items: center; gap: 10px; min-height: 32px; border: 0; border-radius: 7px; padding: 6px 10px; color: #5a2b20; background: #fff0eb; text-align: left; font: 400 12px/1 Outfit, sans-serif; }.admin-alerts button:nth-child(n+3) { color: #614913; background: #fff8e8; }.admin-alerts button > :last-child { margin-left: auto; }.admin-alerts button > svg:first-child { color: #c3533e; }.admin-alerts span { flex: 1; }
 .admin-report-grid { grid-template-columns: 1.3fr 1.05fr 1.1fr; }.admin-chart-panel { min-height: 175px; }.admin-bars { display: flex; height: 114px; align-items: end; justify-content: space-around; gap: 8px; padding: 10px 22px 0; border-bottom: 1px solid #ded9cc; background: repeating-linear-gradient(to top, transparent 0 27px, #ece8df 28px); }.admin-bars span { display: grid; height: 100%; flex: 1; align-items: end; justify-items: center; }.admin-bars i { display: block; width: min(36px, 80%); border-radius: 3px 3px 0 0; background: #1b563d; }.admin-bars small { margin-top: 5px; font-size: 10px; }.admin-mini-column { display: grid; gap: 10px; }.admin-mini-stat { display: flex; min-height: 82px; gap: 13px; }.admin-mini-stat h2 { margin: 0 0 4px; font: 600 15px/1.1 "Playfair Display", Georgia, serif; }.admin-mini-stat strong { display: block; font: 600 27px/1 "Playfair Display", Georgia, serif; }.admin-mini-stat strong small { font: 400 12px/1 Outfit, sans-serif; }.admin-mini-stat span { display: block; margin-top: 3px; color: #656965; font-size: 10px; }.admin-revenue { position: relative; overflow: hidden; background: linear-gradient(#fffefb, #f0f4e8); }.admin-revenue::after { content: ""; position: absolute; right: -10px; bottom: -6px; width: 65%; height: 65%; opacity: .22; background: url("/assets/mistwood/backgrounds/tea-sunrise.jpg") bottom / cover; mask-image: linear-gradient(transparent, #000); }.admin-revenue > * { position: relative; z-index: 1; }.admin-revenue > strong { display: block; margin: 35px 0 8px; font: 600 34px/1 "Playfair Display", Georgia, serif; }.admin-revenue > span { display: block; max-width: 220px; color: #536257; font-size: 12px; }
 .admin-table-grid { grid-template-columns: 1.3fr 1.1fr; }.admin-table-panel table { width: 100%; border-collapse: collapse; font-size: 11px; }.admin-table-panel th { padding: 6px 8px; background: #f0ece2; text-align: left; font-weight: 600; }.admin-table-panel td { padding: 6px 8px; border-bottom: 1px solid #eee9de; }.admin-table-panel em { display: inline-block; min-width: 52px; border-radius: 6px; padding: 3px 8px; color: #a1312b; background: #f9d8d5; font-style: normal; text-align: center; }.admin-empty { margin: 24px 0 10px; color: #71736f; font-size: 13px; text-align: center; }
@@ -349,7 +356,45 @@ html.admin-reduce-motion .admin-profile b { transition: none !important; }
 .admin-notification-panel.is-open { visibility: visible; pointer-events: auto; opacity: 1; transform: translateY(0) scale(1); transition: opacity .18s ease, transform .22s cubic-bezier(.2,.8,.2,1); }
 .admin-notification.has-unread { transition: transform .18s ease, color .18s ease; }
 .admin-notification-wrap:hover .admin-notification { color: #0d3324; transform: translateY(-1px); }
-@media (prefers-reduced-motion: reduce) { .admin-notification-panel, .admin-notification { transition: none !important; } }
+@media (prefers-reduced-motion: reduce) {
+  .admin-notification-panel,
+  .admin-notification,
+  .admin-calendar-grid-anim { transition: none !important; animation: none !important; }
+}
+
+/* Header popovers: anchor to the viewport on mobile so vw-sized panels do not clip off-screen. */
+@media (max-width: 800px) {
+  .admin-notification-panel,
+  .admin-profile-panel {
+    position: fixed;
+    z-index: 45;
+    top: var(--admin-popover-top, calc(env(safe-area-inset-top, 0px) + 88px));
+    right: max(14px, env(safe-area-inset-right));
+    left: auto;
+    width: min(392px, calc(100vw - 28px));
+  }
+  .admin-profile-panel { width: min(320px, calc(100vw - 28px)); }
+  .admin-notification-panel.is-open {
+    display: flex;
+    flex-direction: column;
+    max-height: min(520px, calc(100svh - var(--admin-popover-top, 88px) - 14px));
+  }
+  .admin-notification-list {
+    flex: 1;
+    min-height: 0;
+    max-height: none;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #b5c0b4 #f0ece4;
+    overscroll-behavior: contain;
+  }
+  .admin-notification-list::-webkit-scrollbar { width: 6px; }
+  .admin-notification-list::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: #b5c0b4;
+  }
+  .admin-notification-list::-webkit-scrollbar-track { background: #f0ece4; }
+}
 
 /* Reuse the navigation chevron language for the account control. */
 .admin-profile-chevron { display: grid; width: 21px; height: 21px; flex: none; place-items: center; margin-left: 2px; border: 1px solid rgba(23, 77, 55, .22); border-radius: 50%; color: #174d37; background: rgba(232, 237, 223, .76); transition: transform .22s cubic-bezier(.2,.8,.2,1), background .18s ease; }

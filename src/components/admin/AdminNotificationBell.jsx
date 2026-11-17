@@ -2,6 +2,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AdminIcon from "./AdminIcon.jsx";
 import { formatNotificationTime, useAdminNotifications } from "../../hooks/useAdminNotifications.js";
+import { useAdminMobilePopover } from "../../hooks/useAdminMobilePopover.js";
 
 /**
  * @param {{ open?: boolean, onOpenChange?: (open: boolean) => void }} props
@@ -22,6 +23,8 @@ export default function AdminNotificationBell({ open: controlledOpen, onOpenChan
     limit: 8,
     pollMs: 60000,
   });
+
+  useAdminMobilePopover(rootRef, open);
 
   useEffect(() => {
     if (!open) return undefined;
