@@ -17,6 +17,7 @@ export default function AdminNotificationBell({ open: controlledOpen, onOpenChan
   const [internalOpen, setInternalOpen] = useState(false);
   const isControlled = controlledOpen !== undefined;
   const open = isControlled ? controlledOpen : internalOpen;
+  
   const knownNotificationIdsRef = useRef(null);
   const notificationAudioRef = useRef(null);
   const setOpen = (value) => {

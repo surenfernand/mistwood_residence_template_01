@@ -1949,14 +1949,18 @@ app.patch("/api/admin/bookings/:id/status", requirePermission("bookings"), async
 
 app.post("/api/enquiries", async (req, res) => {
   const body = req.body || {};
+  const phoneRaw = text(body.phone, 50);
   const entry = {
     name: text(body.name, 200),
     email: text(body.email, 200),
-    phone: text(body.phone, 50),
+    phone: phoneRaw ? normalisedPhone(phoneRaw) : "",
     subject: text(body.subject, 100),
     message: text(body.message, 5000),
   };
   if (!entry.name || !entry.message || !isEmail(entry.email)) return res.status(400).json({ error: "Please add your name, a valid email address, and a message." });
+  if (entry.phone && !isInternationalPhone(entry.phone)) {
+    return res.status(400).json({ error: "Please choose a valid country code and mobile number." });
+  }
   try {
     const { rows } = await pool.query(
       "insert into enquiries (name, email, phone, subject, message) values ($1, $2, $3, $4, $5) returning id",
@@ -1994,14 +1998,16 @@ app.post("/api/bookings", async (req, res) => {
   const entry = {
     name: text(body.name, 200),
     email: normalisedEmail(body.email),
-    phone: text(body.phone, 50),
+    phone: normalisedPhone(body.phone),
     note: text(body.note, 2000),
     guests: text(body.guests, 10),
     arrive: text(body.arrive, 10),
     depart: text(body.depart, 10),
     offerId: Number.isInteger(offerIdRaw) && offerIdRaw > 0 ? offerIdRaw : null,
   };
-  if (!entry.name || !isEmail(entry.email) || !isInternationalPhone(entry.phone)) return res.status(400).json({ error: "Please add your name, a valid email address, and a phone number with a country code." });
+  if (!entry.name || !isEmail(entry.email) || !isInternationalPhone(entry.phone)) {
+    return res.status(400).json({ error: "Please add your name, a valid email address, and a phone number with a country code." });
+  }
   if (!isDay(entry.arrive) || !isDay(entry.depart) || entry.depart <= entry.arrive) return res.status(400).json({ error: "Please select valid arrival and departure dates." });
   try {
     await validateBookingAgainstSettings(pool, entry);

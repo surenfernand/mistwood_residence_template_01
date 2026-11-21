@@ -47,6 +47,7 @@ export default function AdminGuests() {
                   <th>#</th>
                   <th>Name</th>
                   <th>Email</th>
+                  <th>Phone</th>
                   <th>Subject / Enquiry Type</th>
                   <th>Message (Preview)</th>
                   <th>Received</th>
@@ -61,7 +62,16 @@ export default function AdminGuests() {
                       <b>{x.name}</b>
                     </td>
                     <td>{x.email}</td>
-                    <td>{x.enquiryType}</td>
+                    <td>
+                      {x.phone ? (
+                        <a href={`tel:${String(x.phone).replace(/\s/g, "")}`}>
+                          {x.phone}
+                        </a>
+                      ) : (
+                        "—"
+                      )}
+                    </td>
+                    <td>{x.subject || x.enquiryType}</td>
                     <td>{x.message}</td>
                     <td>{stamp(x.createdAt)}</td>
                     <td>

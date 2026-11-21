@@ -8,6 +8,9 @@ import { formatSettingsTime } from "../utils/formatSettingsTime.js";
 import { validateStayRange } from "../utils/bookingDateRules.js";
 import { getOfferEligibility } from "../utils/offerEligibility.js";
 import { formatOfferPeriod } from "../utils/offerPeriod.js";
+import PhoneCountryField from "../components/PhoneCountryField.jsx";
+import { DEFAULT_PHONE_DIAL_CODE } from "../data/phoneDialCodes.js";
+import { buildInternationalPhone, isInternationalPhone } from "../utils/internationalPhone.js";
 
 function submitPayhereForm(checkoutUrl, fields) {
   const form = document.createElement("form");
@@ -53,10 +56,6 @@ function isoDay(date) {
 
 function guestLabel(guests) {
   return `${guests} guest${guests === "1" ? "" : "s"}`;
-}
-
-function isInternationalPhone(value) {
-  return /^\+[1-9]\d{7,14}$/.test(String(value || "").replace(/[\s().-]/g, ""));
 }
 
 function BookingDialog({ titleId, title, kicker, busy = false, onDismiss, children }) {
@@ -285,7 +284,16 @@ export default function Contact() {
   const [notice, setNotice] = useState("Choose your arrival and departure dates.");
   const [stay, setStay] = useState(null);
   const [guests, setGuests] = useState(params.get("guests") || "2");
-  const [guest, setGuest] = useState({ name: "", email: "", phone: "", note: "", policies: false });
+  const [guest, setGuest] = useState({
+    name: "",
+    email: "",
+    phoneDial: DEFAULT_PHONE_DIAL_CODE,
+    phoneNational: "",
+    note: "",
+    policies: false,
+  });
+  const [enquiryPhoneDial, setEnquiryPhoneDial] = useState(DEFAULT_PHONE_DIAL_CODE);
+  const [enquiryPhoneNational, setEnquiryPhoneNational] = useState("");
   const [step, setStep] = useState("details");
   const [payNotice, setPayNotice] = useState("");
   const [enquiryNotice, setEnquiryNotice] = useState("");
@@ -444,7 +452,8 @@ export default function Contact() {
       setNotice(rangeErr);
       return;
     }
-    if (!guest.name.trim() || !guest.email.trim() || !guest.phone.trim()) {
+    const guestPhone = buildInternationalPhone(guest.phoneDial, guest.phoneNational);
+    if (!guest.name.trim() || !guest.email.trim() || !guestPhone) {
       setNotice("Please add your name, email address, and phone number.");
       return;
     }
@@ -452,8 +461,8 @@ export default function Contact() {
       setNotice("Please enter an email address we can reply to.");
       return;
     }
-    if (!isInternationalPhone(guest.phone)) {
-      setNotice("Please enter a phone number with a country code, for example +94 76 590 0800.");
+    if (!isInternationalPhone(guestPhone)) {
+      setNotice("Please choose your country code and enter a valid mobile number.");
       return;
     }
     if (!guest.policies) {
@@ -489,7 +498,7 @@ export default function Contact() {
       const payload = {
         name: guest.name,
         email: guest.email,
-        phone: guest.phone,
+        phone: buildInternationalPhone(guest.phoneDial, guest.phoneNational),
         note: guest.note,
         guests,
         arrive: isoDay(stay.start),
@@ -542,10 +551,12 @@ export default function Contact() {
     event.preventDefault();
     if (sending || dialog) return;
     const fields = Object.fromEntries(new FormData(event.currentTarget));
+    const nationalPhone = String(fields.phone || "").trim() || enquiryPhoneNational.trim();
+    const phone = buildInternationalPhone(enquiryPhoneDial, nationalPhone);
     const draft = {
       name: String(fields.name || "").trim(),
       email: String(fields.email || "").trim(),
-      phone: String(fields.phone || "").trim(),
+      phone,
       subject: String(fields.subject || "").trim(),
       message: String(fields.message || "").trim(),
     };
@@ -555,6 +566,10 @@ export default function Contact() {
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(draft.email)) {
       setEnquiryNotice("Please enter an email address we can reply to.");
+      return;
+    }
+    if (nationalPhone && !isInternationalPhone(phone)) {
+      setEnquiryNotice("Please choose your country code and enter a valid mobile number.");
       return;
     }
     setEnquiryNotice("");
@@ -576,9 +591,13 @@ export default function Contact() {
     }
     setSending(false);
     enquiryFormRef.current?.reset();
+    setEnquiryPhoneDial(DEFAULT_PHONE_DIAL_CODE);
+    setEnquiryPhoneNational("");
     setEnquiryNotice("");
     setDialog("enquiry-success");
   };
+
+  const guestPhoneDisplay = buildInternationalPhone(guest.phoneDial, guest.phoneNational);
 
   return (
     <>
@@ -634,10 +653,15 @@ export default function Contact() {
                   <span><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5.5" width="17" height="13" rx="2" /><path d="m4.5 7.5 7.5 5.5 7.5-5.5" /></svg> Email <em>*</em></span>
                   <input id="email" name="email" type="email" autoComplete="email" placeholder="Enter your email" required />
                 </label>
-                <label className="ct-field">
-                  <span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.2 4.8h2.2l1 2.4-1.5 1a11 11 0 0 0 5.9 5.9l1-1.5 2.4 1v2.2c0 .7-.6 1.3-1.3 1.2A14.2 14.2 0 0 1 6.9 6.1c-.1-.7.5-1.3 1.3-1.3Z" /></svg> Phone Number</span>
-                  <input id="phone" name="phone" type="tel" autoComplete="tel" placeholder="+94 …" />
-                </label>
+                <PhoneCountryField
+                  variant="contact"
+                  dialId="enquiry-phone-dial"
+                  nationalId="phone"
+                  dialCode={enquiryPhoneDial}
+                  nationalNumber={enquiryPhoneNational}
+                  onDialCodeChange={setEnquiryPhoneDial}
+                  onNationalChange={setEnquiryPhoneNational}
+                />
                 <label className="ct-field">
                   <span>Subject</span>
                   <span className="ct-select">
@@ -709,7 +733,17 @@ export default function Contact() {
               <div className="form-columns">
                 <div className="field"><label htmlFor="guest-name">Full name</label><input id="guest-name" name="name" autoComplete="name" placeholder="The name on the booking" required value={guest.name} onChange={updateGuest} /></div>
                 <div className="field"><label htmlFor="guest-email">Email address</label><input id="guest-email" name="email" type="email" autoComplete="email" placeholder="Where we should reply" required value={guest.email} onChange={updateGuest} /></div>
-                <div className="field"><label htmlFor="guest-phone">Phone number, with country code</label><input id="guest-phone" name="phone" type="tel" autoComplete="tel" placeholder="+94 76 590 0800" pattern="\+[1-9][0-9\s().-]{7,18}" title="Use a phone number with a country code, for example +94 76 590 0800." required value={guest.phone} onChange={updateGuest} /></div>
+                <PhoneCountryField
+                  variant="booking"
+                  required
+                  dialId="guest-phone-dial"
+                  nationalId="guest-phone"
+                  nationalName="phone"
+                  dialCode={guest.phoneDial}
+                  nationalNumber={guest.phoneNational}
+                  onDialCodeChange={(value) => setGuest((current) => ({ ...current, phoneDial: value }))}
+                  onNationalChange={(value) => setGuest((current) => ({ ...current, phoneNational: value }))}
+                />
                 <div className="field"><label htmlFor="guest-note">Message</label><input id="guest-note" name="note" placeholder="Arrival time or a question" value={guest.note} onChange={updateGuest} /></div>
               </div>
               <label className="check"><input type="checkbox" name="policies" checked={guest.policies} onChange={updateGuest} /> I have read the <Link to="/policies">booking, cancellation, and refund notes</Link>.</label>
@@ -811,7 +845,7 @@ export default function Contact() {
             <div><dt>Guests</dt><dd>{guestLabel(guests)}</dd></div>
             <div><dt>Full name</dt><dd>{guest.name.trim()}</dd></div>
             <div><dt>Email</dt><dd>{guest.email.trim()}</dd></div>
-            <div><dt>Phone</dt><dd>{guest.phone.trim()}</dd></div>
+            <div><dt>Phone</dt><dd>{guestPhoneDisplay || "Not provided"}</dd></div>
             {guest.note.trim() ? <div><dt>Message</dt><dd>{guest.note.trim()}</dd></div> : null}
             {selectedOffer ? (
               <div>

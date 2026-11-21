@@ -963,6 +963,28 @@ html:not([data-theme="light"]) .switch-icon.moon { display: block; }
   background-repeat: no-repeat;
 }
 .notice { margin: 14px 0 0; color: var(--gold); font-size: 14px; }
+.phone-dial-row {
+  display: grid;
+  grid-template-columns: minmax(9.5rem, 42%) 1fr;
+  gap: 10px;
+  align-items: stretch;
+  min-width: 0;
+}
+
+.phone-country-field .phone-dial-hint {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.phone-dial-country,
+.phone-dial-number {
+  min-width: 0;
+  width: 100%;
+}
+
 .form-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .form-columns .full { grid-column: 1 / -1; }
 .small-note { color: var(--muted); font-size: 13px; }
@@ -1154,11 +1176,11 @@ html:not([data-theme="light"]) .switch-icon.moon { display: block; }
 .social-main {
   width: 58px;
   height: 58px;
-  border: 2px solid rgba(201, 164, 95, 0.35);
-  background: transparent;
-  color: rgba(232, 201, 106, 0.55);
-  box-shadow: none;
-  opacity: 0.42;
+  border: 2px solid rgba(201, 164, 95, 0.85);
+  background: rgba(6, 63, 44, 0.78);
+  color: #f3e0b4;
+  box-shadow: 0 6px 18px rgba(6, 39, 27, 0.28);
+  opacity: 1;
   transition:
     opacity .22s ease,
     transform .2s ease,
