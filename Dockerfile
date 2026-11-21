@@ -20,6 +20,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY package.json ./
 COPY server ./server
 COPY --from=build /app/dist ./dist
+RUN mkdir -p public/uploads/apartment-gallery
 USER node
 EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=3s --start-period=15s --retries=3 \

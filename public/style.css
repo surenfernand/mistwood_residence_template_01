@@ -571,12 +571,17 @@ html:not([data-theme="light"]) .switch-icon.moon { display: block; }
   from { background: rgba(8, 14, 11, 0); }
   to { background: rgba(8, 14, 11, .88); }
 }
-.modal img {
+.modal img,
+.modal-video {
   width: auto;
   max-width: min(1100px, 92vw);
   max-height: 86vh;
   border-radius: 12px;
   animation: modal-photo-in .45s cubic-bezier(.2, .75, .25, 1) both;
+}
+.modal-video {
+  display: block;
+  background: #000;
 }
 @keyframes modal-photo-in {
   from { opacity: 0; filter: blur(10px); transform: scale(.96); }
@@ -1658,6 +1663,19 @@ body:not(.home) .apt-gallery { padding-top: 64px; }
 }
 .apt-video-card-meta-icon svg { width: 16px; height: 16px; stroke: #dcc38c; }
 .apt-video-card-title { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.apt-video-card-more .apt-video-card-hit img { filter: brightness(.72); }
+.apt-video-more-copy {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  gap: 8px;
+  color: #fff;
+  text-align: center;
+  background: rgba(8, 14, 11, .45);
+}
+.apt-video-more-copy svg { margin: 0 auto; stroke: #fff; }
+.apt-video-more-copy strong { font: 600 15px/1.2 Outfit, sans-serif; }
 .apt-video-card-duration {
   flex: none;
   opacity: .88;

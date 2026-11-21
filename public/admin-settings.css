@@ -1044,6 +1044,205 @@
   }
 }
 
+.settings-gallery-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.settings-gallery-subnav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.settings-gallery-subnav button {
+  min-height: 36px;
+  border: 1px solid #e1dbd0;
+  border-radius: 999px;
+  padding: 0 16px;
+  background: #fff;
+  color: #5c6358;
+  font: 500 12px Outfit, sans-serif;
+  cursor: pointer;
+}
+
+.settings-gallery-subnav button.is-active {
+  border-color: #6b4f1a;
+  background: #6b4f1a;
+  color: #fff;
+}
+
+.settings-gallery-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.settings-gallery-intro h2 {
+  margin: 0 0 6px;
+  font: 600 20px "Cormorant Garamond", serif;
+  color: #2c3829;
+}
+
+.settings-gallery-intro p {
+  margin: 0;
+  color: #5c6358;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.settings-gallery-upload-form,
+.settings-gallery-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.settings-gallery-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #3f463c;
+}
+
+.settings-gallery-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.settings-btn-primary,
+.settings-btn-ghost,
+.settings-btn-danger {
+  min-height: 36px;
+  border-radius: 8px;
+  padding: 0 14px;
+  font: 500 12px Outfit, sans-serif;
+  cursor: pointer;
+}
+
+.settings-btn-primary {
+  border: 1px solid #6b4f1a;
+  background: #6b4f1a;
+  color: #fff;
+}
+
+.settings-btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.settings-btn-ghost {
+  border: 1px solid #cbb896;
+  background: #fff;
+  color: #6b4f1a;
+}
+
+.settings-btn-danger {
+  border: 1px solid #d9a8a8;
+  background: #fff5f5;
+  color: #9a3030;
+}
+
+.settings-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.settings-gallery-grid > li {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border: 1px solid #ebe6dc;
+  border-radius: 12px;
+  padding: 10px;
+  background: #fff;
+}
+
+.settings-gallery-grid > li.is-editing {
+  grid-column: 1 / -1;
+  max-width: 520px;
+}
+
+.settings-gallery-thumb {
+  margin: 0;
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+  aspect-ratio: 4 / 3;
+  background: #f2efe8;
+}
+
+.settings-gallery-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.settings-gallery-thumb figcaption {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.settings-gallery-badge {
+  border-radius: 6px;
+  padding: 2px 7px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.settings-gallery-badge.is-live {
+  background: #dcefdc;
+  color: #246440;
+}
+
+.settings-gallery-badge.is-hidden {
+  background: #eee9e0;
+  color: #6d6558;
+}
+
+.settings-gallery-badge.is-upload {
+  background: #e7eefc;
+  color: #2c4f8f;
+}
+
+.settings-gallery-badge.is-legacy {
+  background: #f3ead8;
+  color: #7a5a16;
+}
+
+.settings-gallery-meta strong {
+  display: block;
+  font-size: 13px;
+  line-height: 1.35;
+  color: #2c3829;
+}
+
+.settings-gallery-meta p {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: #6d7469;
+}
+
+.settings-gallery-muted {
+  margin: 0 0 12px;
+  color: #7a8078;
+  font-size: 13px;
+}
+
 @media (max-width: 800px) {
   .settings-page .settings-shell {
     padding: 0 10px 90px;

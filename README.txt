@@ -56,6 +56,16 @@ Team admin users (up to 10 active accounts):
 Property contact, deposit percent, booking rules, social links, and reviews: Admin → Settings (Owner only),
 stored in PostgreSQL (`site_settings` and `social_entries`). The public site loads them from `/api/settings/public`.
 
+Apartment gallery photos: stored in PostgreSQL (`apartment_gallery_images`). Legacy images stay under `public/assets/`;
+admin uploads go to `public/uploads/apartment-gallery/`. After migrations, backfill once with:
+  npm run seed:apartment-gallery
+The public apartment page loads photos from GET `/api/apartment-gallery`. Manage uploads under Admin → Settings → Apartment Gallery.
+
+Apartment gallery videos: stored in `apartment_gallery_videos`. Seed legacy clips with:
+  npm run seed:apartment-gallery-videos
+Public API: GET `/api/apartment-gallery/videos`. Admin uploads (MP4/WebM, poster image) live under
+`public/uploads/apartment-gallery/videos/` and `posters/`. Clicking a video opens the same full-screen viewer used for photos.
+
 Enquiry and booking emails require SMTP in `.env` / deployment:
 
   PUBLIC_SITE_URL=https://your-domain.example

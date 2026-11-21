@@ -5,6 +5,7 @@ export const SETTINGS_TABS = [
   { id: "booking", label: "Booking" },
   { id: "notifications", label: "Notifications" },
   { id: "integrations", label: "Integrations" },
+  { id: "gallery", label: "Apartment Gallery" },
 ];
 
 export const SETTINGS_TAB_INTROS = {

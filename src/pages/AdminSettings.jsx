@@ -7,6 +7,7 @@ import { SettingsSaveBar } from "../components/admin/settings/SettingsControls.j
 import SettingsGeneralPanel from "../components/admin/settings/SettingsGeneralPanel.jsx";
 import SettingsIntegrationsPanel from "../components/admin/settings/SettingsIntegrationsPanel.jsx";
 import SettingsNotificationsPanel from "../components/admin/settings/SettingsNotificationsPanel.jsx";
+import SettingsApartmentGalleryPanel from "../components/admin/settings/SettingsApartmentGalleryPanel.jsx";
 import {
   SETTINGS_TABS,
   createSettingsUiState,
@@ -102,7 +103,7 @@ export default function AdminSettings() {
       .finally(() => setSaving(false));
   };
 
-  const showSaveBar = tab !== "integrations";
+  const showSaveBar = tab !== "integrations" && tab !== "gallery";
 
   return (
     <main className="admin-app settings-page">
@@ -155,6 +156,7 @@ export default function AdminSettings() {
                 onManageSocial={(targetTab) => setTab(targetTab || "notifications")}
               />
             ) : null}
+            {tab === "gallery" ? <SettingsApartmentGalleryPanel /> : null}
           </div>
 
           {showSaveBar ? <SettingsSaveBar dirty={dirty} saving={saving} onSave={save} /> : null}

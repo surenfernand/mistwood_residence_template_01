@@ -1,12 +1,24 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { usePhotos } from "../photos.jsx";
 import {
   FEATURED_VIDEOS,
   GALLERY_FILTERS,
   GALLERY_PHOTOS,
+  GALLERY_VIDEOS,
 } from "../data/galleryPhotos.js";
 
 const PREVIEW_COUNT = 8;
+const VIDEO_PREVIEW_COUNT = 2;
+
+function apiPhotoToGallery(photo) {
+  return {
+    id: photo.id,
+    src: photo.src,
+    alt: photo.alt,
+    category: photo.category,
+    sortOrder: photo.sortOrder,
+  };
+}
 
 function FilterIcon({ name }) {
   const common = {
@@ -86,46 +98,45 @@ function PlayIcon() {
   );
 }
 
-function FeaturedVideoCard({ item }) {
-  const videoRef = useRef(null);
-  const [playing, setPlaying] = useState(false);
+function fallbackVideos() {
+  const featuredSrc = new Set(FEATURED_VIDEOS.map((v) => v.src));
+  const extras = GALLERY_VIDEOS.filter((v) => !featuredSrc.has(v.src)).map((v) => ({
+    src: v.src,
+    poster: v.poster,
+    alt: v.alt,
+    title: v.label,
+    duration: "00:00",
+  }));
+  return [...FEATURED_VIDEOS, ...extras];
+}
 
-  const start = () => {
-    setPlaying(true);
-    requestAnimationFrame(() => {
-      const el = videoRef.current;
-      if (!el) return;
-      el.play().catch(() => {});
-    });
+function apiVideoToGallery(video) {
+  return {
+    id: video.id,
+    src: video.src,
+    poster: video.poster,
+    alt: video.alt,
+    title: video.title,
+    duration: video.duration,
+    mediaType: "video",
   };
+}
 
+function FeaturedVideoCard({ item, onOpen }) {
   return (
     <article className="apt-video-card">
-      {playing ? (
-        <video
-          ref={videoRef}
-          className="apt-video-card-player"
-          src={item.src}
-          poster={item.poster}
-          controls
-          playsInline
-          preload="metadata"
-          aria-label={item.alt}
-        />
-      ) : (
-        <button type="button" className="apt-video-card-hit" onClick={start} aria-label={`Play video: ${item.title}`}>
-          <img src={item.poster} alt="" loading="lazy" />
-          <span className="apt-video-card-play">
-            <PlayIcon />
-          </span>
-        </button>
-      )}
+      <button type="button" className="apt-video-card-hit" onClick={() => onOpen(item)} aria-label={`Play video: ${item.title}`}>
+        <img src={item.poster} alt="" loading="lazy" />
+        <span className="apt-video-card-play">
+          <PlayIcon />
+        </span>
+      </button>
       <div className="apt-video-card-meta">
         <span className="apt-video-card-meta-icon" aria-hidden="true">
           <VideoKickerIcon />
         </span>
         <span className="apt-video-card-title">{item.title}</span>
-        <time className="apt-video-card-duration" dateTime={`PT${item.duration.replace(":", "M")}S`}>
+        <time className="apt-video-card-duration" dateTime={`PT${String(item.duration || "0:00").replace(":", "M")}S`}>
           {item.duration}
         </time>
       </div>
@@ -133,26 +144,92 @@ function FeaturedVideoCard({ item }) {
   );
 }
 
+function MoreVideosCard({ backdrop, moreCount, onOpen }) {
+  return (
+    <article className="apt-video-card apt-video-card-more">
+      <button type="button" className="apt-video-card-hit" onClick={onOpen} aria-label={`View all videos including ${moreCount} more`}>
+        <img src={backdrop.poster} alt="" loading="lazy" aria-hidden="true" />
+        <span className="apt-tile-more-copy apt-video-more-copy">
+          <VideoKickerIcon />
+          <strong>+{moreCount} More Videos</strong>
+        </span>
+      </button>
+    </article>
+  );
+}
+
 export default function ApartmentGallery() {
   const { openPhoto } = usePhotos();
   const [active, setActive] = useState("All Photos");
-  const totalPhotos = GALLERY_PHOTOS.length;
+  const [galleryPhotos, setGalleryPhotos] = useState(GALLERY_PHOTOS);
+  const [galleryVideos, setGalleryVideos] = useState(() => fallbackVideos().map((v) => ({ ...v, mediaType: "video" })));
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/apartment-gallery")
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error("Gallery unavailable"))))
+      .then((data) => {
+        if (cancelled) return;
+        const items = Array.isArray(data.photos) ? data.photos.map(apiPhotoToGallery) : [];
+        if (items.length) {
+          setGalleryPhotos(items);
+        } else {
+          setGalleryPhotos(GALLERY_PHOTOS);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setGalleryPhotos(GALLERY_PHOTOS);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/apartment-gallery/videos")
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error("Videos unavailable"))))
+      .then((data) => {
+        if (cancelled) return;
+        const items = Array.isArray(data.videos) ? data.videos.map(apiVideoToGallery) : [];
+        if (items.length) {
+          setGalleryVideos(items);
+        } else {
+          setGalleryVideos(fallbackVideos().map((v) => ({ ...v, mediaType: "video" })));
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setGalleryVideos(fallbackVideos().map((v) => ({ ...v, mediaType: "video" })));
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const totalPhotos = galleryPhotos.length;
+  const videoPreview = galleryVideos.slice(0, VIDEO_PREVIEW_COUNT);
+  const videoMoreCount = Math.max(0, galleryVideos.length - VIDEO_PREVIEW_COUNT);
+  const videoMoreBackdrop = galleryVideos[VIDEO_PREVIEW_COUNT] || galleryVideos[galleryVideos.length - 1];
 
   const tabFilters = useMemo(
     () =>
       GALLERY_FILTERS.filter((name) => {
         if (name === "Overview" || name === "Details") return false;
         if (name === "All Photos") return true;
-        return GALLERY_PHOTOS.some((p) => p.category === name);
+        return galleryPhotos.some((p) => p.category === name);
       }),
-    [],
+    [galleryPhotos],
   );
 
   const visiblePhotos = useMemo(() => {
-    if (active !== "All Photos") return GALLERY_PHOTOS.filter((p) => p.category === active);
+    if (active !== "All Photos") return galleryPhotos.filter((p) => p.category === active);
 
     const buckets = new Map();
-    for (const photo of GALLERY_PHOTOS) {
+    for (const photo of galleryPhotos) {
       if (!buckets.has(photo.category)) buckets.set(photo.category, []);
       buckets.get(photo.category).push(photo);
     }
@@ -170,7 +247,7 @@ export default function ApartmentGallery() {
       }
     }
     return mixed;
-  }, [active, tabFilters]);
+  }, [active, galleryPhotos]);
 
   const preview = visiblePhotos.slice(0, PREVIEW_COUNT);
   const moreCount = Math.max(0, visiblePhotos.length - PREVIEW_COUNT);
@@ -187,7 +264,20 @@ export default function ApartmentGallery() {
     openPhoto({ ...first, gallery: visiblePhotos, index: 0 });
   };
 
+  const openVideo = (video) => {
+    const index = galleryVideos.indexOf(video);
+    openPhoto({ ...video, mediaType: "video", gallery: galleryVideos, index: index >= 0 ? index : 0 });
+  };
+
+  const openVideosFromStart = () => {
+    const first = galleryVideos[0];
+    if (!first) return;
+    openPhoto({ ...first, mediaType: "video", gallery: galleryVideos, index: 0 });
+  };
+
   const filterLabel = (name) => (name === "All Photos" ? `All Photos (${totalPhotos})` : name);
+  const photoKey = (photo) => photo.id || photo.src;
+  const videoKey = (video) => video.id || video.src;
 
   return (
     <section className="apt-gallery" aria-labelledby="apt-gallery-title">
@@ -223,7 +313,7 @@ export default function ApartmentGallery() {
                 <button
                   type="button"
                   className="apt-tile"
-                  key={photo.src}
+                  key={photoKey(photo)}
                   onClick={() => open(photo)}
                   aria-label={`Open photo: ${photo.alt}`}
                 >
@@ -261,9 +351,12 @@ export default function ApartmentGallery() {
               Get a real feel for the space with our short videos—from a full apartment walkthrough to the beautiful highland surroundings.
             </p>
             <div className="apt-gallery-featured-videos">
-              {FEATURED_VIDEOS.map((item) => (
-                <FeaturedVideoCard key={item.src} item={item} />
+              {videoPreview.map((item) => (
+                <FeaturedVideoCard key={videoKey(item)} item={item} onOpen={openVideo} />
               ))}
+              {videoMoreCount > 0 && videoMoreBackdrop ? (
+                <MoreVideosCard backdrop={videoMoreBackdrop} moreCount={videoMoreCount} onOpen={openVideosFromStart} />
+              ) : null}
             </div>
           </aside>
         </div>

@@ -52,6 +52,15 @@ import {
   logPayhereEvent,
 } from "./integrations.js";
 import { listAdminOffers, listPublicOffers, validateOfferBody } from "./special-offers.js";
+import {
+  ensureGalleryUploadDir,
+  publicRoot,
+  registerApartmentGalleryRoutes,
+} from "./apartment-gallery.js";
+import {
+  ensureGalleryVideoUploadDirs,
+  registerApartmentGalleryVideoRoutes,
+} from "./apartment-gallery-videos.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "dist");
 const port = Number(process.env.PORT) || 3000;
@@ -136,6 +145,8 @@ async function migrate() {
       await pool.query(schema);
       await runMigrations();
       await bootstrapAdmin();
+      await ensureGalleryUploadDir();
+      await ensureGalleryVideoUploadDirs();
       dbReady = true;
       console.log("Database ready");
       scheduleStayLifecycle(pool);
@@ -1732,6 +1743,11 @@ app.delete("/api/admin/social/:id", requirePermission("settings"), async (req, r
   }
 });
 
+if (pool) {
+  registerApartmentGalleryRoutes(app, { pool, requirePermission, text });
+  registerApartmentGalleryVideoRoutes(app, { pool, requirePermission, text });
+}
+
 app.patch("/api/admin/booking-requests/:id/status", requirePermission("bookings"), async (req, res, next) => {
   const id = Number.parseInt(req.params.id, 10);
   const status = text(req.body?.status, 30);
@@ -2090,6 +2106,17 @@ app.use((error, req, res, _next) => {
   console.error(`[API ERROR] ${req.method} ${req.originalUrl}`, error.stack || error);
   if (!res.headersSent) res.status(500).json({ error: "Unexpected server error. Check the API terminal output." });
 });
+
+app.use(
+  "/uploads",
+  express.static(path.join(publicRoot, "uploads"), {
+    index: false,
+    fallthrough: true,
+    setHeaders(res) {
+      res.setHeader("Cache-Control", "public, max-age=86400");
+    },
+  }),
+);
 
 const hashed = /-[A-Za-z0-9_-]{8}\.(js|css)$/;
 app.use(express.static(root, {
