@@ -27,7 +27,7 @@ const DEFAULTS = {
   cancellationPolicy:
     "Free cancellation up to 3 days before check-in. Cancellations made within 3 days of check-in are charged 100% of the first night.",
   facebookUrl: "https://www.facebook.com/share/19u5hKB7DJ/",
-  bookingComUrl: "https://www.booking.com/Share-sp00N6o",
+  bookingComUrl: "https://www.booking.com/hotel/lk/mistwood.html",
 };
 
 export function clearPublicSettingsCache() {
