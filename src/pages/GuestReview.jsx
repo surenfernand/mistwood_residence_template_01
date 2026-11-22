@@ -111,7 +111,7 @@ export default function GuestReview() {
         <section className="review-hero">
           <p className="review-eyebrow">A note from the highlands</p>
           <h1>
-            How was your <em>stay?</em>
+            <em>How was your stay?</em>
           </h1>
           <p>
             Thank you for choosing {pub.propertyName}. We&apos;d love to hear about the moments that made your visit

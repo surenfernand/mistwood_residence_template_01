@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 import { calculateStayQuote } from "./pricing.js";
-import { verifyPayhereNotify } from "./payhere.js";
+import { getPayhereMerchantSecret, verifyPayhereNotify } from "./payhere.js";
 import { sendBookingConfirmationToGuest } from "./booking-confirmation-email.js";
 import { sendBookingAdminNotification } from "./booking-admin-notification-email.js";
 import { issueGuestSetupToken } from "./guest-auth.js";
@@ -118,7 +118,7 @@ async function availabilityConflict(client, arrive, depart, excludeRequestId = n
 }
 
 export async function fulfillPayherePayment(pool, body, { skipSignatureCheck = false, paymentMethod = "PayHere" } = {}) {
-  const merchantSecret = process.env.PAYHERE_MERCHANT_SECRET;
+  const merchantSecret = getPayhereMerchantSecret();
   if (!skipSignatureCheck && (!merchantSecret || !verifyPayhereNotify(body, merchantSecret))) {
     throw Object.assign(new Error("Invalid PayHere signature."), { status: 400 });
   }

@@ -7,8 +7,20 @@ export function payhereCheckoutUrl() {
   return process.env.PAYHERE_MODE === "live" ? LIVE : SANDBOX;
 }
 
+function merchantId() {
+  return String(process.env.PAYHERE_MERCHANT_ID || "").trim();
+}
+
+function merchantSecret() {
+  return String(process.env.PAYHERE_MERCHANT_SECRET || "").trim();
+}
+
 export function payhereConfigured() {
-  return Boolean(process.env.PAYHERE_MERCHANT_ID && process.env.PAYHERE_MERCHANT_SECRET);
+  return Boolean(merchantId() && merchantSecret());
+}
+
+export function getPayhereMerchantSecret() {
+  return merchantSecret();
 }
 
 function siteUrl() {
@@ -51,19 +63,19 @@ export function buildPayhereFields({
   returnPath = "/contact?payment=return",
   cancelPath = "/contact?payment=cancel",
 }) {
-  const merchantId = process.env.PAYHERE_MERCHANT_ID;
-  const merchantSecret = process.env.PAYHERE_MERCHANT_SECRET;
+  const id = merchantId();
+  const secret = merchantSecret();
   const base = siteUrl();
   const formattedAmount = Number(amount).toFixed(2);
   const hash = payhereHash({
-    merchantId,
+    merchantId: id,
     orderId,
     amount: formattedAmount,
     currency,
-    merchantSecret,
+    merchantSecret: secret,
   });
   return {
-    merchant_id: merchantId,
+    merchant_id: id,
     return_url: `${base}${returnPath}`,
     cancel_url: `${base}${cancelPath}`,
     notify_url: `${base}/api/payments/payhere/notify`,

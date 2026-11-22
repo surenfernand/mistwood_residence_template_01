@@ -39,13 +39,17 @@ import AdminAppearance from "./pages/AdminAppearance.jsx";
 import AdminHelp from "./pages/AdminHelp.jsx";
 import AdminReviews from "./pages/AdminReviews.jsx";
 import GuestReview from "./pages/GuestReview.jsx";
+import { isKnownAppRoute } from "./routePaths.js";
 
 function ScrollManager() {
   const location = useLocation();
   useEffect(() => {
-    const highland = ["/", "/about", "/apartments", "/deals", "/explore", "/contact", "/privacy-policy", "/terms-and-conditions", "/review"].includes(location.pathname)
+    const highlandExact = ["/", "/about", "/apartments", "/deals", "/explore", "/contact", "/privacy-policy", "/terms-and-conditions", "/review"].includes(location.pathname)
       || location.pathname.startsWith("/review/");
+    const onNotFound = !isKnownAppRoute(location.pathname);
+    const highland = highlandExact || onNotFound;
     document.body.classList.toggle("home", highland);
+    document.body.classList.toggle("not-found-page", onNotFound);
     document.body.classList.toggle("about-page", location.pathname === "/about");
     const frame = requestAnimationFrame(() => {
       if (location.hash) {
