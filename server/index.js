@@ -28,7 +28,7 @@ import {
   notifyUserInvited,
   notifyUserDeactivated,
 } from "./admin-notifications.js";
-import { scheduleStayLifecycle, runStayLifecycleJob } from "./stay-lifecycle.js";
+import { getStayLifecycleStatus, scheduleStayLifecycle, runStayLifecycleJob, sendCheckoutFollowUp } from "./stay-lifecycle.js";
 import {
   currentGuest,
   startGuestSession,
@@ -464,14 +464,14 @@ app.disable("x-powered-by");
 app.use(express.json({ limit: "20kb" }));
 app.use(express.urlencoded({ extended: true }));
 
-app.get("/healthz", (_req, res) => res.json({ ok: true }));
+app.get("/healthz", (_req, res) => res.json({ ok: true, stayLifecycle: getStayLifecycleStatus() }));
 app.get("/api/health", async (_req, res) => {
-  if (!pool) return res.json({ ok: true, database: "not configured" });
+  if (!pool) return res.json({ ok: true, database: "not configured", stayLifecycle: getStayLifecycleStatus() });
   try {
     await pool.query("select 1");
-    res.json({ ok: true, database: dbReady ? "ready" : "connected" });
+    res.json({ ok: true, database: dbReady ? "ready" : "connected", stayLifecycle: getStayLifecycleStatus() });
   } catch {
-    res.status(503).json({ ok: false, database: "unreachable" });
+    res.status(503).json({ ok: false, database: "unreachable", stayLifecycle: getStayLifecycleStatus() });
   }
 });
 
@@ -2003,7 +2003,8 @@ app.patch("/api/admin/bookings/:id/status", requirePermission("bookings"), async
     }
     const statusExtra = status === "checked_in" ? ", checked_in_at = coalesce(checked_in_at, now())" : "";
     const updated = await client.query(
-      `update bookings set status = $1, updated_at = now()${statusExtra} where id = $2 returning id, status, booking_request_id as "bookingRequestId"`,
+      `update bookings set status = $1, updated_at = now()${statusExtra} where id = $2
+       returning id, status, booking_request_id as "bookingRequestId", guest_name as "guestName", guest_email as "guestEmail", checkout_email_sent_at as "checkoutEmailSentAt"`,
       [status, id],
     );
     const requestId = current.rows[0].requestId;
@@ -2012,7 +2013,21 @@ app.patch("/api/admin/bookings/:id/status", requirePermission("bookings"), async
       await client.query("update booking_requests set status = $1, status_changed_at = now(), updated_at = now() where id = $2", [requestMap[status], requestId]);
     }
     await client.query("commit");
-    res.json({ booking: updated.rows[0] });
+
+    const booking = updated.rows[0];
+    const shouldSendCheckoutEmail =
+      fromStatus === "checked_in" && status === "checked_out" && !booking.checkoutEmailSentAt;
+    let checkoutEmailSent = false;
+    if (shouldSendCheckoutEmail) {
+      try {
+        await sendCheckoutFollowUp(pool, booking);
+        checkoutEmailSent = true;
+      } catch (error) {
+        console.error(`Checkout thank-you email failed for booking ${booking.id}:`, error.message);
+      }
+    }
+
+    res.json({ booking: { id: booking.id, status: booking.status, bookingRequestId: booking.bookingRequestId }, checkoutEmailSent });
   } catch (error) {
     await client.query("rollback").catch(() => {});
     next(error);

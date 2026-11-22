@@ -90,7 +90,7 @@ export default function GuestCheckIn() {
         <section className="review-hero">
           <p className="review-eyebrow">Arrival in the highlands</p>
           <h1>
-            Guest <em>check-in</em>
+            <em>Guest check-in</em>
           </h1>
           <p>
             Welcome to {pub.propertyName}. Staff use this page to confirm your arrival and begin your stay in the hills.
