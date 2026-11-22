@@ -64,6 +64,8 @@ export function SiteFooter() {
             <NavLink to="/contact#enquiry">Send an enquiry</NavLink>
             <a href={pub.whatsappUrl}>Message us on WhatsApp</a>
             <NavLink to="/policies">Guest policies</NavLink>
+            <NavLink to="/privacy-policy">Privacy policy</NavLink>
+            <NavLink to="/terms-and-conditions">Terms &amp; conditions</NavLink>
             <NavLink to="/review">Leave a review</NavLink>
           </div>
         </div>
