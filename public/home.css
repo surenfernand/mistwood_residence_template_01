@@ -5687,10 +5687,11 @@ body.review-page {
 
 .review-hero h1 {
   margin: 18px 0 16px;
-  color: #fff;
+  color: #e9d3a0;
   font-family: "Playfair Display", Georgia, serif;
   font-size: clamp(2.5rem, 6vw, 4.5rem);
   font-weight: 400;
+  font-style: italic;
   line-height: 1.16;
 }
 

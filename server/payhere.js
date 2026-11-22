@@ -63,7 +63,6 @@ export function buildPayhereFields({
     merchantSecret,
   });
   return {
-    sandbox: process.env.PAYHERE_MODE !== "live",
     merchant_id: merchantId,
     return_url: `${base}${returnPath}`,
     cancel_url: `${base}${cancelPath}`,
