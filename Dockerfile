@@ -20,9 +20,15 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY package.json ./
 COPY server ./server
 COPY --from=build /app/dist ./dist
-RUN mkdir -p public/uploads/apartment-gallery
-USER node
+RUN mkdir -p public/uploads/apartment-gallery/videos \
+             public/uploads/apartment-gallery/posters \
+             public/uploads/site-logo \
+ && chown -R node:node public/uploads \
+ && apk add --no-cache su-exec
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=3s --start-period=15s --retries=3 \
   CMD wget -q -O /dev/null http://127.0.0.1:3000/healthz || exit 1
+ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["node", "server/index.js"]
