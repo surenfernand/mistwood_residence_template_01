@@ -117,9 +117,9 @@ async function availabilityConflict(client, arrive, depart, excludeRequestId = n
   return Boolean(rowCount);
 }
 
-export async function fulfillPayherePayment(pool, body) {
+export async function fulfillPayherePayment(pool, body, { skipSignatureCheck = false, paymentMethod = "PayHere" } = {}) {
   const merchantSecret = process.env.PAYHERE_MERCHANT_SECRET;
-  if (!merchantSecret || !verifyPayhereNotify(body, merchantSecret)) {
+  if (!skipSignatureCheck && (!merchantSecret || !verifyPayhereNotify(body, merchantSecret))) {
     throw Object.assign(new Error("Invalid PayHere signature."), { status: 400 });
   }
 
@@ -204,8 +204,8 @@ export async function fulfillPayherePayment(pool, body) {
 
       await client.query(
         `insert into booking_payments (booking_id, amount, method, reference, status, paid_at, payment_type, transaction_reference)
-         values ($1, $2, 'PayHere', $3, 'verified', now(), 'deposit', $4)`,
-        [bookingId, payhereAmount, paymentId, paymentId],
+         values ($1, $2, $3, $4, 'verified', now(), 'deposit', $5)`,
+        [bookingId, payhereAmount, paymentMethod, paymentId, paymentId],
       );
 
       await client.query(
@@ -226,8 +226,8 @@ export async function fulfillPayherePayment(pool, body) {
 
       await client.query(
         `insert into booking_payments (booking_id, amount, method, reference, status, paid_at, payment_type, transaction_reference)
-         values ($1, $2, 'PayHere', $3, 'verified', now(), 'full_payment', $4)`,
-        [bookingId, payhereAmount, paymentId, paymentId],
+         values ($1, $2, $3, $4, 'verified', now(), 'full_payment', $5)`,
+        [bookingId, payhereAmount, paymentMethod, paymentId, paymentId],
       );
 
       await client.query(
@@ -320,4 +320,25 @@ export async function fulfillPayherePayment(pool, body) {
   } finally {
     client.release();
   }
+}
+
+/**
+ * Completes a deposit without contacting PayHere. This is intentionally only
+ * called by the payment-init route when PAYHERE_TEST_BYPASS=true is set.
+ */
+export async function fulfillTestDeposit(pool, orderId) {
+  const { rows } = await pool.query(
+    "select pricing_snapshot from booking_requests where payment_order_id = $1 and status = 'pending_payment'",
+    [orderId],
+  );
+  const request = rows[0];
+  if (!request) throw Object.assign(new Error("Payment session not found or already completed."), { status: 404 });
+  const quote = typeof request.pricing_snapshot === "string" ? JSON.parse(request.pricing_snapshot) : request.pricing_snapshot;
+  return fulfillPayherePayment(pool, {
+    status_code: 2,
+    order_id: orderId,
+    payment_id: `TEST-${crypto.randomUUID()}`,
+    payhere_amount: Number(quote.depositAmount),
+    custom_2: "deposit",
+  }, { skipSignatureCheck: true, paymentMethod: "Test bypass" });
 }

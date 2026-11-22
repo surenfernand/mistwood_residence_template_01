@@ -12,8 +12,8 @@ export default function SettingsNotificationsPanel({ data, onPatch }) {
     <div className="settings-panel settings-panel-notifications">
       <SettingsCard title="Email delivery" icon={<IconMail />}>
         <div className="settings-email-row">
-          <SettingsField label="Admin alert email" hint="Where operational alerts are sent.">
-            <input type="email" value={data.adminAlertEmail} onChange={set("adminAlertEmail")} />
+          <SettingsField label="Admin alert emails" hint="Separate multiple recipients with commas. Each will receive operational alerts.">
+            <input type="text" inputMode="email" placeholder="owner@example.com, manager@example.com" value={data.adminAlertEmail} onChange={set("adminAlertEmail")} />
           </SettingsField>
           <SettingsField label="Reply-to email" hint="Reply address guests see on outbound mail.">
             <input type="email" value={data.replyToEmail} onChange={set("replyToEmail")} />

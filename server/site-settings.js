@@ -172,10 +172,23 @@ export function validateSettingsPatch(patch) {
       continue;
     }
 
-    if (camel === "contactEmail" || camel === "adminAlertEmail") {
+    if (camel === "contactEmail") {
       const s = String(value || "").trim().toLowerCase();
       if (!isEmail(s)) errors.push(`Invalid ${camel}.`);
       else next[snake] = s;
+      continue;
+    }
+
+    if (camel === "adminAlertEmail") {
+      const recipients = [...new Set(String(value || "")
+        .split(/[;,]/)
+        .map((email) => email.trim().toLowerCase())
+        .filter(Boolean))];
+      if (!recipients.length || recipients.length > 20 || recipients.some((email) => !isEmail(email))) {
+        errors.push("Enter up to 20 valid admin alert email addresses, separated by commas.");
+      } else {
+        next[snake] = recipients.join(", ");
+      }
       continue;
     }
 

@@ -123,3 +123,138 @@ export function countNightsByType(calendar) {
     return acc;
   }, {});
 }
+
+/** Six Mon–Sun rows for a month grid. */
+export function monthWeeks(month) {
+  const cells = monthGridCells(month);
+  const weeks = [];
+  for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7));
+  return weeks;
+}
+
+export function paymentLabelForStatus(status) {
+  if (status === "confirmed") return "Paid";
+  if (status === "pending_payment") return "Payment pending";
+  if (status === "contacted") return "Contacted";
+  if (status === "new") return "New request";
+  return "—";
+}
+
+export function statusBadgeLabel(status) {
+  if (status === "confirmed") return "Confirmed";
+  if (status === "blocked") return "Blocked";
+  if (status === "pending_payment" || status === "new" || status === "contacted") return "Pending";
+  return status || "—";
+}
+
+/** Bookings and blocks as bar events for the month calendar. */
+export function buildCalendarEvents(data) {
+  const events = [];
+  for (const block of data?.blocks || []) {
+    events.push({
+      kind: "block",
+      id: block.id,
+      type: "blocked",
+      label: block.reason || "Blocked",
+      headline: block.reason || "Blocked",
+      guest: null,
+      arrive: dateOnly(block.startDate),
+      depart: dateOnly(block.endDate),
+      status: "blocked",
+      payment: null,
+      raw: block,
+    });
+  }
+  for (const row of data?.requests || []) {
+    const type = row.status === "confirmed" ? "booked" : "pending";
+    const first = String(row.name || "").trim().split(/\s+/)[0] || row.name;
+    events.push({
+      kind: "request",
+      id: row.id,
+      type,
+      label: type === "pending" ? `BR-${row.id} Pending` : `BR-${row.id} ${first}`,
+      headline: `BR-${row.id} ${first}`,
+      guest: row.name,
+      arrive: dateOnly(row.arrive),
+      depart: dateOnly(row.depart),
+      status: row.status,
+      payment: paymentLabelForStatus(row.status),
+      raw: row,
+    });
+  }
+  return events.sort((a, b) => a.arrive.localeCompare(b.arrive) || a.id - b.id);
+}
+
+function lastOccupiedNight(depart) {
+  return addDays(dateOnly(depart), -1);
+}
+
+/** Bar segments for one calendar week row (column indices are 1-based for CSS grid). */
+export function segmentsForWeek(week, events) {
+  const weekKeys = week.map((c) => c.key);
+  const weekStart = weekKeys[0];
+  const weekEnd = weekKeys[6];
+  const segs = [];
+
+  for (const ev of events) {
+    const nightStart = ev.arrive;
+    const nightEnd = lastOccupiedNight(ev.depart);
+    if (nightEnd < weekStart || nightStart > weekEnd) continue;
+
+    const clipStart = nightStart < weekStart ? weekStart : nightStart;
+    const clipEnd = nightEnd > weekEnd ? weekEnd : nightEnd;
+    const colStart = weekKeys.indexOf(clipStart) + 1;
+    const colEnd = weekKeys.indexOf(clipEnd) + 2;
+
+    segs.push({
+      ...ev,
+      colStart,
+      colEnd,
+      clipStart,
+      clipEnd,
+      continuesPrior: nightStart < weekStart,
+      continuesAfter: nightEnd > weekEnd,
+    });
+  }
+
+  segs.sort((a, b) => a.colStart - b.colStart || b.colEnd - b.colStart - (a.colEnd - a.colStart));
+  const lanes = [];
+  for (const seg of segs) {
+    let lane = 0;
+    while (true) {
+      const conflicts = lanes[lane] || [];
+      const hit = conflicts.some((c) => !(seg.colEnd <= c.colStart || seg.colStart >= c.colEnd));
+      if (!hit) break;
+      lane += 1;
+    }
+    if (!lanes[lane]) lanes[lane] = [];
+    lanes[lane].push(seg);
+    seg.lane = lane + 1;
+  }
+
+  const laneCount = segs.reduce((m, s) => Math.max(m, s.lane), 1);
+  return { segments: segs, laneCount };
+}
+
+export function eventCoveringNight(dayKey, events) {
+  for (const ev of events) {
+    if (dayKey >= ev.arrive && dayKey < ev.depart) return ev;
+  }
+  return null;
+}
+
+export function readableRange(arrive, depart) {
+  const fmt = (iso) =>
+    new Intl.DateTimeFormat("en-GB", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      timeZone: COLOMBO,
+    }).format(new Date(`${iso}T12:00:00+05:30`));
+  return `${fmt(arrive)} – ${fmt(dateOnly(depart))}`;
+}
+
+export function weekContainingDay(month, dayKey) {
+  const weeks = monthWeeks(month);
+  return weeks.find((week) => week.some((c) => c.key === dayKey)) || weeks[0];
+}

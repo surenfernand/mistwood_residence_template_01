@@ -16,6 +16,7 @@
     "dev:all": "npx concurrently --kill-others-on-fail -n web,api -c blue,green \"npm run dev\" \"npm run api\""
   },
   "dependencies": {
+    "@zxing/browser": "^0.2.1",
     "express": "^5.3.0",
     "leaflet": "^1.9.4",
     "leaflet.markercluster": "^1.5.3",

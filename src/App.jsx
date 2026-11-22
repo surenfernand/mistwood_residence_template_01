@@ -11,6 +11,8 @@ import Explore from "./pages/Explore.jsx";
 import Deals from "./pages/Deals.jsx";
 import Contact from "./pages/Contact.jsx";
 import Policies from "./pages/Policies.jsx";
+import PrivacyPolicy from "./pages/PrivacyPolicy.jsx";
+import TermsAndConditions from "./pages/TermsAndConditions.jsx";
 import Credits from "./pages/Credits.jsx";
 import NotFound from "./pages/NotFound.jsx";
 import AdminLogin from "./pages/AdminLogin.jsx";
@@ -39,7 +41,7 @@ import AdminHelp from "./pages/AdminHelp.jsx";
 function ScrollManager() {
   const location = useLocation();
   useEffect(() => {
-    const highland = ["/", "/about", "/apartments", "/deals", "/explore", "/contact"].includes(location.pathname);
+    const highland = ["/", "/about", "/apartments", "/deals", "/explore", "/contact", "/privacy-policy", "/terms-and-conditions"].includes(location.pathname);
     document.body.classList.toggle("home", highland);
     document.body.classList.toggle("about-page", location.pathname === "/about");
     const frame = requestAnimationFrame(() => {
@@ -65,6 +67,8 @@ function AnimatedRoutes() {
         <Route path="/explore" element={<Explore />} />
         <Route path="/deals" element={<Deals />} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
         <Route path="/check-in/:token" element={<GuestCheckIn />} />
         <Route path="/account/login" element={<GuestLogin />} />
         <Route path="/account/setup" element={<GuestSetup />} />

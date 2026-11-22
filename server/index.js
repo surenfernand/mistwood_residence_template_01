@@ -5,15 +5,17 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
+import multer from "multer";
 import { sendEnquiryConfirmation } from "./email.js";
 import { sendAdminEnquiryNotification } from "./admin-enquiry-email.js";
 import { sendAdminPasswordReset } from "./admin-password-reset-email.js";
 import { sendAdminInvite } from "./admin-invite-email.js";
-import { renderBookingConfirmationPreviewHtml } from "./booking-confirmation-email.js";
+import { renderBookingConfirmationPreviewHtml, sendBookingConfirmationToGuest } from "./booking-confirmation-email.js";
+import { renderCheckoutThankYouPreviewHtml } from "./checkout-thank-you-email.js";
 import { renderBookingAdminNotificationPreviewHtml } from "./booking-admin-notification-email.js";
 import { calculateStayQuote, estimateStayTotal } from "./pricing.js";
 import { buildPayhereFields, payhereCheckoutUrl, payhereConfigured } from "./payhere.js";
-import { createCheckoutRequest, fulfillPayherePayment } from "./booking-payment.js";
+import { createCheckoutRequest, fulfillPayherePayment, fulfillTestDeposit } from "./booking-payment.js";
 import {
   listAdminNotifications,
   markNotificationRead,
@@ -65,6 +67,31 @@ import {
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "dist");
 const port = Number(process.env.PORT) || 3000;
 const pool = process.env.DATABASE_URL ? new pg.Pool({ connectionString: process.env.DATABASE_URL, max: 5 }) : null;
+const siteLogoUploadDir = path.join(publicRoot, "uploads", "site-logo");
+const logoMimeTypes = new Map([
+  ["image/jpeg", ".jpg"],
+  ["image/png", ".png"],
+  ["image/webp", ".webp"],
+]);
+const siteLogoUpload = multer({
+  storage: multer.diskStorage({
+    destination: (_req, _file, callback) => callback(null, siteLogoUploadDir),
+    filename: (_req, file, callback) => callback(null, `${crypto.randomUUID()}${logoMimeTypes.get(file.mimetype) || ""}`),
+  }),
+  limits: { fileSize: 5 * 1024 * 1024, files: 1 },
+  fileFilter: (_req, file, callback) => {
+    if (logoMimeTypes.has(file.mimetype)) callback(null, true);
+    else callback(new Error("Only PNG, JPG, and WebP logos are allowed."));
+  },
+});
+
+function handleSiteLogoUpload(req, res, next) {
+  siteLogoUpload.single("logo")(req, res, (error) => {
+    if (!error) return next();
+    if (error.code === "LIMIT_FILE_SIZE") return res.status(400).json({ error: "Logo must be 5 MB or smaller." });
+    return res.status(400).json({ error: error.message || "Logo upload failed." });
+  });
+}
 if (pool) {
   pool.on("error", (error) => {
     console.error("PostgreSQL pool error (connection dropped or reset):", error.message);
@@ -147,6 +174,7 @@ async function migrate() {
       await bootstrapAdmin();
       await ensureGalleryUploadDir();
       await ensureGalleryVideoUploadDirs();
+      await fs.mkdir(siteLogoUploadDir, { recursive: true });
       dbReady = true;
       console.log("Database ready");
       scheduleStayLifecycle(pool);
@@ -833,13 +861,21 @@ app.get("/api/payments/payhere/return", (_req, res) => {
 });
 
 app.post("/api/payments/payhere/init", async (req, res, next) => {
-  if (!payhereConfigured()) {
+  const testBypass = process.env.PAYHERE_TEST_BYPASS === "true";
+  if (!payhereConfigured() && !testBypass) {
     return res.status(503).json({ error: "Online payment is not configured yet. Please contact us on WhatsApp." });
   }
   const orderId = text(req.body?.orderId, 80);
   const purpose = text(req.body?.purpose, 20) || "deposit";
   if (!orderId) return res.status(400).json({ error: "Missing payment order." });
   try {
+    if (!payhereConfigured() && testBypass) {
+      if (purpose !== "deposit") {
+        return res.status(503).json({ error: "Test payment bypass is available for new booking deposits only." });
+      }
+      const completed = await fulfillTestDeposit(pool, orderId);
+      return res.json({ testCompleted: true, bookingId: completed.bookingId });
+    }
     const guestSession = await currentGuest(pool, req);
     let query;
     let params;
@@ -878,7 +914,7 @@ app.post("/api/payments/payhere/init", async (req, res, next) => {
   }
 });
 
-app.get("/api/check-in/:token", async (req, res, next) => {
+app.get("/api/check-in/:token", requireAdmin, async (req, res, next) => {
   const token = text(req.params.token, 120);
   if (!token) return res.status(400).json({ error: "Invalid check-in link." });
   try {
@@ -894,7 +930,7 @@ app.get("/api/check-in/:token", async (req, res, next) => {
     res.json({
       booking,
       canCheckIn: booking.status === "confirmed",
-      adminSignedIn: Boolean(await currentAdmin(req)),
+      adminSignedIn: true,
     });
   } catch (error) {
     next(error);
@@ -1644,6 +1680,15 @@ app.patch("/api/admin/settings", requirePermission("settings"), async (req, res,
   }
 });
 
+app.post("/api/admin/settings/logo", requirePermission("settings"), handleSiteLogoUpload, async (req, res, next) => {
+  if (!req.file) return res.status(400).json({ error: "Choose a logo to upload." });
+  try {
+    res.status(201).json({ logoUrl: `/uploads/site-logo/${req.file.filename}` });
+  } catch (error) {
+    next(error);
+  }
+});
+
 app.get("/api/social", async (_req, res, next) => {
   try {
     const { rows } = await pool.query(
@@ -1883,6 +1928,7 @@ app.post("/api/admin/bookings", requirePermission("bookings"), async (req, res, 
     checkIn: text(body.checkIn, 10),
     checkOut: text(body.checkOut, 10),
     source: text(body.source, 60) || "admin",
+    sendConfirmation: body.sendConfirmation !== false,
   };
   if (!entry.name || !isEmail(entry.email)) return res.status(400).json({ error: "Guest name and a valid email are required." });
   if (!isDay(entry.checkIn) || !isDay(entry.checkOut) || entry.checkOut <= entry.checkIn) return res.status(400).json({ error: "Please provide valid check-in and check-out dates." });
@@ -1894,14 +1940,35 @@ app.post("/api/admin/bookings", requirePermission("bookings"), async (req, res, 
       return res.status(409).json({ error: "Those dates conflict with an existing stay or block." });
     }
     const { nightly, total } = await estimateStayTotal(client, entry.checkIn, entry.checkOut);
+    const rawCheckInToken = crypto.randomBytes(24).toString("base64url");
     const { rows } = await client.query(
-      `insert into bookings (guest_name, guest_email, guest_phone, source, check_in, check_out, guests, status, nightly_rate, total_amount, payment_status)
-       values ($1, $2, $3, $4, $5::date, $6::date, $7, 'confirmed', $8, $9, 'unpaid')
+      `insert into bookings (guest_name, guest_email, guest_phone, source, check_in, check_out, guests, status, nightly_rate, total_amount, payment_status, check_in_token_hash, qr_issued_at)
+       values ($1, $2, $3, $4, $5::date, $6::date, $7, 'confirmed', $8, $9, 'unpaid', $10, now())
        returning id`,
-      [entry.name, entry.email, entry.phone || null, entry.source, entry.checkIn, entry.checkOut, entry.guests, nightly, total],
+      [entry.name, entry.email, entry.phone || null, entry.source, entry.checkIn, entry.checkOut, entry.guests, nightly, total, tokenHash(rawCheckInToken)],
     );
     await client.query("commit");
-    res.status(201).json({ id: rows[0].id });
+    let emailSent = false;
+    if (entry.sendConfirmation) {
+      try {
+        const siteUrl = (process.env.PUBLIC_SITE_URL || "http://localhost:5173").replace(/\/$/, "");
+        await sendBookingConfirmationToGuest(pool, {
+          guestName: entry.name,
+          guestEmail: entry.email,
+          guests: entry.guests,
+          checkIn: entry.checkIn,
+          checkOut: entry.checkOut,
+          total,
+          depositPaid: 0,
+          balanceDue: total,
+          checkInUrl: `${siteUrl}/check-in/${rawCheckInToken}`,
+        });
+        emailSent = true;
+      } catch (emailError) {
+        console.error("Admin booking confirmation email failed:", emailError.message);
+      }
+    }
+    res.status(201).json({ id: rows[0].id, emailSent });
   } catch (error) {
     await client.query("rollback").catch(() => {});
     next(error);
@@ -2103,6 +2170,22 @@ if (process.env.NODE_ENV !== "production") {
       checkInUrl: `${site}/check-in/preview-token`,
     });
     res.type("html").send(html);
+  });
+  app.get("/api/dev/email-previews/checkout-thank-you", async (_req, res, next) => {
+    try {
+      const site = (process.env.PUBLIC_SITE_URL || "http://localhost:5173").replace(/\/$/, "");
+      const ctx = contactFromSettings(await getSiteSettings(pool));
+      const html = renderCheckoutThankYouPreviewHtml({
+        guestName: "Priya Mendis",
+        reviewUrl: `${site}/review/preview-token`,
+      }, ctx).replace(
+        'src="cid:checkout-review-qr"',
+        'src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=preview-review"',
+      );
+      res.type("html").send(html);
+    } catch (error) {
+      next(error);
+    }
   });
 }
 

@@ -1,3 +1,4 @@
+import { useRef, useState } from "react";
 import {
   CURRENCY_OPTIONS,
   DATE_FORMAT_OPTIONS,
@@ -8,8 +9,27 @@ import { SettingsCard, SettingsField } from "./SettingsControls.jsx";
 import { IconBuilding, IconGlobe, IconMail } from "./SettingsPanelIcons.jsx";
 
 export default function SettingsGeneralPanel({ data, onPatch }) {
+  const logoInputRef = useRef(null);
+  const [logoError, setLogoError] = useState("");
   const set = (key) => (event) => {
     onPatch({ [key]: event.target.value });
+  };
+
+  const uploadLogo = async (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    setLogoError("");
+    const form = new FormData();
+    form.append("logo", file);
+    try {
+      const response = await fetch("/api/admin/settings/logo", { method: "POST", body: form });
+      const body = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(body.error || "Logo upload failed.");
+      onPatch({ logoUrl: body.logoUrl });
+    } catch (error) {
+      setLogoError(error.message || "Logo upload failed.");
+    }
   };
 
   return (
@@ -21,14 +41,16 @@ export default function SettingsGeneralPanel({ data, onPatch }) {
               <img src={data.logoUrl} alt="" />
             </div>
             <div className="settings-logo-actions">
-              <button type="button" className="settings-btn-outline">
+              <input ref={logoInputRef} type="file" accept="image/png,image/jpeg,image/webp" onChange={uploadLogo} hidden />
+              <button type="button" className="settings-btn-outline" onClick={() => logoInputRef.current?.click()}>
                 ↑ Upload new logo
               </button>
-              <button type="button" className="settings-btn-icon" aria-label="Remove logo">
+              <button type="button" className="settings-btn-icon" aria-label="Remove logo" onClick={() => onPatch({ logoUrl: "/assets/mistwood/branding/logo.png" })}>
                 🗑
               </button>
             </div>
             <small>PNG, JPG or WEBP (max 5 MB)</small>
+            {logoError ? <small role="alert" style={{ color: "#b42318" }}>{logoError}</small> : null}
           </div>
           <div className="settings-identity-fields">
             <SettingsField label="Property name" required>

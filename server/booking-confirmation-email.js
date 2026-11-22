@@ -34,6 +34,11 @@ function bookingHtml(data, ctx) {
   const contactPhone = ctx.contactPhone;
   const phoneE164 = contactPhone.replace(/\s/g, "");
   const whatsappUrl = ctx.whatsappUrl;
+  const depositPaid = Number(data.depositPaid || 0);
+  const paymentSummary = depositPaid > 0
+    ? `<strong style="font-family:Georgia,serif;color:#103e2b">Deposit paid:</strong> ${formatMoney(depositPaid)}<br>
+<strong style="font-family:Georgia,serif;color:#103e2b">Balance due:</strong> ${formatMoney(data.balanceDue)}`
+    : `<strong style="font-family:Georgia,serif;color:#103e2b">Balance due at check-in:</strong> ${formatMoney(data.balanceDue)}`;
 
   const bodyHtml = `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"><tr><td align="center">
 <div style="width:66px;height:66px;border-radius:50%;background:#e3ecdc;line-height:66px;text-align:center;margin:0 auto 12px">${icon("check")}</div>
@@ -41,18 +46,16 @@ function bookingHtml(data, ctx) {
 ${goldRule("16px auto 20px")}
 </td></tr></table>
 <p style="font-size:16px;line-height:1.65;margin:0 0 12px"><strong style="font-family:Georgia,serif;color:#103e2b">Dear ${name},</strong></p>
-<p style="font-size:16px;line-height:1.65;margin:0 0 16px">Thank you for your deposit. ${property} is reserved for your stay.</p>
+<p style="font-size:16px;line-height:1.65;margin:0 0 16px">Thank you for your booking. ${property} is reserved for your stay.</p>
 <table role="presentation" style="width:100%;background:#edf1e6;border-radius:14px;margin:0 0 18px" cellspacing="0" cellpadding="0"><tr><td style="padding:18px 20px;font-size:14px;line-height:1.7">
 <strong style="font-family:Georgia,serif;color:#103e2b">Arrival:</strong> ${escapeHtml(data.checkIn)}<br>
 <strong style="font-family:Georgia,serif;color:#103e2b">Departure:</strong> ${escapeHtml(data.checkOut)}<br>
 <strong style="font-family:Georgia,serif;color:#103e2b">Guests:</strong> ${escapeHtml(data.guests)}<br>
 <strong style="font-family:Georgia,serif;color:#103e2b">Total stay:</strong> ${formatMoney(data.total)}<br>
-<strong style="font-family:Georgia,serif;color:#103e2b">Deposit paid:</strong> ${formatMoney(data.depositPaid)}<br>
-<strong style="font-family:Georgia,serif;color:#103e2b">Balance due:</strong> ${formatMoney(data.balanceDue)}
+${paymentSummary}
 </td></tr></table>
 <p style="font-size:15px;line-height:1.6;margin:0 0 10px;text-align:center">Show this QR code on arrival, or keep this email handy. Our team may scan it when you check in.</p>
 <p style="text-align:center;margin:0 0 18px"><img src="cid:booking-qr" alt="Check-in QR code" width="200" height="200" style="display:inline-block;margin:0 auto;border:0" /></p>
-<p style="font-size:15px;line-height:1.65;margin:0 0 16px"><a href="${escapeHtml(data.accountUrl)}" style="color:#103e2b;font-weight:600">Create your guest account</a> to view your booking and pay the balance online before arrival.</p>
 <p style="font-size:14px;line-height:1.6;margin:0 0 18px">Questions? <a href="tel:${phoneE164}" style="color:#103e2b">${escapeHtml(contactPhone)}</a> · <a href="${whatsappUrl}" style="color:#103e2b">WhatsApp</a></p>
 <p style="font-size:15px;line-height:1.6;margin:0">Warm regards,<br><strong style="font-family:Georgia,serif;color:#103e2b">The ${property} Team</strong></p>`;
 
@@ -72,7 +75,11 @@ export async function sendBookingConfirmationToGuest(pool, booking) {
   if (!transporter) throw new Error("SMTP not configured");
   const ctx = contactFromSettings(await getSiteSettings(pool));
   const qrBuffer = await QRCode.toBuffer(booking.checkInUrl, { type: "png", width: 280, margin: 1 });
-  const text = `Dear ${booking.guestName},\n\nYour reservation is confirmed.\nArrival: ${booking.checkIn}\nDeparture: ${booking.checkOut}\nTotal: ${formatMoney(booking.total)}\nDeposit paid: ${formatMoney(booking.depositPaid)}\nBalance: ${formatMoney(booking.balanceDue)}\n\nCheck-in: ${booking.checkInUrl}\n\nGuest account: ${booking.accountUrl}\n`;
+  const depositPaid = Number(booking.depositPaid || 0);
+  const paymentText = depositPaid > 0
+    ? `Deposit paid: ${formatMoney(depositPaid)}\nBalance due: ${formatMoney(booking.balanceDue)}`
+    : `Balance due at check-in: ${formatMoney(booking.balanceDue)}`;
+  const text = `Dear ${booking.guestName},\n\nYour reservation is confirmed.\nArrival: ${booking.checkIn}\nDeparture: ${booking.checkOut}\nTotal: ${formatMoney(booking.total)}\n${paymentText}\n\nCheck-in: ${booking.checkInUrl}\n`;
   return transporter.sendMail({
     from: process.env.MAIL_FROM || ctx.mailFrom,
     to: booking.guestEmail,

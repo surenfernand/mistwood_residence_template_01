@@ -37,6 +37,7 @@ export default function Calendar({
   initialEnd = null,
   bookingRules = DEFAULT_RULES,
   onRuleNotice,
+  modal = false,
 }) {
   const rules = { ...DEFAULT_RULES, ...bookingRules };
   const today = useMemo(() => startOfDay(new Date()), []);
@@ -152,7 +153,7 @@ export default function Calendar({
       <div className="field calendar-anchor">
         <label htmlFor="arrival">Arrival date</label>
         <input id="arrival" aria-label="Choose arrival date" placeholder="Choose your arrival date" readOnly value={formatDate(start)} onClick={() => setOpen((value) => !value)} data-calendar-open="" />
-        <div className={open ? "calendar-pop open" : "calendar-pop"}>
+        <div className={`${open ? "calendar-pop open" : "calendar-pop"}${modal ? " calendar-pop-modal" : ""}`} role={modal ? "dialog" : undefined} aria-modal={modal || undefined} aria-label={modal ? "Select stay dates" : undefined}>
           <div className="calendar-head">
             <button aria-label="Previous month" className="cal-prev" type="button" onClick={() => setOffset((value) => Math.max(0, value - 1))}>‹</button>
             <strong>Select your stay</strong>

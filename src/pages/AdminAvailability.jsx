@@ -2,19 +2,23 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AdminSidebar, { AdminMenuToggle } from "../components/admin/AdminSidebar.jsx";
 import AdminUserTools from "../components/admin/AdminUserTools.jsx";
+import AdminIcon from "../components/admin/AdminIcon.jsx";
+import AvailabilityMonthCalendar from "../components/admin/AvailabilityMonthCalendar.jsx";
 import { useSiteTitle } from "../hooks/useSiteTitle.js";
 import { addDays, isoDay } from "../utils/adminDates.js";
 import {
   addMonths,
   buildCalendar,
+  buildCalendarEvents,
   countNightsByType,
   currentMonthKey,
+  eventCoveringNight,
   monthGridCells,
   readableMonth,
+  readableRange,
+  statusBadgeLabel,
   todayKeyColombo,
 } from "../utils/adminAvailabilityCalendar.js";
-
-const icon = (symbol) => <span className="availability-icon" aria-hidden="true">{symbol}</span>;
 
 function defaultBlockForm() {
   const start = isoDay();
@@ -25,6 +29,7 @@ export default function AdminAvailability() {
   const navigate = useNavigate();
   const [navOpen, setNavOpen] = useState(false);
   const [month, setMonth] = useState(currentMonthKey);
+  const [view, setView] = useState("month");
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -32,6 +37,7 @@ export default function AdminAvailability() {
   const [blockForm, setBlockForm] = useState(defaultBlockForm);
   const [blockBusy, setBlockBusy] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [selectedDay, setSelectedDay] = useState(todayKeyColombo);
 
   useSiteTitle("Availability & Calendar");
 
@@ -60,9 +66,29 @@ export default function AdminAvailability() {
   }, [loadAvailability]);
 
   const calendar = useMemo(() => buildCalendar(month, data), [month, data]);
+  const events = useMemo(() => buildCalendarEvents(data), [data]);
   const gridCells = useMemo(() => monthGridCells(month), [month]);
   const counts = countNightsByType(calendar);
   const todayKey = todayKeyColombo();
+
+  useEffect(() => {
+    setSelectedDay((prev) => {
+      const inMonth = gridCells.some((c) => c.inMonth && c.key === prev);
+      if (inMonth) return prev;
+      return (
+        gridCells.find((c) => c.inMonth && c.key === todayKey)?.key
+        || gridCells.find((c) => c.inMonth)?.key
+        || prev
+      );
+    });
+  }, [month, gridCells, todayKey]);
+
+  const selection = useMemo(() => {
+    if (!selectedDay) return { kind: "empty" };
+    const event = eventCoveringNight(selectedDay, events);
+    if (event) return { kind: event.kind, event, dayKey: selectedDay };
+    return { kind: "available", dayKey: selectedDay };
+  }, [selectedDay, events]);
 
   const openBlockDialog = () => {
     setBlockForm(defaultBlockForm());
@@ -116,6 +142,11 @@ export default function AdminAvailability() {
     }
   };
 
+  const handleSelectEvent = (ev, dayKey) => {
+    setSelectedDay(dayKey);
+    setView("month");
+  };
+
   return (
     <main className="admin-app availability-page">
       <AdminSidebar open={navOpen} onClose={() => setNavOpen(false)} />
@@ -124,137 +155,89 @@ export default function AdminAvailability() {
           <AdminMenuToggle onOpen={() => setNavOpen(true)} />
           <div>
             <p>Admin panel</p>
-            <h1>Availability & Calendar</h1>
+            <h1>
+              <AdminIcon name="calendar" size={28} />
+              Availability & Calendar
+            </h1>
             <span>Manage property availability, bookings, and blocked dates.</span>
           </div>
           <img src="/assets/mistwood/decorations/leaf-branch.png" alt="" />
           <AdminUserTools />
         </header>
         <div className="availability-content">
-          <section className="availability-metrics">
-            <Metric label="Total Nights" value={Object.keys(calendar).length} />
-            <Metric label="Booked Nights" value={counts.booked || 0} />
-            <Metric label="Available Nights" value={counts.available || 0} />
-            <Metric label="Blocked Nights" value={counts.blocked || 0} />
-            <Metric label="Pending / Hold" value={counts.pending || 0} />
+          <section className="availability-metrics" aria-label="Month summary">
+            <MetricCard tone="available" label="Available" value={counts.available || 0} suffix="nights" />
+            <MetricCard tone="booked" label="Confirmed" value={counts.booked || 0} suffix="nights" />
+            <MetricCard tone="pending" label="Pending" value={counts.pending || 0} suffix="nights" />
+            <MetricCard tone="blocked" label="Blocked" value={counts.blocked || 0} suffix="nights" />
           </section>
           <section className="availability-card">
             <header className="calendar-controls">
-              <button type="button" onClick={() => setMonth((v) => addMonths(v, -1))}>
-                ‹
-              </button>
-              <strong>▣ &nbsp; {readableMonth(month)}</strong>
-              <button type="button" onClick={() => setMonth((v) => addMonths(v, 1))}>
-                ›
-              </button>
-              <span />
-              <button type="button" onClick={() => setMonth(currentMonthKey())}>
-                Today
-              </button>
-              <button type="button" className="outline" onClick={openBlockDialog}>
-                ＋ Block Dates
-              </button>
-              <button type="button" className="primary" onClick={() => navigate("/admin/bookings/new")}>
-                ＋ Add Booking
-              </button>
+              <div className="cal-nav-month">
+                <button type="button" className="cal-nav-btn" aria-label="Previous month" onClick={() => setMonth((v) => addMonths(v, -1))}>
+                  ‹
+                </button>
+                <strong>{readableMonth(month)}</strong>
+                <button type="button" className="cal-nav-btn" aria-label="Next month" onClick={() => setMonth((v) => addMonths(v, 1))}>
+                  ›
+                </button>
+              </div>
+              <div className="cal-view-tabs" role="tablist" aria-label="Calendar view">
+                {["month", "week", "list"].map((mode) => (
+                  <button
+                    key={mode}
+                    type="button"
+                    role="tab"
+                    aria-selected={view === mode}
+                    className={view === mode ? "is-active" : ""}
+                    onClick={() => setView(mode)}
+                  >
+                    {mode.charAt(0).toUpperCase() + mode.slice(1)}
+                  </button>
+                ))}
+              </div>
+              <div className="cal-toolbar-actions">
+                <button type="button" className="cal-btn" onClick={() => { setMonth(currentMonthKey()); setSelectedDay(todayKey); }}>
+                  Today
+                </button>
+                <button type="button" className="cal-btn outline" onClick={openBlockDialog}>
+                  Block dates
+                </button>
+                <button type="button" className="cal-btn primary" onClick={() => navigate("/admin/bookings/new")}>
+                  + Add booking
+                </button>
+              </div>
             </header>
             {error ? <p className="booking-error">{error}</p> : null}
             {notice ? <p className="settings-notice">{notice}</p> : null}
             {refreshing ? <p className="settings-notice">Refreshing calendar…</p> : null}
             <div className="calendar-layout">
-              <div className="calendar-grid">
-                <div className="calendar-weekdays">
-                  {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((x) => (
-                    <b key={x}>{x}</b>
-                  ))}
-                </div>
-                <div className="calendar-days">
-                  {gridCells.map(({ key, day, inMonth }) => {
-                    const entry = inMonth ? calendar[key] : null;
-                    const type = inMonth ? entry?.type || "available" : "";
-                    return (
-                      <div
-                        key={key}
-                        className={`calendar-day ${inMonth ? "" : "outside"} ${type}${todayKey === key ? " today" : ""}`}
-                      >
-                        <b>{day}</b>
-                        {entry?.name ? (
-                          <span>
-                            {entry.type === "booked" ? "▰" : "◌"} {entry.name}
-                          </span>
-                        ) : null}
-                      </div>
-                    );
-                  })}
-                </div>
+              <div className="calendar-main">
+                {view === "list" ? (
+                  <AvailabilityList events={events} onPick={(ev) => handleSelectEvent(ev, ev.arrive)} />
+                ) : (
+                  <AvailabilityMonthCalendar
+                    month={month}
+                    data={data}
+                    calendar={calendar}
+                    todayKey={todayKey}
+                    selectedDay={selectedDay}
+                    view={view}
+                    onSelectDay={setSelectedDay}
+                    onSelectEvent={handleSelectEvent}
+                  />
+                )}
               </div>
-              <aside className="calendar-side">
-                <section>
-                  <h2>Legend</h2>
-                  <Legend type="available" label="Available" value={counts.available || 0} />
-                  <Legend type="booked" label="Booked (Confirmed)" value={counts.booked || 0} />
-                  <Legend type="blocked" label="Blocked / Not Available" value={counts.blocked || 0} />
-                  <Legend type="pending" label="Pending / Hold" value={counts.pending || 0} />
-                </section>
-                <section>
-                  <h2>Blocked periods</h2>
-                  {(data?.blocks || []).length ? (
-                    data.blocks.map((block) => (
-                      <div className="upcoming" key={block.id}>
-                        {icon("▣")}
-                        <div>
-                          <strong>{block.reason || "Blocked"}</strong>
-                          <span>
-                            {block.startDate} – {block.endDate}
-                          </span>
-                        </div>
-                        <button type="button" className="text-btn" onClick={() => removeBlock(block.id)}>
-                          Remove
-                        </button>
-                      </div>
-                    ))
-                  ) : (
-                    <p>No blocks this month.</p>
-                  )}
-                </section>
-                <section>
-                  <h2>Upcoming Stays</h2>
-                  {(data?.requests || []).slice(0, 4).map((r) => (
-                    <div className="upcoming" key={r.id}>
-                      {icon("▰")}
-                      <div>
-                        <strong>
-                          BR-{r.id} – {r.name}
-                        </strong>
-                        <span>
-                          {r.arrive} – {r.depart}
-                        </span>
-                      </div>
-                      <em>{r.status === "confirmed" ? "Confirmed" : "Hold"}</em>
-                    </div>
-                  ))}
-                  {!data?.requests?.length ? <p>No stays this month.</p> : null}
-                </section>
+              <aside className="calendar-selected" aria-labelledby="selected-day-title">
+                <SelectedDayPanel
+                  selection={selection}
+                  onBlock={openBlockDialog}
+                  onAddBooking={() => navigate("/admin/bookings/new")}
+                  onEditBooking={() => navigate("/admin/booking-requests")}
+                  onRemoveBlock={removeBlock}
+                />
               </aside>
             </div>
-            <footer className="availability-actions">
-              <div>
-                {icon("ⓘ")}
-                <span>
-                  <strong>Quick Actions</strong>
-                  <small>Manage availability with these handy actions.</small>
-                </span>
-              </div>
-              <button type="button" onClick={openBlockDialog}>
-                ▣ &nbsp; Block Dates
-              </button>
-              <button type="button" onClick={() => navigate("/admin/bookings/new")}>
-                ▰ &nbsp; Add Booking
-              </button>
-              <button type="button" onClick={() => loadAvailability()}>
-                ⟳ &nbsp; Sync Bookings
-              </button>
-            </footer>
           </section>
         </div>
       </section>
@@ -305,7 +288,7 @@ export default function AdminAvailability() {
                 placeholder="Maintenance, owner stay, etc."
               />
             </label>
-            <p style={{ fontSize: 13, color: "#65706a", marginTop: 8 }}>
+            <p className="availability-block-hint">
               Blocks cannot overlap confirmed stays, active holds, or other blocks.
             </p>
             <div className="booking-drawer-actions">
@@ -316,7 +299,7 @@ export default function AdminAvailability() {
                 {blockBusy ? "Saving…" : "Save block"}
               </button>
             </div>
-            <p style={{ marginTop: 16, fontSize: 13 }}>
+            <p className="availability-drawer-link">
               <Link to="/admin/bookings/new">Create a booking</Link> instead to reserve dates for a guest.
             </p>
           </form>
@@ -326,21 +309,118 @@ export default function AdminAvailability() {
   );
 }
 
-function Metric({ label, value }) {
+function MetricCard({ tone, label, value, suffix }) {
   return (
-    <article>
-      <span>{label}</span>
-      <strong>{value}</strong>
+    <article className={`availability-metric availability-metric--${tone}`}>
+      <span className="availability-metric-icon" aria-hidden="true" />
+      <div>
+        <span className="availability-metric-label">{label}</span>
+        <strong>
+          {value} <small>{suffix}</small>
+        </strong>
+      </div>
     </article>
   );
 }
 
-function Legend({ type, label, value }) {
+function AvailabilityList({ events, onPick }) {
+  if (!events.length) {
+    return <p className="cal-list-empty">No bookings or blocks this month.</p>;
+  }
   return (
-    <div className="legend">
-      <i className={type} />
-      <span>{label}</span>
-      <b>{value} nights</b>
+    <ul className="cal-list">
+      {events.map((ev) => (
+        <li key={`${ev.kind}-${ev.id}`}>
+          <button type="button" onClick={() => onPick(ev)} className={`cal-list-item cal-list-item--${ev.type}`}>
+            <strong>{ev.headline || ev.label}</strong>
+            <span>{readableRange(ev.arrive, ev.depart)}</span>
+            <em>{statusBadgeLabel(ev.status)}</em>
+          </button>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function SelectedDayPanel({ selection, onBlock, onAddBooking, onEditBooking, onRemoveBlock }) {
+  if (selection.kind === "empty") {
+    return (
+      <div className="calendar-selected-inner">
+        <h2 id="selected-day-title">Selected day</h2>
+        <p className="cal-selected-empty">Choose a date on the calendar.</p>
+      </div>
+    );
+  }
+
+  if (selection.kind === "available") {
+    return (
+      <div className="calendar-selected-inner">
+        <h2 id="selected-day-title">Selected day</h2>
+        <p className="cal-selected-kicker">Open date</p>
+        <p className="cal-selected-lead">This night is available to book.</p>
+        <div className="cal-selected-actions">
+          <button type="button" className="cal-btn primary" onClick={onAddBooking}>
+            Add booking
+          </button>
+          <button type="button" className="cal-btn outline" onClick={onBlock}>
+            Block dates
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const { event } = selection;
+  const badge = statusBadgeLabel(event.status);
+  const isBlock = event.kind === "block";
+
+  return (
+    <div className="calendar-selected-inner">
+      <header className="cal-selected-head">
+        <div>
+          <h2 id="selected-day-title">{isBlock ? event.headline : event.headline}</h2>
+          <span className={`cal-status-pill cal-status-pill--${event.type}`}>{badge}</span>
+        </div>
+      </header>
+      <dl className="cal-selected-meta">
+        {!isBlock ? (
+          <div>
+            <dt>Guest</dt>
+            <dd>{event.guest}</dd>
+          </div>
+        ) : null}
+        <div>
+          <dt>Dates</dt>
+          <dd>{readableRange(event.arrive, event.depart)}</dd>
+        </div>
+        {!isBlock ? (
+          <div>
+            <dt>Payment</dt>
+            <dd>
+              <span className={`cal-pay-pill cal-pay-pill--${event.status === "confirmed" ? "paid" : "pending"}`}>
+                {event.payment}
+              </span>
+            </dd>
+          </div>
+        ) : null}
+      </dl>
+      <div className="cal-selected-actions">
+        {!isBlock ? (
+          <button type="button" className="cal-btn primary" onClick={onEditBooking}>
+            Edit booking
+          </button>
+        ) : (
+          <button type="button" className="cal-btn primary" onClick={() => onRemoveBlock(event.id)}>
+            Remove block
+          </button>
+        )}
+        <button type="button" className="cal-btn outline" onClick={onAddBooking}>
+          Add booking
+        </button>
+        <button type="button" className="cal-btn outline cal-btn-icon" onClick={onBlock}>
+          <span aria-hidden="true">⊘</span> Block dates
+        </button>
+      </div>
     </div>
   );
 }

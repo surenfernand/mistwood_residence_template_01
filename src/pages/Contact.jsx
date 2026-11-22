@@ -541,6 +541,10 @@ export default function Contact() {
       });
       const data = await r.json();
       if (!r.ok) throw new Error(data.error || "Payment could not start.");
+      if (data.testCompleted) {
+        setPayNotice("Test booking confirmed. The customer confirmation email has been sent.");
+        return;
+      }
       submitPayhereForm(data.checkoutUrl, data.fields);
     } catch (error) {
       setPayNotice(error.message);

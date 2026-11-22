@@ -14,7 +14,12 @@ export default function GuestCheckIn() {
     fetch(`/api/check-in/${encodeURIComponent(token || "")}`)
       .then((r) => r.json().then((x) => ({ ok: r.ok, x })))
       .then(({ ok, x }) => {
-        if (!ok) throw new Error(x.error || "Check-in link invalid.");
+        if (!ok) {
+          if (x.error === "Please sign in to access the admin panel.") {
+            throw new Error("This QR code is for hotel staff only. Please show it to a staff member when you arrive.");
+          }
+          throw new Error(x.error || "Check-in link invalid.");
+        }
         setData(x);
       })
       .catch((e) => setError(e.message));
