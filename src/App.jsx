@@ -37,11 +37,14 @@ import AdminProfile from "./pages/AdminProfile.jsx";
 import AdminAccount from "./pages/AdminAccount.jsx";
 import AdminAppearance from "./pages/AdminAppearance.jsx";
 import AdminHelp from "./pages/AdminHelp.jsx";
+import AdminReviews from "./pages/AdminReviews.jsx";
+import GuestReview from "./pages/GuestReview.jsx";
 
 function ScrollManager() {
   const location = useLocation();
   useEffect(() => {
-    const highland = ["/", "/about", "/apartments", "/deals", "/explore", "/contact", "/privacy-policy", "/terms-and-conditions"].includes(location.pathname);
+    const highland = ["/", "/about", "/apartments", "/deals", "/explore", "/contact", "/privacy-policy", "/terms-and-conditions", "/review"].includes(location.pathname)
+      || location.pathname.startsWith("/review/");
     document.body.classList.toggle("home", highland);
     document.body.classList.toggle("about-page", location.pathname === "/about");
     const frame = requestAnimationFrame(() => {
@@ -69,6 +72,8 @@ function AnimatedRoutes() {
         <Route path="/contact" element={<Contact />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
+        <Route path="/review" element={<GuestReview />} />
+        <Route path="/review/:token" element={<GuestReview />} />
         <Route path="/check-in/:token" element={<GuestCheckIn />} />
         <Route path="/account/login" element={<GuestLogin />} />
         <Route path="/account/setup" element={<GuestSetup />} />
@@ -94,6 +99,7 @@ function AnimatedRoutes() {
         <Route path="/admin/users" element={<AdminUsers />} />
         <Route path="/admin/check-in" element={<AdminCheckIn />} />
         <Route path="/admin/settings" element={<AdminSettings />} />
+        <Route path="/admin/reviews" element={<AdminReviews />} />
         <Route path="/admin/reset-password" element={<AdminResetPassword />} />
         <Route element={<PageShell />}>
           <Route path="/gallery" element={<Gallery />} />

@@ -31,6 +31,7 @@ export const ADMIN_NAV_ITEMS = [
   { icon: "tag", label: "Offers", path: "/admin/offers", permission: "rates" },
   { icon: "card", label: "Payments", path: "/admin/payments", permission: "payments" },
   { icon: "users", label: "Guests & Enquiries", path: "/admin/guests-enquiries", permission: "guests" },
+  { icon: "mail", label: "Guest reviews", path: "/admin/reviews", permission: "settings" },
   { icon: "user", label: "Users & Permissions", path: "/admin/users", permission: "users" },
   { icon: "settings", label: "Settings", path: "/admin/settings", permission: "settings" },
 ];

@@ -63,6 +63,7 @@ import {
   ensureGalleryVideoUploadDirs,
   registerApartmentGalleryVideoRoutes,
 } from "./apartment-gallery-videos.js";
+import { registerGuestReviewRoutes } from "./guest-review.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "dist");
 const port = Number(process.env.PORT) || 3000;
@@ -1692,7 +1693,10 @@ app.post("/api/admin/settings/logo", requirePermission("settings"), handleSiteLo
 app.get("/api/social", async (_req, res, next) => {
   try {
     const { rows } = await pool.query(
-      'select id,author_name as "authorName",author_photo_url as "authorPhotoUrl",entry_type as type,rating,body,featured,published_at as "publishedAt" from social_entries where status=\'published\' order by featured desc,published_at desc',
+      `select id, author_name as "authorName", author_photo_url as "authorPhotoUrl", entry_type as type,
+              rating, title, body, featured, published_at as "publishedAt"
+         from social_entries where status = 'published'
+         order by featured desc, published_at desc`,
     );
     res.json({ entries: rows });
   } catch (error) {
@@ -1704,7 +1708,8 @@ app.get("/api/admin/social", requirePermission("settings"), async (_req, res, ne
   try {
     const { rows } = await pool.query(
       `select id, author_name as "authorName", author_photo_url as "authorPhotoUrl", entry_type as "entryType",
-              rating, body, source, status, featured, published_at as "publishedAt", created_at as "createdAt"
+              rating, title, body, guest_email as "guestEmail", guest_phone as "guestPhone", booking_id as "bookingId",
+              source, status, featured, published_at as "publishedAt", created_at as "createdAt"
          from social_entries order by created_at desc`,
     );
     res.json({ entries: rows });
@@ -1749,6 +1754,7 @@ app.patch("/api/admin/social/:id", requirePermission("settings"), async (req, re
     authorName: "author_name",
     authorPhotoUrl: "author_photo_url",
     entryType: "entry_type",
+    title: "title",
     body: "body",
     status: "status",
     featured: "featured",
@@ -1789,6 +1795,7 @@ app.delete("/api/admin/social/:id", requirePermission("settings"), async (req, r
 });
 
 if (pool) {
+  registerGuestReviewRoutes(app, { pool, text, tokenHash, isEmail, normalisedPhone });
   registerApartmentGalleryRoutes(app, { pool, requirePermission, text });
   registerApartmentGalleryVideoRoutes(app, { pool, requirePermission, text });
 }

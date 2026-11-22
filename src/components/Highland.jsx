@@ -106,6 +106,7 @@ export function HighlandFooter() {
           <Link to="/deals">Monthly Deals</Link>
           <Link to="/explore">Explore</Link>
           <Link to="/contact">Contact Us</Link>
+          <Link to="/review">Leave a review</Link>
         </div>
        
         <div className="mh-touch">

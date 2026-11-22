@@ -1,4 +1,3 @@
-import { Link } from "react-router-dom";
 import LegalDocumentLayout from "../components/LegalDocumentLayout.jsx";
 import { usePublicSettings } from "../hooks/usePublicSettings.js";
 import { useSiteTitle } from "../hooks/useSiteTitle.js";
@@ -99,11 +98,6 @@ export default function TermsAndConditions() {
         . These terms are governed by the laws of Sri Lanka, unless applicable law requires otherwise.
       </p>
 
-      <aside className="legal-notice">
-        <strong>Publishing checklist.</strong> Set the deposit, payment due date, check-in/out times, cancellation rules,
-        party/noise policy, damage terms, legal entity name, and contact details before making these terms live. See also{" "}
-        <Link to="/policies">guest policies</Link> and <Link to="/privacy-policy">privacy policy</Link>.
-      </aside>
     </LegalDocumentLayout>
   );
 }

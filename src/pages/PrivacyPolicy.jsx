@@ -1,4 +1,3 @@
-import { Link } from "react-router-dom";
 import LegalDocumentLayout from "../components/LegalDocumentLayout.jsx";
 import { usePublicSettings } from "../hooks/usePublicSettings.js";
 import { useSiteTitle } from "../hooks/useSiteTitle.js";
@@ -79,11 +78,6 @@ export default function PrivacyPolicy() {
         {pub.publicAddress}, Sri Lanka.
       </p>
 
-      <aside className="legal-notice">
-        <strong>Publishing checklist.</strong> Replace all bracketed fields, confirm the business contact details and
-        retention periods, and obtain legal review for the jurisdictions in which you market and accept bookings. See also{" "}
-        <Link to="/policies">guest policies</Link> and <Link to="/terms-and-conditions">terms &amp; conditions</Link>.
-      </aside>
     </LegalDocumentLayout>
   );
 }
