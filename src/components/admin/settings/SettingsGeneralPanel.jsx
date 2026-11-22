@@ -8,11 +8,14 @@ import {
 import { SettingsCard, SettingsField } from "./SettingsControls.jsx";
 import { IconBuilding, IconGlobe, IconMail } from "./SettingsPanelIcons.jsx";
 
-export default function SettingsGeneralPanel({ data, onPatch }) {
+export default function SettingsGeneralPanel({ data, website, onPatch, onWebsitePatch }) {
   const logoInputRef = useRef(null);
   const [logoError, setLogoError] = useState("");
   const set = (key) => (event) => {
     onPatch({ [key]: event.target.value });
+  };
+  const setWebsite = (key) => (event) => {
+    onWebsitePatch?.({ [key]: event.target.value });
   };
 
   const uploadLogo = async (event) => {
@@ -82,7 +85,26 @@ export default function SettingsGeneralPanel({ data, onPatch }) {
           </SettingsField>
         </SettingsCard>
 
-     
+        <SettingsCard title="Social &amp; booking links" icon={<IconGlobe />} className="settings-card-wide">
+          <p className="settings-toggle-desc-block" style={{ marginTop: 0 }}>
+            Shown in the floating social dock on the public website. Leave a field empty to hide that icon.
+          </p>
+          <SettingsField label="Facebook">
+            <input type="url" placeholder="https://www.facebook.com/..." value={website?.facebook || ""} onChange={setWebsite("facebook")} />
+          </SettingsField>
+          <SettingsField label="Booking.com">
+            <input type="url" placeholder="https://www.booking.com/..." value={website?.bookingCom || ""} onChange={setWebsite("bookingCom")} />
+          </SettingsField>
+          <SettingsField label="Instagram">
+            <input type="url" placeholder="https://www.instagram.com/..." value={website?.instagram || ""} onChange={setWebsite("instagram")} />
+          </SettingsField>
+          <SettingsField label="YouTube">
+            <input type="url" placeholder="https://www.youtube.com/..." value={website?.youtube || ""} onChange={setWebsite("youtube")} />
+          </SettingsField>
+          <SettingsField label="Telegram">
+            <input type="url" placeholder="https://t.me/..." value={website?.telegram || ""} onChange={setWebsite("telegram")} />
+          </SettingsField>
+        </SettingsCard>
       </div>
     </div>
   );

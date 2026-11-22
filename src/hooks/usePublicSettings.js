@@ -2,6 +2,23 @@ import { useEffect, useState } from "react";
 
 let cached = null;
 let inflight = null;
+const cacheListeners = new Set();
+
+function fetchPublicSettings() {
+  if (!inflight) {
+    inflight = fetch("/api/settings/public")
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((data) => {
+        cached = { ...DEFAULTS, ...data.settings };
+        return cached;
+      })
+      .catch(() => DEFAULTS)
+      .finally(() => {
+        inflight = null;
+      });
+  }
+  return inflight;
+}
 
 const DEFAULTS = {
   propertyName: "Mistwood Residence",
@@ -33,31 +50,26 @@ const DEFAULTS = {
 export function clearPublicSettingsCache() {
   cached = null;
   inflight = null;
+  cacheListeners.forEach((listener) => listener());
 }
 
 export function usePublicSettings() {
   const [settings, setSettings] = useState(cached || DEFAULTS);
 
   useEffect(() => {
-    if (cached) {
-      setSettings(cached);
-      return;
-    }
-    if (!inflight) {
-      inflight = fetch("/api/settings/public")
-        .then((r) => (r.ok ? r.json() : Promise.reject()))
-        .then((data) => {
-          cached = { ...DEFAULTS, ...data.settings };
-          return cached;
-        })
-        .catch(() => DEFAULTS)
-        .finally(() => {
-          inflight = null;
-        });
-    }
-    inflight?.then((value) => {
-      setSettings(value);
-    });
+    const apply = () => {
+      if (cached) {
+        setSettings(cached);
+        return;
+      }
+      fetchPublicSettings()?.then((value) => {
+        if (value) setSettings(value);
+      });
+    };
+    apply();
+    const onInvalidate = () => apply();
+    cacheListeners.add(onInvalidate);
+    return () => cacheListeners.delete(onInvalidate);
   }, []);
 
   return settings;

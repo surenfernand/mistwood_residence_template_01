@@ -85,6 +85,7 @@ export function createSettingsUiState() {
     },
     website: {
       facebook: "",
+      bookingCom: "",
       instagram: "",
       youtube: "",
       telegram: "",

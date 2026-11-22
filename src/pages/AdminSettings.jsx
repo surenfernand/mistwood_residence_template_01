@@ -139,7 +139,12 @@ export default function AdminSettings() {
 
           <div className="settings-tab-panel">
             {tab === "general" ? (
-              <SettingsGeneralPanel data={draft.general} onPatch={patchSection("general")} />
+              <SettingsGeneralPanel
+                data={draft.general}
+                website={draft.website}
+                onPatch={patchSection("general")}
+                onWebsitePatch={patchSection("website")}
+              />
             ) : null}
             {tab === "booking" ? (
               <SettingsBookingPanel data={draft.booking} onPatch={patchSection("booking")} />

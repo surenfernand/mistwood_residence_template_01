@@ -57,6 +57,7 @@ export function apiSettingsToUiState(api) {
     website: {
       ...base.website,
       facebook: api.facebookUrl || "",
+      bookingCom: api.bookingComUrl || "",
       instagram: api.instagramUrl || "",
       youtube: api.youtubeUrl || "",
       telegram: api.telegramUrl || "",
@@ -97,6 +98,7 @@ export function uiDraftToApiFields(draft) {
     sendCustomerBookingEmail: n.guestBookingConfirmation,
     sendAdminBookingEmail: n.adminNewBooking,
     facebookUrl: w.facebook || null,
+    bookingComUrl: w.bookingCom || null,
     instagramUrl: w.instagram || null,
     youtubeUrl: w.youtube || null,
     telegramUrl: w.telegram || null,
