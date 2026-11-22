@@ -2,7 +2,7 @@ import nodemailer from "nodemailer";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { getSiteSettings, contactFromSettings } from "./site-settings.js";
-import { emailDocument, goldRule } from "./email-layout.js";
+import { emailDocument, emailFooter, goldRule } from "./email-layout.js";
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const assetRoot = path.join(projectRoot, "server", "email-assets", "mistwood_customer_confirmation_email", "assets");
@@ -51,14 +51,13 @@ function emailTemplate(name, ctx, guestPhone) {
     title: "Thank You for Contacting Mistwood Residence",
     bodyHtml,
     headerCid: cid("header"),
-    footerCid: cid("footer"),
+    footerHtml: emailFooter(ctx),
     extraHead: "<style>@media only screen and (max-width:600px){.info-cell{padding:14px 5px!important}.explore-photo{display:none!important}}</style>",
   });
 }
 
 const enquiryAttachments = [
   attachment("header", "header.jpg"),
-  attachment("footer", "footer.jpg"),
   attachment("explore", "explore.jpg"),
   attachment("check", "icons/check.svg"),
   attachment("calendar", "icons/calendar.svg"),

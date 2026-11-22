@@ -23,6 +23,7 @@ export async function buildIntegrationsAdminView(pool) {
 
   const socialUrls = [
     settings?.facebookUrl,
+    settings?.bookingComUrl,
     settings?.instagramUrl,
     settings?.youtubeUrl,
     settings?.telegramUrl,
@@ -81,7 +82,7 @@ export async function recordIntegrationActivity(pool, { status = "info", service
   return rows[0];
 }
 
-const SOCIAL_PATCH_KEYS = ["facebookUrl", "instagramUrl", "youtubeUrl", "telegramUrl"];
+const SOCIAL_PATCH_KEYS = ["facebookUrl", "bookingComUrl", "instagramUrl", "youtubeUrl", "telegramUrl"];
 const NOTIFY_PATCH_KEYS = [
   "sendCustomerBookingEmail",
   "sendAdminBookingEmail",

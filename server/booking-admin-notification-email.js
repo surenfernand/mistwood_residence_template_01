@@ -1,5 +1,5 @@
 import nodemailer from "nodemailer";
-import { brandFooterAttachment, brandHeaderAttachment, emailDocument, goldRule } from "./email-layout.js";
+import { brandHeaderAttachment, emailDocument, emailFooter, goldRule } from "./email-layout.js";
 import { getSiteSettings, contactFromSettings } from "./site-settings.js";
 
 const siteUrl = (process.env.PUBLIC_SITE_URL || "http://localhost:5173").replace(/\/$/, "");
@@ -21,7 +21,7 @@ const formatMoney = (n) => `LKR ${Number(n || 0).toLocaleString("en-LK")}`;
 
 const cid = (name) => `mistwood-booking-admin-${name}@mistwoodresidence`;
 
-function notificationHtml(data) {
+function notificationHtml(data, ctx) {
   const adminBookings = `${siteUrl}/admin/booking-requests`;
 
   const bodyHtml = `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"><tr><td align="center">
@@ -45,7 +45,7 @@ ${goldRule("18px auto 22px")}
     title: "New paid booking | Mistwood Residence",
     bodyHtml,
     headerCid: cid("header"),
-    footerCid: cid("footer"),
+    footerHtml: emailFooter(ctx),
   });
 }
 
@@ -56,7 +56,7 @@ export function renderBookingAdminNotificationPreviewHtml(data) {
 export async function sendBookingAdminNotification(pool, data) {
   if (!transporter) throw new Error("SMTP not configured");
   const ctx = contactFromSettings(await getSiteSettings(pool));
-  const html = notificationHtml(data);
+  const html = notificationHtml(data, ctx);
   const text = `New paid booking BR-${data.requestId}: ${data.guestName}, ${data.checkIn}–${data.checkOut}, deposit ${formatMoney(data.depositPaid)}`;
   return transporter.sendMail({
     from: process.env.MAIL_FROM || ctx.mailFrom,
@@ -66,7 +66,6 @@ export async function sendBookingAdminNotification(pool, data) {
     html,
     attachments: [
       brandHeaderAttachment(cid("header")),
-      brandFooterAttachment(cid("footer")),
     ],
   });
 }

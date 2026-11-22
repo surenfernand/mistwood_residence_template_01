@@ -82,6 +82,7 @@ export function SocialDock() {
   const pub = usePublicSettings();
   const items = [
     { label: "Facebook", href: pub.facebookUrl, icon: "facebook" },
+    { label: "Booking.com", href: pub.bookingComUrl, icon: "booking" },
     { label: "WhatsApp", href: pub.whatsappUrl, icon: "whatsapp" },
     { label: "YouTube", href: pub.youtubeUrl, icon: "youtube" },
     { label: "Instagram", href: pub.instagramUrl, icon: "instagram" },
@@ -95,6 +96,8 @@ export function SocialDock() {
           <a key={item.label} aria-label={item.label} className="social-btn" href={item.href} rel="noopener noreferrer" target="_blank" title={item.label}>
             {item.icon === "facebook" ? (
               <svg aria-hidden="true" fill="currentColor" viewBox="0 0 24 24"><path d="M22 12a10 10 0 1 0-11.6 9.9v-7H7.9V12h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.5h-1.2c-1.2 0-1.6.7-1.6 1.6V12h2.7l-.4 2.9h-2.3v7A10 10 0 0 0 22 12Z" /></svg>
+            ) : item.icon === "booking" ? (
+              <svg aria-hidden="true" fill="currentColor" viewBox="0 0 24 24"><path d="M5 3h6.4c3 0 4.8 1.2 4.8 3.5 0 1.4-.8 2.5-2.1 2.9 1.8.4 2.8 1.7 2.8 3.5 0 2.6-2 4.1-5.2 4.1H5V3Zm3.4 2.8v2.5h2.5c1.2 0 1.8-.4 1.8-1.3 0-.8-.6-1.2-1.8-1.2H8.4Zm0 5.2v3h2.9c1.3 0 2-.5 2-1.5s-.7-1.5-2-1.5H8.4Z" /><circle cx="18.4" cy="15.4" r="1.6" /></svg>
             ) : item.icon === "whatsapp" ? (
               <svg aria-hidden="true" fill="currentColor" viewBox="0 0 24 24"><path d="M20.5 3.5A11.7 11.7 0 0 0 12.1 0C5.5 0 .1 5.3.1 11.9c0 2.1.6 4.2 1.7 6L0 24l6.3-1.7a12 12 0 0 0 5.8 1.5h.1c6.6 0 11.9-5.3 11.9-11.9 0-3.2-1.3-6.2-3.6-8.4ZM12.2 21.8a10 10 0 0 1-5.1-1.4l-.4-.2-3.8 1 1-3.7-.2-.4a10 10 0 1 1 8.5 4.7Zm5.5-7.4c-.3-.1-1.8-.9-2.1-1-.3-.1-.5-.1-.7.2-.2.3-.8 1-1 1.2-.2.2-.4.2-.7.1a8.4 8.4 0 0 1-4.2-3.7c-.3-.5.3-.5.8-1.5.1-.2 0-.4 0-.6L8.8 7c-.2-.4-.4-.4-.7-.4h-.6c-.2 0-.6.1-.9.4a3.6 3.6 0 0 0-1.1 2.7c0 1.6 1.2 3.2 1.3 3.4a13.4 13.4 0 0 0 5.1 4.5c1.9.8 2.7.9 3.7.8 1.1-.2 1.8-.8 2-1.5.2-.7.2-1.3.1-1.5Z" /></svg>
             ) : (

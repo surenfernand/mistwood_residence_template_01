@@ -37,6 +37,28 @@ export function brandFooterAttachment(cid) {
   return { filename: "footer.jpg", path: path.join(brandAssetRoot, "footer.jpg"), cid };
 }
 
+const escapeHtml = (value) => String(value || "").replace(/[&<>'"]/g, (character) => ({
+  "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;",
+})[character]);
+
+/** Database-driven footer for transactional emails. */
+export function emailFooter(ctx = {}) {
+  const propertyName = escapeHtml(ctx.propertyName || "Mistwood Residence");
+  const phone = escapeHtml(ctx.contactPhone || "");
+  const email = escapeHtml(ctx.contactEmail || "");
+  const address = escapeHtml(ctx.publicAddress || "Nuwara Eliya, Sri Lanka");
+  const phoneHref = String(ctx.contactPhone || "").replace(/[^+\d]/g, "");
+  const emailHref = encodeURIComponent(String(ctx.contactEmail || ""));
+
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#0b4934;color:#ffffff"><tr>
+<td style="padding:22px 28px;width:38%;vertical-align:middle;border-right:1px solid rgba(255,255,255,.55)"><div style="font-family:Georgia,'Times New Roman',serif;font-size:24px;line-height:1.05">${propertyName}</div><div style="margin-top:7px;color:#e8c96a;font-size:10px;letter-spacing:1.7px">NUWARA ELIYA</div></td>
+<td style="padding:18px 28px;vertical-align:middle;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:1.9">
+${phone ? `<div>☎&nbsp; <a href="tel:${phoneHref}" style="color:#ffffff;text-decoration:none">${phone}</a></div>` : ""}
+${email ? `<div>✉&nbsp; <a href="mailto:${emailHref}" style="color:#ffffff;text-decoration:none">${email}</a></div>` : ""}
+${address ? `<div>⌖&nbsp; ${address}</div>` : ""}
+</td></tr></table>`;
+}
+
 export function goldRule(margin = "0 auto 24px") {
   return `<div style="width:80px;height:3px;background:${EMAIL.accent};margin:${margin}"></div>`;
 }
@@ -47,9 +69,9 @@ export function heroIcon(innerHtml) {
 }
 
 /**
- * @param {{ title: string, bodyHtml: string, headerCid: string, footerCid: string, extraHead?: string }} opts
+ * @param {{ title: string, bodyHtml: string, headerCid: string, footerCid?: string, footerHtml?: string, extraHead?: string }} opts
  */
-export function emailDocument({ title, bodyHtml, headerCid, footerCid, extraHead = "" }) {
+export function emailDocument({ title, bodyHtml, headerCid, footerCid, footerHtml, extraHead = "" }) {
   const w = EMAIL.width;
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title>
 <style>@media only screen and (max-width:600px){.email-body-pad{padding:${EMAIL.bodyPadMobile}!important}h1.hero-title{font-size:27px!important}}</style>${extraHead}</head>
@@ -59,7 +81,7 @@ export function emailDocument({ title, bodyHtml, headerCid, footerCid, extraHead
 <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="${w}" style="width:100%;max-width:${w}px;background:${EMAIL.innerBg}">
 <tr><td style="line-height:0"><img src="cid:${headerCid}" alt="Mistwood Residence, Nuwara Eliya" width="${w}" style="width:100%;height:auto;display:block;border:0"></td></tr>
 <tr><td class="email-body-pad" style="padding:${EMAIL.bodyPad}">${bodyHtml}</td></tr>
-<tr><td style="line-height:0"><img src="cid:${footerCid}" alt="Mistwood Residence footer" width="${w}" style="width:100%;height:auto;display:block;border:0"></td></tr>
+<tr><td style="line-height:0">${footerHtml || `<img src="cid:${footerCid}" alt="Mistwood Residence footer" width="${w}" style="width:100%;height:auto;display:block;border:0">`}</td></tr>
 </table></td></tr></table></body></html>`;
 }
 

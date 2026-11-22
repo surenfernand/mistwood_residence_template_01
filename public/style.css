@@ -1233,6 +1233,7 @@ html:not([data-theme="light"]) .switch-icon.moon { display: block; }
 .social-dock:hover .social-actions a:hover,
 .social-dock.open .social-actions a:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(0, 0, 0, .28); }
 .social-actions a[aria-label="Facebook"] { background: #1877f2; }
+.social-actions a[aria-label="Booking.com"] { background: #003b95; }
 .social-actions a[aria-label="WhatsApp"] { background: #1da851; }
 .social-actions a[aria-label="YouTube"] { background: #e11d2e; }
 

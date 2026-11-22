@@ -2,7 +2,7 @@ import nodemailer from "nodemailer";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { getSiteSettings, contactFromSettings } from "./site-settings.js";
-import { brandFooterAttachment, brandHeaderAttachment, emailDocument, goldRule } from "./email-layout.js";
+import { brandHeaderAttachment, emailDocument, emailFooter, goldRule } from "./email-layout.js";
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const iconRoot = path.join(projectRoot, "server", "email-assets", "mistwood_admin_email", "assets", "icons");
@@ -35,7 +35,7 @@ function detailRow(iconName, label, value, isLast = false) {
   return `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="${isLast ? "" : "border-bottom:1px solid #e6e2d9;"}"><tr><td width="30" style="padding:11px 0;vertical-align:top;">${icon(iconName)}</td><td width="110" style="padding:11px 0;vertical-align:top;font-size:14px;font-weight:bold;">${label}</td><td style="padding:11px 0;vertical-align:top;font-size:14px;">${value}</td></tr></table>`;
 }
 
-function template({ id, name, email, phone, subject, message }) {
+function template({ id, name, email, phone, subject, message }, ctx) {
   const safeName = escapeHtml(name);
   const safeEmail = escapeHtml(email);
   const safePhone = escapeHtml(phone || "Not provided");
@@ -66,7 +66,7 @@ ${detailRow("user", "Name:", safeName)}${detailRow("mail", "Email:", `<a href="m
     title: "New Enquiry Received | Mistwood Residence",
     bodyHtml,
     headerCid: cid("header"),
-    footerCid: cid("footer"),
+    footerHtml: emailFooter(ctx),
   });
 }
 
@@ -79,10 +79,9 @@ export async function sendAdminEnquiryNotification(pool, enquiry) {
     replyTo: enquiry.email,
     subject: `New enquiry: ${enquiry.subject || "General enquiry"} — ${enquiry.name}`,
     text: `New enquiry from ${enquiry.name}\nEmail: ${enquiry.email}\nPhone: ${enquiry.phone || "Not provided"}\nSubject: ${enquiry.subject || "General enquiry"}\n\n${enquiry.message}`,
-    html: template(enquiry),
+    html: template(enquiry, ctx),
     attachments: [
       brandHeaderAttachment(cid("header")),
-      brandFooterAttachment(cid("footer")),
       attachment("user", "user.svg"), attachment("mail", "mail.svg"), attachment("phone", "phone.svg"),
       attachment("tag", "tag.svg"), attachment("message", "message.svg"),
     ],

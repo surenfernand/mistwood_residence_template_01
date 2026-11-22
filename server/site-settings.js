@@ -36,6 +36,7 @@ const CAMEL_MAP = {
   send_admin_booking_email: "sendAdminBookingEmail",
   mail_from_name: "mailFromName",
   facebook_url: "facebookUrl",
+  booking_com_url: "bookingComUrl",
   instagram_url: "instagramUrl",
   youtube_url: "youtubeUrl",
   telegram_url: "telegramUrl",
@@ -64,7 +65,7 @@ const PUBLIC_KEYS = [
   "publicAddress", "footerTagline",
   "depositPercent", "minNights", "maxNights", "maxGuests", "advanceBookingDays", "checkInTime", "checkOutTime",
   "sameDayBooking", "leadTimeHours", "requireDeposit", "cancellationPolicy",
-  "facebookUrl", "instagramUrl", "youtubeUrl", "telegramUrl",
+  "facebookUrl", "bookingComUrl", "instagramUrl", "youtubeUrl", "telegramUrl",
 ];
 
 let cache = { value: null, expires: 0 };
@@ -121,6 +122,7 @@ const PATCH_MAP = {
   sendAdminBookingEmail: "send_admin_booking_email",
   mailFromName: "mail_from_name",
   facebookUrl: "facebook_url",
+  bookingComUrl: "booking_com_url",
   instagramUrl: "instagram_url",
   youtubeUrl: "youtube_url",
   telegramUrl: "telegram_url",
@@ -323,6 +325,7 @@ export function contactFromSettings(settings) {
     contactEmail: settings.contactEmail,
     contactPhone: settings.contactPhone,
     whatsappUrl: settings.whatsappUrl,
+    publicAddress: settings.publicAddress,
     mailFrom: `${settings.mailFromName} <${settings.contactEmail}>`,
     adminAlertEmail: settings.adminAlertEmail,
     sendCustomerBookingEmail: settings.sendCustomerBookingEmail,

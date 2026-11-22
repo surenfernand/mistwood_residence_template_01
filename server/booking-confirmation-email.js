@@ -2,7 +2,7 @@ import nodemailer from "nodemailer";
 import QRCode from "qrcode";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { brandFooterAttachment, brandHeaderAttachment, emailDocument, goldRule } from "./email-layout.js";
+import { brandHeaderAttachment, emailDocument, emailFooter, goldRule } from "./email-layout.js";
 import { getSiteSettings, contactFromSettings } from "./site-settings.js";
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -63,7 +63,7 @@ ${paymentSummary}
     title: `${property} — booking confirmed`,
     bodyHtml,
     headerCid: cid("header"),
-    footerCid: cid("footer"),
+    footerHtml: emailFooter(ctx),
   });
 }
 
@@ -89,7 +89,6 @@ export async function sendBookingConfirmationToGuest(pool, booking) {
     html: bookingHtml(booking, ctx),
     attachments: [
       brandHeaderAttachment(cid("header")),
-      brandFooterAttachment(cid("footer")),
       attachment("check", "icons/check.svg"),
       { filename: "check-in-qr.png", content: qrBuffer, cid: "booking-qr" },
     ],

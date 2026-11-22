@@ -530,7 +530,7 @@ app.post("/api/admin/auth/forgot-password", async (req, res) => {
       [admin.id, tokenHash(token), RESET_TOKEN_AGE, req.ip || null],
     );
     const siteUrl = (process.env.PUBLIC_SITE_URL || "http://localhost:5173").replace(/\/$/, "");
-    await sendAdminPasswordReset({ name: admin.name, email: admin.email, resetUrl: `${siteUrl}/admin/reset-password?token=${encodeURIComponent(token)}` });
+    await sendAdminPasswordReset(pool, { name: admin.name, email: admin.email, resetUrl: `${siteUrl}/admin/reset-password?token=${encodeURIComponent(token)}` });
     res.json(genericReply);
   } catch (error) {
     console.error("Password reset email could not be sent:", error.message);
@@ -1467,7 +1467,7 @@ app.post("/api/admin/users", requirePermission("users"), async (req, res, next) 
       await client.query("commit");
       const siteUrl = (process.env.PUBLIC_SITE_URL || "http://localhost:5173").replace(/\/$/, "");
       try {
-        await sendAdminInvite({
+        await sendAdminInvite(pool, {
           name,
           email,
           roleName: role.name,
@@ -1518,7 +1518,7 @@ app.post("/api/admin/users/:id/resend-invite", requirePermission("users"), async
       [id, tokenHash(token), INVITE_TOKEN_AGE, req.ip || null],
     );
     const siteUrl = (process.env.PUBLIC_SITE_URL || "http://localhost:5173").replace(/\/$/, "");
-    await sendAdminInvite({
+    await sendAdminInvite(pool, {
       name: target.name,
       email: target.email,
       roleName: target.roleName,

@@ -5632,8 +5632,44 @@ body.home {
 }
 
 /* Guest review page */
-body.review-page {
+body.review-page,
+body.check-in-page {
   background: #f8f6f1;
+}
+
+.check-in-details {
+  margin: 8px 0 28px;
+}
+
+.check-in-status {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font: 600 12px/1.4 Outfit, sans-serif;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.check-in-status.is-confirmed {
+  color: #1a4d38;
+  background: #e3efe6;
+}
+
+.check-in-status.is-checked_in {
+  color: #3d5f12;
+  background: #e8f0d8;
+}
+
+.check-in-status.is-checked_out {
+  color: #5e584f;
+  background: #ece8e0;
+}
+
+.check-in-panel .review-privacy a {
+  color: #1a5c45;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .review-page-main {

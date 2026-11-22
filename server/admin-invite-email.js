@@ -1,7 +1,8 @@
 import nodemailer from "nodemailer";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { brandFooterAttachment, brandHeaderAttachment, emailDocument, goldRule } from "./email-layout.js";
+import { brandHeaderAttachment, emailDocument, emailFooter, goldRule } from "./email-layout.js";
+import { contactFromSettings, getSiteSettings } from "./site-settings.js";
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const assetRoot = path.join(projectRoot, "server", "email-assets", "mistwood_admin_invite", "assets");
@@ -34,7 +35,7 @@ function invitedByLine(invitedBy) {
   return `<strong>${escapeHtml(invitedBy)}</strong> has invited you to join the Mistwood Residence admin dashboard.`;
 }
 
-function template({ name, roleName, setupUrl, invitedBy }) {
+function template({ name, roleName, setupUrl, invitedBy }, ctx) {
   const safeName = escapeHtml(name || "Colleague");
   const safeRole = escapeHtml(roleName || "Admin");
   const safeUrl = escapeHtml(setupUrl);
@@ -75,28 +76,28 @@ ${goldRule("20px auto 28px")}
     title: "Admin team invitation | Mistwood Residence",
     bodyHtml,
     headerCid: cid("header"),
-    footerCid: cid("footer"),
+    footerHtml: emailFooter(ctx),
   });
 }
 
-export async function sendAdminInvite({ name, email, roleName, setupUrl, invitedBy }) {
+export async function sendAdminInvite(pool, { name, email, roleName, setupUrl, invitedBy }) {
   if (!transporter) throw new Error("Email delivery is not configured.");
+  const ctx = contactFromSettings(await getSiteSettings(pool));
   const introText = invitedBy
     ? `${invitedBy} has invited you to join the Mistwood Residence admin dashboard.`
     : "You have been invited to join the Mistwood Residence admin dashboard.";
 
   const attachments = [
     brandHeaderAttachment(cid("header")),
-    brandFooterAttachment(cid("footer")),
     { filename: "user.svg", path: path.join(assetRoot, "user.svg"), cid: cid("user") },
     { filename: "tag.svg", path: path.join(assetRoot, "tag.svg"), cid: cid("tag") },
     { filename: "shield.svg", path: path.join(assetRoot, "shield.svg"), cid: cid("shield") },
   ];
 
   return transporter.sendMail({
-    from,
+    from: process.env.MAIL_FROM || ctx.mailFrom,
     to: email,
-    replyTo: contactEmail,
+    replyTo: ctx.contactEmail,
     subject: "You’re invited to Mistwood Residence — set up your admin account",
     text: [
       `Hello ${name || "Colleague"},`,
@@ -117,7 +118,7 @@ export async function sendAdminInvite({ name, email, roleName, setupUrl, invited
       "Warm regards,",
       "The Mistwood Residence Team",
     ].join("\n"),
-    html: template({ name, roleName, setupUrl, invitedBy }),
+    html: template({ name, roleName, setupUrl, invitedBy }, ctx),
     attachments,
   });
 }

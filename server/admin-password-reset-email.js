@@ -1,7 +1,8 @@
 import nodemailer from "nodemailer";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { brandFooterAttachment, brandHeaderAttachment, emailDocument, goldRule } from "./email-layout.js";
+import { brandHeaderAttachment, emailDocument, emailFooter, goldRule } from "./email-layout.js";
+import { contactFromSettings, getSiteSettings } from "./site-settings.js";
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const assetRoot = path.join(projectRoot, "server", "email-assets", "mistwood_password_reset", "assets");
@@ -16,7 +17,7 @@ const escapeHtml = (value) => String(value || "").replace(/[&<>'"]/g, (character
 const cid = (name) => `mistwood-reset-${name}@mistwoodresidence`;
 const icon = (file, size) => `<img src="cid:${cid(file)}" width="${size}" height="${size}" alt="" style="display:inline-block;vertical-align:middle;border:0">`;
 
-function template({ name, resetUrl }) {
+function template({ name, resetUrl }, ctx) {
   const safeName = escapeHtml(name || "Admin");
   const safeUrl = escapeHtml(resetUrl);
 
@@ -44,19 +45,19 @@ ${goldRule("20px auto 28px")}
     title: "Reset Your Admin Password | Mistwood Residence",
     bodyHtml,
     headerCid: cid("header"),
-    footerCid: cid("footer"),
+    footerHtml: emailFooter(ctx),
   });
 }
 
-export async function sendAdminPasswordReset({ name, email, resetUrl }) {
+export async function sendAdminPasswordReset(pool, { name, email, resetUrl }) {
   if (!transporter) throw new Error("Email delivery is not configured.");
+  const ctx = contactFromSettings(await getSiteSettings(pool));
   return transporter.sendMail({
-    from, to: email, replyTo: contactEmail, subject: "Reset your Mistwood Residence admin password",
+    from: process.env.MAIL_FROM || ctx.mailFrom, to: email, replyTo: ctx.contactEmail, subject: "Reset your Mistwood Residence admin password",
     text: `Hello ${name || "Admin"},\n\nReset your Mistwood Residence admin password using this link. It expires in 30 minutes:\n${resetUrl}\n\nIf you did not request this, you can ignore this email.`,
-    html: template({ name, resetUrl }),
+    html: template({ name, resetUrl }, ctx),
     attachments: [
       brandHeaderAttachment(cid("header")),
-      brandFooterAttachment(cid("footer")),
       { filename: "lock.svg", path: path.join(assetRoot, "lock.svg"), cid: cid("lock") },
       { filename: "shield.svg", path: path.join(assetRoot, "shield.svg"), cid: cid("shield") },
     ],

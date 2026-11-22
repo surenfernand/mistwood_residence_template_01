@@ -45,7 +45,8 @@ function ScrollManager() {
   const location = useLocation();
   useEffect(() => {
     const highlandExact = ["/", "/about", "/apartments", "/deals", "/explore", "/contact", "/privacy-policy", "/terms-and-conditions", "/review"].includes(location.pathname)
-      || location.pathname.startsWith("/review/");
+      || location.pathname.startsWith("/review/")
+      || location.pathname.startsWith("/check-in/");
     const onNotFound = !isKnownAppRoute(location.pathname);
     const highland = highlandExact || onNotFound;
     document.body.classList.toggle("home", highland);
