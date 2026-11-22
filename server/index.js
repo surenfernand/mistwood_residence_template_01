@@ -15,7 +15,15 @@ import { renderCheckoutThankYouPreviewHtml } from "./checkout-thank-you-email.js
 import { renderBookingAdminNotificationPreviewHtml } from "./booking-admin-notification-email.js";
 import { calculateStayQuote, estimateStayTotal } from "./pricing.js";
 import { buildPayhereFields, payhereCheckoutUrl, payhereConfigured } from "./payhere.js";
-import { createCheckoutRequest, fulfillPayherePayment, fulfillTestDeposit } from "./booking-payment.js";
+import {
+  cancelPendingRequestsForStay,
+  createCheckoutRequest,
+  findPendingByPaymentOrderId,
+  findResumableBookingRequest,
+  fulfillPayherePayment,
+  fulfillTestDeposit,
+  resumeCheckoutRequest,
+} from "./booking-payment.js";
 import {
   listAdminNotifications,
   markNotificationRead,
@@ -2081,9 +2089,46 @@ app.post("/api/enquiries", async (req, res) => {
   }
 });
 
+app.get("/api/bookings/pending-payment", async (req, res, next) => {
+  const paymentOrderId = text(req.query.orderId, 80);
+  const email = normalisedEmail(req.query.email);
+  const arrive = text(req.query.arrive, 10);
+  const depart = text(req.query.depart, 10);
+  const client = await pool.connect();
+  try {
+    let row = null;
+    if (paymentOrderId) {
+      row = await findPendingByPaymentOrderId(client, paymentOrderId);
+    } else if (email && isEmail(email) && isDay(arrive) && isDay(depart) && depart > arrive) {
+      row = await findResumableBookingRequest(client, { email, arrive, depart });
+    } else {
+      return res.status(400).json({ error: "Provide orderId or email with arrive and depart." });
+    }
+    if (!row) return res.json({ found: false });
+    const quote =
+      typeof row.pricingSnapshot === "string" ? JSON.parse(row.pricingSnapshot) : row.pricingSnapshot;
+    res.json({
+      found: true,
+      requestId: row.id,
+      paymentOrderId: row.paymentOrderId,
+      arrive: row.arrive,
+      depart: row.depart,
+      guests: row.guests,
+      guestName: row.name,
+      holdExpiresAt: row.holdExpiresAt,
+      quote,
+    });
+  } catch (error) {
+    next(error);
+  } finally {
+    client.release();
+  }
+});
+
 app.post("/api/bookings", async (req, res) => {
   const body = req.body || {};
   const offerIdRaw = body.offerId != null ? Number.parseInt(body.offerId, 10) : null;
+  const forceNew = body.forceNew === true;
   const entry = {
     name: text(body.name, 200),
     email: normalisedEmail(body.email),
@@ -2106,22 +2151,40 @@ app.post("/api/bookings", async (req, res) => {
   const client = await pool.connect();
   try {
     await client.query("begin");
-    const { request, quote } = await createCheckoutRequest(client, entry);
-    await client.query("commit");
-    try {
-      await notifyBookingRequestNew(pool, {
-        id: request.id,
-        arrive: entry.arrive,
-        depart: entry.depart,
-      });
-    } catch (notifyError) {
-      console.error("Booking request in-app notification failed:", notifyError.message);
+    let request;
+    let quote;
+    let resumed = false;
+    if (!forceNew) {
+      const existing = await findResumableBookingRequest(client, entry);
+      if (existing) {
+        ({ request, quote } = await resumeCheckoutRequest(client, existing, entry));
+        resumed = true;
+      }
     }
-    res.status(201).json({
+    if (!resumed) {
+      if (forceNew) {
+        await cancelPendingRequestsForStay(client, entry);
+      }
+      ({ request, quote } = await createCheckoutRequest(client, entry));
+    }
+    await client.query("commit");
+    if (!resumed) {
+      try {
+        await notifyBookingRequestNew(pool, {
+          id: request.id,
+          arrive: entry.arrive,
+          depart: entry.depart,
+        });
+      } catch (notifyError) {
+        console.error("Booking request in-app notification failed:", notifyError.message);
+      }
+    }
+    res.status(resumed ? 200 : 201).json({
       id: request.id,
       paymentOrderId: request.paymentOrderId,
       quote,
       payhereReady: payhereConfigured(),
+      resumed,
     });
   } catch (error) {
     await client.query("rollback").catch(() => {});

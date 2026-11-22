@@ -54,6 +54,41 @@ function isoDay(date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 }
 
+const CHECKOUT_SESSION_KEY = "mistwood-pending-checkout";
+
+function saveCheckoutSession(payload) {
+  try {
+    sessionStorage.setItem(CHECKOUT_SESSION_KEY, JSON.stringify(payload));
+  } catch {
+    /* storage unavailable */
+  }
+}
+
+function readCheckoutSession() {
+  try {
+    const raw = sessionStorage.getItem(CHECKOUT_SESSION_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+async function lookupPendingPayment({ email, arrive, depart, orderId }) {
+  const params = new URLSearchParams();
+  if (orderId) params.set("orderId", orderId);
+  else if (email && arrive && depart) {
+    params.set("email", email);
+    params.set("arrive", arrive);
+    params.set("depart", depart);
+  } else {
+    return null;
+  }
+  const response = await fetch(`/api/bookings/pending-payment?${params}`);
+  if (!response.ok) return null;
+  const data = await response.json();
+  return data.found ? data : null;
+}
+
 function guestLabel(guests) {
   return `${guests} guest${guests === "1" ? "" : "s"}`;
 }
@@ -303,6 +338,8 @@ export default function Contact() {
   const [confirmError, setConfirmError] = useState("");
   const [quote, setQuote] = useState(null);
   const [paymentOrderId, setPaymentOrderId] = useState("");
+  const [pendingResume, setPendingResume] = useState(null);
+  const [forceNewBooking, setForceNewBooking] = useState(false);
   const payRef = useRef(null);
   const enquiryFormRef = useRef(null);
 
@@ -374,14 +411,35 @@ export default function Contact() {
 
   useEffect(() => {
     const status = params.get("payment");
-    if (status !== "return") return;
-    setPayNotice("Thank you — if your payment succeeded, a confirmation email will arrive shortly.");
-    if (stay?.start && stay?.end) {
+    if (status !== "return" && status !== "cancel") return;
+
+    const restored = readCheckoutSession();
+    if (restored?.arrive && restored?.depart) {
+      const start = parseDay(restored.arrive);
+      const end = parseDay(restored.depart);
+      if (start && end) setStay({ start, end });
+      if (restored.guests) setGuests(String(restored.guests));
+      if (restored.guestName) setGuest((current) => ({ ...current, name: restored.guestName }));
+      if (restored.guestEmail) setGuest((current) => ({ ...current, email: restored.guestEmail }));
+      if (restored.quote) setQuote(restored.quote);
+      if (restored.paymentOrderId) setPaymentOrderId(restored.paymentOrderId);
       setStep("payment");
-      return;
     }
-    setStep("details");
-  }, [params, stay?.start, stay?.end]);
+
+    if (status === "return") {
+      setPayNotice("Thank you — if your payment succeeded, a confirmation email will arrive shortly.");
+    } else {
+      setPayNotice("Payment was not completed. Continue below to try again — your earlier booking is still saved.");
+      const orderId = restored?.paymentOrderId;
+      if (orderId) {
+        lookupPendingPayment({ orderId }).then((pending) => {
+          if (!pending) return;
+          if (pending.quote) setQuote(pending.quote);
+          setPaymentOrderId(pending.paymentOrderId);
+        });
+      }
+    }
+  }, [params]);
 
   const offerEligibility = useMemo(() => {
     if (!selectedOffer || !stay?.start || !stay?.end) return { eligible: null, reasons: [] };
@@ -440,7 +498,7 @@ export default function Contact() {
     setConfirmError("");
   }, [sending]);
 
-  const book = (event) => {
+  const book = async (event) => {
     event.preventDefault();
     if (sending || dialog) return;
     if (!stay?.start || !stay?.end) {
@@ -480,6 +538,22 @@ export default function Contact() {
     }
     setNotice("");
     setConfirmError("");
+    setForceNewBooking(false);
+    setPendingResume(null);
+    try {
+      const pending = await lookupPendingPayment({
+        email: guest.email.trim(),
+        arrive: isoDay(stay.start),
+        depart: isoDay(stay.end),
+      });
+      if (pending) {
+        setPendingResume(pending);
+        setDialog("resume-booking");
+        return;
+      }
+    } catch {
+      /* continue to standard confirm */
+    }
     setDialog("confirm");
   };
 
@@ -507,9 +581,23 @@ export default function Contact() {
       if (selectedOffer?.id && offerEligibility.eligible !== false) {
         payload.offerId = selectedOffer.id;
       }
+      if (forceNewBooking) payload.forceNew = true;
       data = await send("/api/bookings", payload);
       setQuote(data.quote);
       setPaymentOrderId(data.paymentOrderId);
+      setForceNewBooking(false);
+      saveCheckoutSession({
+        paymentOrderId: data.paymentOrderId,
+        quote: data.quote,
+        arrive: payload.arrive,
+        depart: payload.depart,
+        guests: payload.guests,
+        guestName: payload.name,
+        guestEmail: payload.email,
+      });
+      if (data.resumed) {
+        setPayNotice("We found your earlier booking for these dates. Continue below to pay your deposit.");
+      }
     } catch (error) {
       setConfirmError(error.message);
       setSending(false);
@@ -835,6 +923,47 @@ export default function Contact() {
             </button>
             <button className="btn" type="button" onClick={proceedWithoutOffer}>
               Yes, remove offer and continue
+            </button>
+          </div>
+        </BookingDialog>
+      ) : null}
+      {dialog === "resume-booking" && pendingResume ? (
+        <BookingDialog
+          titleId="resume-booking-title"
+          title="Continue your earlier booking?"
+          kicker="Payment not complete"
+          onDismiss={dismissDialog}
+        >
+          <p className="booking-dialog-lead">
+            You already started a booking for these dates with this email. Your deposit has not been paid yet.
+          </p>
+          <dl className="booking-dialog-list">
+            <div>
+              <dt>Arrival</dt>
+              <dd>{formatStay(parseDay(pendingResume.arrive))}</dd>
+            </div>
+            <div>
+              <dt>Departure</dt>
+              <dd>{formatStay(parseDay(pendingResume.depart))}</dd>
+            </div>
+            <div>
+              <dt>Deposit due</dt>
+              <dd>{money(pendingResume.quote?.depositAmount)}</dd>
+            </div>
+          </dl>
+          <div className="booking-dialog-actions">
+            <button
+              className="booking-dialog-cancel"
+              type="button"
+              onClick={() => {
+                setForceNewBooking(true);
+                setDialog("confirm");
+              }}
+            >
+              Start a new request
+            </button>
+            <button className="btn" type="button" onClick={() => setDialog("confirm")}>
+              Continue earlier booking <span aria-hidden="true">↗</span>
             </button>
           </div>
         </BookingDialog>

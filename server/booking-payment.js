@@ -20,6 +20,93 @@ export function issueCheckInToken() {
   return crypto.randomBytes(24).toString("base64url");
 }
 
+function parseQuoteSnapshot(snapshot) {
+  if (!snapshot) return null;
+  if (typeof snapshot === "string") {
+    try {
+      return JSON.parse(snapshot);
+    } catch {
+      return null;
+    }
+  }
+  return snapshot;
+}
+
+export async function findResumableBookingRequest(client, { email, arrive, depart }) {
+  const { rows } = await client.query(
+    `select id, payment_order_id as "paymentOrderId", name, phone, guests,
+            arrive::text as arrive, depart::text as depart,
+            quoted_total as "quotedTotal", quoted_deposit as "quotedDeposit",
+            pricing_snapshot as "pricingSnapshot", hold_expires_at as "holdExpiresAt"
+       from booking_requests
+      where status = 'pending_payment'
+        and lower(email) = lower($1)
+        and arrive = $2::date and depart = $3::date
+      order by updated_at desc
+      limit 1`,
+    [email, arrive, depart],
+  );
+  return rows[0] || null;
+}
+
+export async function findPendingByPaymentOrderId(client, paymentOrderId) {
+  const { rows } = await client.query(
+    `select id, payment_order_id as "paymentOrderId", name, email, phone, guests,
+            arrive::text as arrive, depart::text as depart,
+            quoted_total as "quotedTotal", quoted_deposit as "quotedDeposit",
+            pricing_snapshot as "pricingSnapshot", hold_expires_at as "holdExpiresAt"
+       from booking_requests
+      where status = 'pending_payment' and payment_order_id = $1
+      limit 1`,
+    [paymentOrderId],
+  );
+  return rows[0] || null;
+}
+
+export async function cancelPendingRequestsForStay(client, { email, arrive, depart }) {
+  await client.query(
+    `update booking_requests
+        set status = 'cancelled', hold_expires_at = null, status_changed_at = now(), updated_at = now()
+      where status = 'pending_payment'
+        and lower(email) = lower($1)
+        and arrive = $2::date and depart = $3::date`,
+    [email, arrive, depart],
+  );
+}
+
+export async function resumeCheckoutRequest(client, existing, entry) {
+  if (await availabilityConflict(client, existing.arrive, existing.depart, existing.id)) {
+    throw Object.assign(
+      new Error("Those dates are no longer available. Please choose other dates or contact us on WhatsApp."),
+      { status: 409 },
+    );
+  }
+  const { rows } = await client.query(
+    `update booking_requests
+        set name = $2, phone = $3, note = coalesce($4, note), guests = coalesce($5, guests),
+            hold_expires_at = now() + ($6 * interval '1 minute'), updated_at = now()
+      where id = $1 and status = 'pending_payment'
+      returning id, payment_order_id as "paymentOrderId", quoted_total as "quotedTotal",
+                quoted_deposit as "quotedDeposit", hold_expires_at as "holdExpiresAt"`,
+    [
+      existing.id,
+      entry.name,
+      entry.phone,
+      entry.note || null,
+      entry.guests || null,
+      PAYMENT_HOLD_MINUTES,
+    ],
+  );
+  if (!rows.length) {
+    throw Object.assign(new Error("That booking request is no longer pending."), { status: 410 });
+  }
+  const quote = parseQuoteSnapshot(existing.pricingSnapshot);
+  if (!quote) {
+    throw Object.assign(new Error("Could not load pricing for your earlier booking."), { status: 500 });
+  }
+  return { request: rows[0], quote };
+}
+
 export async function createCheckoutRequest(client, entry) {
   if (await availabilityConflict(client, entry.arrive, entry.depart)) {
     throw Object.assign(new Error("Those dates overlap an existing stay or blocked period. Please choose other dates."), {
