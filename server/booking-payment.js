@@ -3,7 +3,6 @@ import { calculateStayQuote } from "./pricing.js";
 import { getPayhereMerchantSecret, verifyPayhereNotify } from "./payhere.js";
 import { sendBookingConfirmationToGuest } from "./booking-confirmation-email.js";
 import { sendBookingAdminNotification } from "./booking-admin-notification-email.js";
-import { issueGuestSetupToken } from "./guest-auth.js";
 import { getSiteSettings, contactFromSettings } from "./site-settings.js";
 import { logPayhereEvent } from "./integrations.js";
 import {
@@ -14,6 +13,11 @@ import {
 
 const siteUrl = () => (process.env.PUBLIC_SITE_URL || "http://localhost:5173").replace(/\/$/, "");
 const tokenHash = (token) => crypto.createHash("sha256").update(token).digest("hex");
+
+export function buildAdminCheckInUrl(rawToken) {
+  if (!rawToken) return `${siteUrl()}/admin/booking-requests`;
+  return `${siteUrl()}/admin/check-in?token=${encodeURIComponent(rawToken)}`;
+}
 const PAYMENT_HOLD_MINUTES = 15;
 
 export function issueCheckInToken() {
@@ -338,16 +342,6 @@ export async function fulfillPayherePayment(pool, body, { skipSignatureCheck = f
         : "Deposit payment verified and booking confirmed via PayHere.",
     ).catch((e) => console.error("Integration activity log failed:", e.message));
 
-    let accountUrl = `${siteUrl()}/account/login`;
-    if (paymentType === "deposit") {
-      try {
-        const setupToken = await issueGuestSetupToken(pool, request.email);
-        accountUrl = `${siteUrl()}/account/setup?token=${encodeURIComponent(setupToken)}`;
-      } catch (e) {
-        console.error("Guest setup token failed:", e.message);
-      }
-    }
-
     const emailPayload = {
       requestId: request.id,
       bookingId,
@@ -360,8 +354,7 @@ export async function fulfillPayherePayment(pool, body, { skipSignatureCheck = f
       total: quote.total,
       depositPaid: quote.depositAmount,
       balanceDue: quote.balanceDue,
-      checkInUrl: rawToken ? `${siteUrl()}/check-in/${rawToken}` : `${siteUrl()}/admin/booking-requests`,
-      accountUrl,
+      checkInUrl: buildAdminCheckInUrl(rawToken),
     };
 
     if (paymentType === "deposit" && rawToken) {

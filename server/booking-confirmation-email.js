@@ -54,7 +54,7 @@ ${goldRule("16px auto 20px")}
 <strong style="font-family:Georgia,serif;color:#103e2b">Total stay:</strong> ${formatMoney(data.total)}<br>
 ${paymentSummary}
 </td></tr></table>
-<p style="font-size:15px;line-height:1.6;margin:0 0 10px;text-align:center">Show this QR code on arrival, or keep this email handy. Our team may scan it when you check in.</p>
+<p style="font-size:15px;line-height:1.6;margin:0 0 10px;text-align:center">Show this QR code on arrival. Our team will scan it from the admin panel to complete your check-in.</p>
 <p style="text-align:center;margin:0 0 18px"><img src="cid:booking-qr" alt="Check-in QR code" width="200" height="200" style="display:inline-block;margin:0 auto;border:0" /></p>
 <p style="font-size:14px;line-height:1.6;margin:0 0 18px">Questions? <a href="tel:${phoneE164}" style="color:#103e2b">${escapeHtml(contactPhone)}</a> · <a href="${whatsappUrl}" style="color:#103e2b">WhatsApp</a></p>
 <p style="font-size:15px;line-height:1.6;margin:0">Warm regards,<br><strong style="font-family:Georgia,serif;color:#103e2b">The ${property} Team</strong></p>`;

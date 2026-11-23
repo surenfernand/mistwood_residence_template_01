@@ -23,6 +23,7 @@ import {
   fulfillPayherePayment,
   fulfillTestDeposit,
   resumeCheckoutRequest,
+  buildAdminCheckInUrl,
 } from "./booking-payment.js";
 import {
   listAdminNotifications,
@@ -44,7 +45,6 @@ import {
   hashPassword as hashGuestPassword,
   verifyPassword as verifyGuestPassword,
   guestTokenHash,
-  issueGuestSetupToken,
   GUEST_SESSION_COOKIE,
 } from "./guest-auth.js";
 import { attachPricingToSettings, setPropertyBaseRate } from "./property-rates.js";
@@ -221,6 +221,26 @@ async function runMigrations() {
 }
 
 const text = (value, max) => (typeof value === "string" ? value.trim().slice(0, max) : "");
+
+async function verifyRecaptcha(token, remoteIp) {
+  const secret = process.env.RECAPTCHA_SECRET_KEY;
+  if (!secret) return true;
+  if (!token) return false;
+  try {
+    const body = new URLSearchParams({ secret, response: token });
+    if (remoteIp) body.set("remoteip", remoteIp);
+    const response = await fetch("https://www.google.com/recaptcha/api/siteverify", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body,
+    });
+    const result = await response.json();
+    return result.success === true;
+  } catch (error) {
+    console.error("reCAPTCHA verification failed:", error.message);
+    return false;
+  }
+}
 const isEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 const isDay = (value) => /^\d{4}-\d{2}-\d{2}$/.test(value);
 const normalisedEmail = (value) => text(value, 200).toLowerCase();
@@ -916,6 +936,9 @@ app.post("/api/payments/payhere/init", async (req, res, next) => {
       phone: row.phone || row.guest_phone,
       custom1: purpose === "balance" ? row.booking_id : row.id,
       custom2: purpose,
+      ...(purpose === "balance"
+        ? { returnPath: "/?payment=return", cancelPath: "/?payment=cancel" }
+        : {}),
     });
     res.json({ checkoutUrl: payhereCheckoutUrl(), fields });
   } catch (error) {
@@ -929,8 +952,10 @@ app.get("/api/check-in/:token", requireAdmin, async (req, res, next) => {
   try {
     const { rows } = await pool.query(
       `select b.id, b.guest_name as "guestName", b.check_in::text as "checkIn", b.check_out::text as "checkOut",
-              b.status, b.guests
+              b.status, b.guests, b.payment_status as "paymentStatus",
+              br.status as "requestStatus"
          from bookings b
+         left join booking_requests br on br.id = b.booking_request_id
         where b.check_in_token_hash = $1`,
       [tokenHash(token)],
     );
@@ -939,7 +964,6 @@ app.get("/api/check-in/:token", requireAdmin, async (req, res, next) => {
     res.json({
       booking,
       canCheckIn: booking.status === "confirmed",
-      adminSignedIn: true,
     });
   } catch (error) {
     next(error);
@@ -1966,7 +1990,6 @@ app.post("/api/admin/bookings", requirePermission("bookings"), async (req, res, 
     let emailSent = false;
     if (entry.sendConfirmation) {
       try {
-        const siteUrl = (process.env.PUBLIC_SITE_URL || "http://localhost:5173").replace(/\/$/, "");
         await sendBookingConfirmationToGuest(pool, {
           guestName: entry.name,
           guestEmail: entry.email,
@@ -1976,7 +1999,7 @@ app.post("/api/admin/bookings", requirePermission("bookings"), async (req, res, 
           total,
           depositPaid: 0,
           balanceDue: total,
-          checkInUrl: `${siteUrl}/check-in/${rawCheckInToken}`,
+          checkInUrl: buildAdminCheckInUrl(rawCheckInToken),
         });
         emailSent = true;
       } catch (emailError) {
@@ -2057,6 +2080,9 @@ app.post("/api/enquiries", async (req, res) => {
   if (!entry.name || !entry.message || !isEmail(entry.email)) return res.status(400).json({ error: "Please add your name, a valid email address, and a message." });
   if (entry.phone && !isInternationalPhone(entry.phone)) {
     return res.status(400).json({ error: "Please choose a valid country code and mobile number." });
+  }
+  if (!await verifyRecaptcha(text(body.recaptchaToken, 4096), req.ip)) {
+    return res.status(400).json({ error: "Please complete the reCAPTCHA check and try again." });
   }
   try {
     const { rows } = await pool.query(
@@ -2198,22 +2224,6 @@ app.post("/api/bookings", async (req, res) => {
   }
 });
 
-app.post("/api/guest/setup-token", async (req, res, next) => {
-  const email = normalisedEmail(req.body?.email);
-  if (!isEmail(email)) return res.status(400).json({ error: "Enter a valid email." });
-  try {
-    const { rowCount } = await pool.query(
-      "select 1 from bookings where guest_email = $1 and payment_status in ('partial', 'paid') limit 1",
-      [email],
-    );
-    if (!rowCount) return res.status(404).json({ error: "No confirmed booking found for this email." });
-    const token = await issueGuestSetupToken(pool, email);
-    res.json({ ok: true, setupPath: `/account/setup?token=${encodeURIComponent(token)}` });
-  } catch (error) {
-    next(error);
-  }
-});
-
 if (process.env.NODE_ENV !== "production") {
   app.get("/api/dev/email-previews/booking-guest", async (_req, res, next) => {
     try {
@@ -2227,8 +2237,7 @@ if (process.env.NODE_ENV !== "production") {
         total: 285000,
         depositPaid: 85500,
         balanceDue: 199500,
-        accountUrl: `${(process.env.PUBLIC_SITE_URL || "http://localhost:5173").replace(/\/$/, "")}/account/setup?token=preview`,
-        checkInUrl: `${(process.env.PUBLIC_SITE_URL || "http://localhost:5173").replace(/\/$/, "")}/check-in/preview-token`,
+        checkInUrl: buildAdminCheckInUrl("preview-token"),
       };
       let html = renderBookingConfirmationPreviewHtml(booking, ctx);
       html = html.replace(
@@ -2252,7 +2261,7 @@ if (process.env.NODE_ENV !== "production") {
       checkOut: "17 Mar 2026",
       total: 285000,
       depositPaid: 85500,
-      checkInUrl: `${site}/check-in/preview-token`,
+      checkInUrl: buildAdminCheckInUrl("preview-token"),
     });
     res.type("html").send(html);
   });

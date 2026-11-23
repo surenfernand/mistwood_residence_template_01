@@ -87,7 +87,6 @@ via PayHere (configure PAYHERE_* and PUBLIC_SITE_URL in .env). Submitting the fo
 pending_payment booking request (15-minute date hold). If the guest leaves and returns with the
 same email and dates, the site offers to continue that request instead of creating a duplicate;
 Pay Here cancel/return restores the payment step in the browser when possible. Confirmation emails include a QR
-check-in link; staff open /admin/check-in or scan the QR while signed in. Guests may create an
-account from the confirmation email to pay the balance online at /account.
+check-in link; staff open /admin/check-in or scan the QR while signed in.
 Official logo: public/assets/logo-mark.png
 Social URLs are configured under Admin → Settings.

@@ -37,7 +37,7 @@ ${goldRule("18px auto 22px")}
 </td></tr></table>
 <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"><tr>
 <td width="50%" style="padding-right:6px"><a href="${adminBookings}" style="display:block;padding:14px 10px;border-radius:10px;background:#10452e;color:#fff;text-align:center;text-decoration:none;font-size:13px;font-weight:bold">Open admin bookings</a></td>
-<td width="50%" style="padding-left:6px"><a href="${escapeHtml(data.checkInUrl)}" style="display:block;padding:14px 10px;border:1px solid #2a6344;border-radius:10px;color:#164831;text-align:center;text-decoration:none;font-size:13px;font-weight:bold;background:#fffaf5">Guest check-in link</a></td>
+<td width="50%" style="padding-left:6px"><a href="${escapeHtml(data.checkInUrl)}" style="display:block;padding:14px 10px;border:1px solid #2a6344;border-radius:10px;color:#164831;text-align:center;text-decoration:none;font-size:13px;font-weight:bold;background:#fffaf5">Staff check-in QR</a></td>
 </tr></table>
 <p style="margin:18px 0 0;color:#6c746d;font-size:11px;text-align:center">Internal notification for authorised Mistwood Residence staff.</p>`;
 

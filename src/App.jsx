@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation, useParams } from "react-router-dom";
 import { IntroLoader, MotionBoot, RouteLoader } from "./motion.jsx";
 import { PhotoModal } from "./photos.jsx";
 import { PageShell, SocialDock } from "./components/Chrome.jsx";
@@ -28,8 +28,6 @@ import AdminPayments from "./pages/AdminPayments.jsx";
 import AdminGuests from "./pages/AdminGuests.jsx";
 import AdminUsers from "./pages/AdminUsers.jsx";
 import AdminEntry from "./pages/AdminEntry.jsx";
-import GuestCheckIn from "./pages/GuestCheckIn.jsx";
-import GuestAccount, { GuestLogin, GuestSetup } from "./pages/GuestAccount.jsx";
 import AdminCheckIn from "./pages/AdminCheckIn.jsx";
 import AdminSettings from "./pages/AdminSettings.jsx";
 import AdminNotifications from "./pages/AdminNotifications.jsx";
@@ -41,12 +39,17 @@ import AdminReviews from "./pages/AdminReviews.jsx";
 import GuestReview from "./pages/GuestReview.jsx";
 import { isKnownAppRoute } from "./routePaths.js";
 
+function LegacyCheckInRedirect() {
+  const { token } = useParams();
+  if (!token) return <Navigate to="/admin/check-in" replace />;
+  return <Navigate to={`/admin/check-in?token=${encodeURIComponent(token)}`} replace />;
+}
+
 function ScrollManager() {
   const location = useLocation();
   useEffect(() => {
     const highlandExact = ["/", "/about", "/apartments", "/deals", "/explore", "/contact", "/privacy-policy", "/terms-and-conditions", "/review"].includes(location.pathname)
-      || location.pathname.startsWith("/review/")
-      || location.pathname.startsWith("/check-in/");
+      || location.pathname.startsWith("/review/");
     const onNotFound = !isKnownAppRoute(location.pathname);
     const highland = highlandExact || onNotFound;
     document.body.classList.toggle("home", highland);
@@ -79,10 +82,8 @@ function AnimatedRoutes() {
         <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
         <Route path="/review" element={<GuestReview />} />
         <Route path="/review/:token" element={<GuestReview />} />
-        <Route path="/check-in/:token" element={<GuestCheckIn />} />
-        <Route path="/account/login" element={<GuestLogin />} />
-        <Route path="/account/setup" element={<GuestSetup />} />
-        <Route path="/account" element={<GuestAccount />} />
+        <Route path="/check-in/:token" element={<LegacyCheckInRedirect />} />
+        <Route path="/account/*" element={<Navigate to="/" replace />} />
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin" element={<AdminEntry />} />
         <Route path="/admin/forgot-password" element={<AdminForgotPassword />} />

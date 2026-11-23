@@ -26,7 +26,7 @@ export default function PrivacyPolicy() {
       toc={TOC}
     >
       <p>
-        This Privacy Policy applies to the {pub.propertyName} website, booking process, guest accounts, and
+        This Privacy Policy applies to the {pub.propertyName} website, booking process, and
         communications. Please replace any remaining placeholder details and have the final text reviewed before
         publishing.
       </p>
@@ -34,7 +34,7 @@ export default function PrivacyPolicy() {
 
       <h2 id="information">Information we collect</h2>
       <p>
-        We collect information you provide when you contact us, make a booking, create a guest account, or communicate
+        We collect information you provide when you contact us, make a booking, or communicate
         with us. This may include your name, email address, telephone number, country code, stay dates, number of
         guests, booking notes, and messages.
       </p>

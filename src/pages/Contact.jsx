@@ -9,6 +9,7 @@ import { validateStayRange } from "../utils/bookingDateRules.js";
 import { getOfferEligibility } from "../utils/offerEligibility.js";
 import { formatOfferPeriod } from "../utils/offerPeriod.js";
 import PhoneCountryField from "../components/PhoneCountryField.jsx";
+import Recaptcha from "../components/Recaptcha.jsx";
 import { DEFAULT_PHONE_DIAL_CODE } from "../data/phoneDialCodes.js";
 import { buildInternationalPhone, isInternationalPhone } from "../utils/internationalPhone.js";
 
@@ -329,6 +330,8 @@ export default function Contact() {
   });
   const [enquiryPhoneDial, setEnquiryPhoneDial] = useState(DEFAULT_PHONE_DIAL_CODE);
   const [enquiryPhoneNational, setEnquiryPhoneNational] = useState("");
+  const [recaptchaToken, setRecaptchaToken] = useState("");
+  const [recaptchaResetKey, setRecaptchaResetKey] = useState(0);
   const [step, setStep] = useState("details");
   const [payNotice, setPayNotice] = useState("");
   const [enquiryNotice, setEnquiryNotice] = useState("");
@@ -651,6 +654,7 @@ export default function Contact() {
       phone,
       subject: String(fields.subject || "").trim(),
       message: String(fields.message || "").trim(),
+      recaptchaToken,
     };
     if (!draft.name || !draft.email || !draft.subject || !draft.message) {
       setEnquiryNotice("Please add your name, email, subject, and message.");
@@ -662,6 +666,10 @@ export default function Contact() {
     }
     if (nationalPhone && !isInternationalPhone(phone)) {
       setEnquiryNotice("Please choose your country code and enter a valid mobile number.");
+      return;
+    }
+    if (import.meta.env.VITE_RECAPTCHA_SITE_KEY && !recaptchaToken) {
+      setEnquiryNotice("Please confirm that you are not a robot.");
       return;
     }
     setEnquiryNotice("");
@@ -685,6 +693,8 @@ export default function Contact() {
     enquiryFormRef.current?.reset();
     setEnquiryPhoneDial(DEFAULT_PHONE_DIAL_CODE);
     setEnquiryPhoneNational("");
+    setRecaptchaToken("");
+    setRecaptchaResetKey((current) => current + 1);
     setEnquiryNotice("");
     setDialog("enquiry-success");
   };
@@ -771,6 +781,7 @@ export default function Contact() {
                   <textarea id="message" name="message" rows="5" placeholder="Write your message here…" required />
                 </label>
               </fieldset>
+              <Recaptcha onChange={setRecaptchaToken} resetSignal={recaptchaResetKey} />
               <button className="ct-send" type="submit" disabled={sending || Boolean(dialog)}>Send Message <span aria-hidden="true">→</span></button>
               <p aria-live="polite" className="notice">{enquiryNotice}</p>
             </form>

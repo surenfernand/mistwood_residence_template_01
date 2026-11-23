@@ -4607,6 +4607,11 @@ body.home .experience-card h3 {
   transition: background .2s ease, transform .2s ease;
 }
 
+.ct-recaptcha {
+  min-height: 78px;
+  margin: 16px 0 8px;
+}
+
 .ct-send:hover {
   background: #163224;
   transform: translateY(-1px);

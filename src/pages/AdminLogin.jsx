@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSiteTitle } from "../hooks/useSiteTitle.js";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { clearAdminSessionCache } from "../utils/adminSession.js";
 import { usePublicSettings } from "../hooks/usePublicSettings.js";
 
@@ -26,6 +26,8 @@ export default function AdminLogin() {
   const [notice, setNotice] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const returnTo = searchParams.get("return") || "/admin/dashboard";
 
   useSiteTitle("Admin login");
 
@@ -44,7 +46,8 @@ export default function AdminLogin() {
       const data = contentType.includes("application/json") ? await response.json() : {};
       if (!response.ok) throw new Error(data.error || "We could not sign you in.");
       clearAdminSessionCache();
-      navigate("/admin/dashboard", { replace: true });
+      const target = returnTo.startsWith("/admin") && !returnTo.startsWith("/admin/login") ? returnTo : "/admin/dashboard";
+      navigate(target, { replace: true });
     } catch (error) {
       setNotice(error.message || "We could not sign you in. Please try again.");
     } finally {
