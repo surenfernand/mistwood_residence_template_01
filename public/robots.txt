@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /account/
+Disallow: /check-in/
+Disallow: /review/
+
+Sitemap: https://mistwood.lk/sitemap.xml
