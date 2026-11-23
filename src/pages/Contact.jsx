@@ -524,7 +524,7 @@ export default function Contact() {
       return;
     }
     if (!guest.policies) {
-      setNotice("Please confirm you have read the booking notes.");
+      setNotice("Please confirm you have read the Privacy Policy and Terms & Conditions.");
       return;
     }
     if (selectedOffer) {
@@ -838,7 +838,10 @@ export default function Contact() {
                 />
                 <div className="field"><label htmlFor="guest-note">Message</label><input id="guest-note" name="note" placeholder="Arrival time or a question" value={guest.note} onChange={updateGuest} /></div>
               </div>
-              <label className="check"><input type="checkbox" name="policies" checked={guest.policies} onChange={updateGuest} /> I have read the <Link to="/policies">booking, cancellation, and refund notes</Link>.</label>
+              <label className="check booking-legal-consent">
+                <input type="checkbox" name="policies" checked={guest.policies} onChange={updateGuest} />
+                <span>I have read and agree to the <Link to="/privacy-policy">Privacy Policy</Link> and <Link to="/terms-and-conditions">Terms &amp; Conditions</Link>.</span>
+              </label>
               {Number.isFinite(Number(quote?.total)) ? (
                 <p className="notice booking-notice" aria-live="polite">
                   {quote.nights} night(s) · {money(quote.total)} total

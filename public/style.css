@@ -622,15 +622,25 @@ html:not([data-theme="light"]) .switch-icon.moon { display: block; }
 .map-frame { width: 100%; height: 440px; border: 0; filter: saturate(.9) contrast(1.02); }
 .map-note { padding: 16px 20px; color: var(--muted); font-size: 13px; }
 .map-intro { margin: -8px 0 22px; color: var(--muted); }
-.attraction-map { position: relative; }
+.attraction-map {
+  position: relative;
+  z-index: 0;
+  isolation: isolate;
+}
 .attraction-map-canvas { width: 100%; height: 440px; background: #dce8db; }
 .attraction-map-fallback { display: grid; min-height: 220px; place-items: center; margin: 0; padding: 32px; color: #31543d; background: #dce8db; text-align: center; }
-/* Leaflet markers are <img> or divs; global img { width:100% } must not apply inside the map. */
+/* Leaflet tiles/markers are <img>; global img { width:100%; object-fit:cover } breaks tile alignment. */
+.attraction-map .leaflet-tile-pane img,
+.attraction-map img.leaflet-tile,
+.attraction-map .leaflet-shadow-pane img,
 .attraction-map .leaflet-marker-pane img.leaflet-marker-icon {
   width: auto !important;
   max-width: none !important;
   max-height: none !important;
   height: auto !important;
+  object-fit: none !important;
+}
+.attraction-map .leaflet-marker-pane img.leaflet-marker-icon {
   object-fit: contain !important;
 }
 .attraction-map .leaflet-marker-icon.attraction-map-pin-marker {
@@ -1328,6 +1338,14 @@ html:not([data-theme="light"]) .switch-icon.moon { display: block; }
 .price-row { display: flex; justify-content: space-between; gap: 16px; margin-top: 8px; font-size: 14px; }
 .check { display: flex; gap: 10px; align-items: flex-start; margin-top: 16px; font-size: 14px; }
 .check input { margin-top: 4px; }
+.booking-legal-consent a {
+  color: #855d26;
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+.booking-legal-consent a:hover { color: #513716; }
 .deal-date { display: block; margin-bottom: 8px; color: var(--gold); font-size: 13px; }
 .booking-wrap .form-columns { margin-top: 18px; }
 .stay-note { margin: 10px 0 0; color: var(--muted); font-size: 14px; }
