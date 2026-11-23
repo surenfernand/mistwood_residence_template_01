@@ -4677,6 +4677,43 @@ body.home .experience-card h3 {
   gap: 18px;
 }
 
+.pay-success-panel {
+  text-align: center;
+  padding: 8px 4px 12px;
+}
+
+.pay-success-panel h3 {
+  margin: 8px 0 12px;
+  font-family: "Antic Didone", Georgia, serif;
+  font-size: clamp(1.6rem, 3vw, 2rem);
+  font-weight: 500;
+  color: #103e2b;
+}
+
+.pay-success-panel > p:not(.pay-summary):not(.notice) {
+  margin: 0 auto 12px;
+  max-width: 36rem;
+  color: #5c564e;
+  line-height: 1.65;
+}
+
+.pay-success-symbol {
+  margin: 0 0 6px;
+  font-size: 2rem;
+  color: #9a7840;
+}
+
+.pay-success-panel .price-panel {
+  text-align: left;
+  max-width: 22rem;
+  margin-inline: auto;
+}
+
+.pay-success-panel .pay-actions {
+  justify-content: center;
+  margin-top: 20px;
+}
+
 .pay-step .price-panel {
   margin-top: 0;
 }

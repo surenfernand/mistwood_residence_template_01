@@ -13,7 +13,8 @@
     "seed:bookings": "node --env-file=.env server/seed-bookings.js",
     "seed:apartment-gallery": "node --env-file=.env server/seed-apartment-gallery.js",
     "seed:apartment-gallery-videos": "node --env-file=.env server/seed-apartment-gallery-videos.js",
-    "dev:all": "npx concurrently --kill-others-on-fail -n web,api -c blue,green \"npm run dev\" \"npm run api\""
+    "dev:all": "npx concurrently --kill-others-on-fail -n web,api -c blue,green \"npm run dev\" \"npm run api\"",
+    "test": "node --test server/*.test.js"
   },
   "dependencies": {
     "@zxing/browser": "^0.2.1",

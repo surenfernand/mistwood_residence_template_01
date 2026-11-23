@@ -90,6 +90,30 @@ async function lookupPendingPayment({ email, arrive, depart, orderId }) {
   return data.found ? data : null;
 }
 
+async function fetchPaymentReturnStatus(orderId) {
+  const response = await fetch(`/api/bookings/payment-status?orderId=${encodeURIComponent(orderId)}`);
+  if (!response.ok) return null;
+  return response.json();
+}
+
+async function pollPaymentConfirmed(orderId, { attempts = 12, delayMs = 1500 } = {}) {
+  for (let i = 0; i < attempts; i += 1) {
+    const data = await fetchPaymentReturnStatus(orderId);
+    if (data?.paid) return data;
+    if (data?.found && !data.pending && !data.paid) return data;
+    if (i < attempts - 1) await new Promise((resolve) => setTimeout(resolve, delayMs));
+  }
+  return fetchPaymentReturnStatus(orderId);
+}
+
+function clearCheckoutSession() {
+  try {
+    sessionStorage.removeItem(CHECKOUT_SESSION_KEY);
+  } catch {
+    /* storage unavailable */
+  }
+}
+
 function guestLabel(guests) {
   return `${guests} guest${guests === "1" ? "" : "s"}`;
 }
@@ -341,6 +365,8 @@ export default function Contact() {
   const [confirmError, setConfirmError] = useState("");
   const [quote, setQuote] = useState(null);
   const [paymentOrderId, setPaymentOrderId] = useState("");
+  const [paymentReturn, setPaymentReturn] = useState(null);
+  const [paymentConfirmed, setPaymentConfirmed] = useState(null);
   const [pendingResume, setPendingResume] = useState(null);
   const [forceNewBooking, setForceNewBooking] = useState(false);
   const payRef = useRef(null);
@@ -426,23 +452,83 @@ export default function Contact() {
       if (restored.guestEmail) setGuest((current) => ({ ...current, email: restored.guestEmail }));
       if (restored.quote) setQuote(restored.quote);
       if (restored.paymentOrderId) setPaymentOrderId(restored.paymentOrderId);
-      setStep("payment");
     }
 
-    if (status === "return") {
-      setPayNotice("Thank you — if your payment succeeded, a confirmation email will arrive shortly.");
-    } else {
-      setPayNotice("Payment was not completed. Continue below to try again — your earlier booking is still saved.");
-      const orderId = restored?.paymentOrderId;
+    const orderId =
+      params.get("order_id") ||
+      params.get("orderId") ||
+      restored?.paymentOrderId ||
+      "";
+    if (orderId) setPaymentOrderId(orderId);
+    setStep("payment");
+    setPayNotice("");
+
+    if (status === "cancel") {
+      setPaymentReturn("cancelled");
+      setPayNotice("Payment was not completed. You can try again below — your booking is still saved.");
       if (orderId) {
         lookupPendingPayment({ orderId }).then((pending) => {
           if (!pending) return;
           if (pending.quote) setQuote(pending.quote);
           setPaymentOrderId(pending.paymentOrderId);
+          if (pending.arrive && pending.depart) {
+            const start = parseDay(pending.arrive);
+            const end = parseDay(pending.depart);
+            if (start && end) setStay({ start, end });
+          }
         });
       }
+      return undefined;
     }
-  }, [params]);
+
+    if (!orderId) {
+      setPaymentReturn("unfinished");
+      setPayNotice("Thank you — if your payment succeeded, a confirmation email will arrive shortly.");
+      return undefined;
+    }
+
+    let active = true;
+    setPaymentReturn("checking");
+    setPaymentConfirmed(null);
+
+    pollPaymentConfirmed(orderId).then((result) => {
+      if (!active) return;
+      if (result?.paid) {
+        setPaymentReturn("success");
+        setPaymentConfirmed(result);
+        if (result.arrive && result.depart) {
+          const start = parseDay(result.arrive);
+          const end = parseDay(result.depart);
+          if (start && end) setStay({ start, end });
+        }
+        if (result.guests) setGuests(String(result.guests));
+        if (result.guestName) setGuest((current) => ({ ...current, name: result.guestName }));
+        clearCheckoutSession();
+        const next = new URLSearchParams(params);
+        next.delete("payment");
+        next.delete("order_id");
+        next.delete("orderId");
+        setSearchParams(next, { replace: true });
+        return;
+      }
+      setPaymentReturn("unfinished");
+      setPayNotice(
+        result?.pending
+          ? "We are still confirming your payment. If you completed checkout, your confirmation email will arrive shortly — refresh this page in a moment."
+          : "We could not confirm payment yet. You can pay below or contact us if you were charged.",
+      );
+      if (result?.pending) {
+        lookupPendingPayment({ orderId }).then((pending) => {
+          if (!pending) return;
+          if (pending.quote) setQuote(pending.quote);
+        });
+      }
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [params, setSearchParams]);
 
   const offerEligibility = useMemo(() => {
     if (!selectedOffer || !stay?.start || !stay?.end) return { eligible: null, reasons: [] };
@@ -865,37 +951,90 @@ export default function Contact() {
               <p aria-live="polite" className="notice booking-notice">{notice}</p>
               </fieldset>
             </form>
-            ) : stay?.start && stay?.end ? (
+            ) : (stay?.start && stay?.end) || paymentReturn === "checking" || paymentReturn === "success" ? (
             <div className="booking-wrap pay-step" ref={payRef}>
-              <p className="pay-summary">{formatStay(stay.start)} to {formatStay(stay.end)} · {Math.round((stay.end - stay.start) / 86400000)} night(s) · {guestLabel(guests)} · {guest.name}</p>
-              <div className="price-panel">
-                <span className="eyebrow">Amount to pay now</span>
-                <strong>{money(quote?.depositAmount || 0)}</strong>
-                <p className="stay-note">
-                  {quote?.requireDeposit && (quote?.depositAmount || 0) > 0
-                    ? `Deposit to reserve the apartment (${quote.depositPercent}% of your stay total).`
-                    : "No deposit is required for this stay."}
-                </p>
-                <div className="price-row"><span>Stay total</span><span>{money(quote?.total || 0)}</span></div>
-                <div className="price-row"><span>Deposit now</span><span>{money(quote?.depositAmount || 0)}</span></div>
-                <div className="price-row"><span>Balance due</span><span>{money(quote?.balanceDue || 0)}</span></div>
-              </div>
-              <div className="pay-gateway">
-                <span className="eyebrow">Payment gateway</span>
-                <h3>{quote?.requireDeposit && (quote?.depositAmount || 0) > 0 ? "Pay the deposit" : "Booking total"}</h3>
-                <p>
-                  {quote?.requireDeposit && (quote?.depositAmount || 0) > 0
-                    ? "Card details are entered on the payment gateway, not in the form you just filled. The balance stays due at check-in."
-                    : "Your request is saved. We will confirm your stay by email — no online deposit for this property."}
-                </p>
-                <div className="pay-actions">
-                  {quote?.requireDeposit && (quote?.depositAmount || 0) > 0 ? (
-                  <button className="btn" type="button" onClick={startPayment}>Pay {money(quote?.depositAmount || 0)} <span>↗</span></button>
-                  ) : null}
-                  <button className="pay-back" type="button" onClick={() => { setStep("details"); setPayNotice(""); }}>Edit details</button>
+              {paymentReturn === "checking" ? (
+                <div className="pay-success-panel" role="status">
+                  <p className="pay-success-symbol" aria-hidden="true">◇</p>
+                  <h3>Confirming your payment</h3>
+                  <p className="pay-summary">Please wait a moment while we verify your deposit with the bank…</p>
+                  <p className="notice booking-notice booking-dialog-loading">
+                    <span className="booking-spinner" aria-hidden="true" />
+                    This usually takes only a few seconds.
+                  </p>
                 </div>
-              </div>
-              <p aria-live="polite" className="notice booking-notice">{payNotice}</p>
+              ) : paymentReturn === "success" ? (
+                <div className="pay-success-panel" role="status">
+                  <p className="pay-success-symbol" aria-hidden="true">✦</p>
+                  <span className="eyebrow">Payment received</span>
+                  <h3>Thank you — your booking is confirmed</h3>
+                  <p className="pay-summary">
+                    {(() => {
+                      const start = stay?.start || parseDay(paymentConfirmed?.arrive);
+                      const end = stay?.end || parseDay(paymentConfirmed?.depart);
+                      if (!start || !end) return paymentConfirmed?.guestName || guest.name || "Your stay is reserved.";
+                      return `${formatStay(start)} to ${formatStay(end)} · ${Math.round((end - start) / 86400000)} night(s)${paymentConfirmed?.guestName || guest.name ? ` · ${paymentConfirmed?.guestName || guest.name}` : ""}`;
+                    })()}
+                  </p>
+                  <p>
+                    Your deposit was successful. We have sent a confirmation email with your stay details and arrival QR code.
+                    The remaining balance is due at check-in.
+                  </p>
+                  {quote ? (
+                    <div className="price-panel" style={{ marginTop: 8 }}>
+                      <div className="price-row"><span>Stay total</span><span>{money(quote.total || 0)}</span></div>
+                      <div className="price-row"><span>Deposit paid</span><span>{money(quote.depositAmount || 0)}</span></div>
+                      <div className="price-row"><span>Balance due</span><span>{money(quote.balanceDue || 0)}</span></div>
+                    </div>
+                  ) : null}
+                  <div className="pay-actions">
+                    <Link className="btn" to="/">Return home</Link>
+                    <a className="pay-back" href={pub.whatsappUrl || `https://wa.me/${(pub.contactPhone || "").replace(/\D/g, "")}`}>Message us on WhatsApp</a>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <p className="pay-summary">{formatStay(stay.start)} to {formatStay(stay.end)} · {Math.round((stay.end - stay.start) / 86400000)} night(s) · {guestLabel(guests)} · {guest.name}</p>
+                  <div className="price-panel">
+                    <span className="eyebrow">Amount to pay now</span>
+                    <strong>{money(quote?.depositAmount || 0)}</strong>
+                    <p className="stay-note">
+                      {quote?.requireDeposit && (quote?.depositAmount || 0) > 0
+                        ? `Deposit to reserve the apartment (${quote.depositPercent}% of your stay total).`
+                        : "No deposit is required for this stay."}
+                    </p>
+                    <div className="price-row"><span>Stay total</span><span>{money(quote?.total || 0)}</span></div>
+                    <div className="price-row"><span>Deposit now</span><span>{money(quote?.depositAmount || 0)}</span></div>
+                    <div className="price-row"><span>Balance due</span><span>{money(quote?.balanceDue || 0)}</span></div>
+                  </div>
+                  <div className="pay-gateway">
+                    <span className="eyebrow">Payment gateway</span>
+                    <h3>{quote?.requireDeposit && (quote?.depositAmount || 0) > 0 ? "Pay the deposit" : "Booking total"}</h3>
+                    <p>
+                      {quote?.requireDeposit && (quote?.depositAmount || 0) > 0
+                        ? "Card details are entered on the payment gateway, not in the form you just filled. The balance stays due at check-in."
+                        : "Your request is saved. We will confirm your stay by email — no online deposit for this property."}
+                    </p>
+                    <div className="pay-actions">
+                      {quote?.requireDeposit && (quote?.depositAmount || 0) > 0 ? (
+                      <button className="btn" type="button" onClick={startPayment}>Pay {money(quote?.depositAmount || 0)} <span>↗</span></button>
+                      ) : null}
+                      <button
+                        className="pay-back"
+                        type="button"
+                        onClick={() => {
+                          setStep("details");
+                          setPayNotice("");
+                          setPaymentReturn(null);
+                        }}
+                      >
+                        Edit details
+                      </button>
+                    </div>
+                  </div>
+                  <p aria-live="polite" className="notice booking-notice">{payNotice}</p>
+                </>
+              )}
             </div>
             ) : (
             <div className="booking-wrap pay-step">

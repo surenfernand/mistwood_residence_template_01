@@ -20,11 +20,13 @@ import {
   createCheckoutRequest,
   findPendingByPaymentOrderId,
   findResumableBookingRequest,
+  lookupPaymentReturnStatus,
   fulfillPayherePayment,
   fulfillTestDeposit,
   resumeCheckoutRequest,
   buildAdminCheckInUrl,
 } from "./booking-payment.js";
+import { cancelAndRefundBookingRequest, loadCancelAndRefundContext } from "./booking-cancel-refund.js";
 import {
   listAdminNotifications,
   markNotificationRead,
@@ -734,7 +736,34 @@ app.get("/api/admin/booking-requests", requirePermission("bookings"), async (req
   const where = clauses.length ? `where ${clauses.join(" and ")}` : "";
   try {
     const [list, total, summary, sources] = await Promise.all([
-      pool.query(`select id, name, email, phone, note, guests, arrive::text as arrive, depart::text as depart, source, status, created_at as "createdAt", status_changed_at as "statusChangedAt" from booking_requests ${where} order by created_at desc limit $${values.length + 1} offset $${values.length + 2}`, [...values, limit, offset]),
+      pool.query(
+        `with filtered as (
+            select id, name, email, phone, note, guests, arrive::text as arrive, depart::text as depart,
+                   source, status, created_at as "createdAt", status_changed_at as "statusChangedAt"
+              from booking_requests ${where}
+           )
+           select filtered.*,
+                  exists (
+                    select 1
+                      from bookings b
+                      join booking_payments p on p.booking_id = b.id
+                     where b.booking_request_id = filtered.id
+                       and filtered.status = 'confirmed'
+                       and lower(coalesce(filtered.source, '')) = 'website'
+                       and b.status = 'confirmed'
+                       and p.status = 'verified'
+                       and p.payment_type = 'deposit'
+                       and lower(coalesce(p.method, '')) = 'payhere'
+                       and not exists (
+                         select 1 from booking_refunds rf
+                          where rf.booking_payment_id = p.id and rf.status = 'accepted'
+                       )
+                  ) as "canCancelAndRefund"
+             from filtered
+            order by "createdAt" desc
+            limit $${values.length + 1} offset $${values.length + 2}`,
+        [...values, limit, offset],
+      ),
       pool.query(`select count(*)::int as count from booking_requests ${where}`, values), pool.query("select status, count(*)::int as count from booking_requests group by status"), pool.query("select distinct source from booking_requests order by source"),
     ]);
     res.json({ requests: list.rows, total: total.rows[0].count, limit, offset, sources: sources.rows.map((row) => row.source), summary: Object.fromEntries(summary.rows.map((row) => [row.status, row.count])) });
@@ -769,14 +798,35 @@ app.get("/api/admin/booking-requests.csv", requirePermission("bookings"), async 
 app.get("/api/admin/booking-requests/:id", requirePermission("bookings"), async (req, res, next) => {
   const id = Number.parseInt(req.params.id, 10);
   if (!Number.isSafeInteger(id) || id < 1) return res.status(400).json({ error: "Invalid request ID." });
+  const client = await pool.connect();
   try {
     const [request, history] = await Promise.all([
-      pool.query('select id, name, email, phone, note, guests, arrive::text as arrive, depart::text as depart, source, status, created_at as "createdAt", status_changed_at as "statusChangedAt" from booking_requests where id = $1', [id]),
-      pool.query('select from_status as "fromStatus", to_status as "toStatus", changed_at as "changedAt" from booking_request_status_history where booking_request_id = $1 order by changed_at desc', [id]),
+      client.query('select id, name, email, phone, note, guests, arrive::text as arrive, depart::text as depart, source, status, created_at as "createdAt", status_changed_at as "statusChangedAt" from booking_requests where id = $1', [id]),
+      client.query('select from_status as "fromStatus", to_status as "toStatus", changed_at as "changedAt" from booking_request_status_history where booking_request_id = $1 order by changed_at desc', [id]),
     ]);
     if (!request.rowCount) return res.status(404).json({ error: "Booking request not found." });
-    res.json({ request: request.rows[0], history: history.rows });
+    const refundContext = await loadCancelAndRefundContext(client, id);
+    res.json({
+      request: request.rows[0],
+      history: history.rows,
+      canCancelAndRefund: Boolean(refundContext?.canCancelAndRefund),
+      refundPreview: refundContext?.refundPreview || null,
+      refundIneligibleReason: refundContext?.ineligibleReason || null,
+    });
   } catch (error) { next(error); }
+  finally { client.release(); }
+});
+
+app.post("/api/admin/booking-requests/:id/cancel-and-refund", requirePermission("bookings"), async (req, res, next) => {
+  const id = Number.parseInt(req.params.id, 10);
+  if (!Number.isSafeInteger(id) || id < 1) return res.status(400).json({ error: "Invalid request ID." });
+  try {
+    const result = await cancelAndRefundBookingRequest(pool, id, req.admin.id);
+    res.json(result);
+  } catch (error) {
+    if (error.status) return res.status(error.status).json({ error: error.message });
+    next(error);
+  }
 });
 
 app.get("/api/admin/availability", requirePermission("dashboard", "availability"), async (req, res, next) => {
@@ -1849,6 +1899,20 @@ app.patch("/api/admin/booking-requests/:id/status", requirePermission("bookings"
       await client.query("rollback");
       return res.status(400).json({ error: `Cannot change a ${fromStatus.replaceAll("_", " ")} request to ${status.replaceAll("_", " ")}.` });
     }
+    if (status === "confirmed" && fromStatus === "pending_payment") {
+      const { rows: srcRows } = await client.query("select lower(coalesce(source, '')) as source from booking_requests where id = $1", [id]);
+      if (srcRows[0]?.source === "website") {
+        await client.query("rollback");
+        return res.status(400).json({ error: "Website bookings are confirmed automatically after PayHere payment." });
+      }
+    }
+    if (status === "cancelled" && fromStatus === "confirmed") {
+      const refundContext = await loadCancelAndRefundContext(client, id);
+      if (refundContext?.canCancelAndRefund) {
+        await client.query("rollback");
+        return res.status(400).json({ error: "Use Cancel and refund for paid PayHere reservations." });
+      }
+    }
     if (status === "confirmed") await ensureBookingForRequest(client, id);
     const updated = await client.query(
       'update booking_requests set status = $1, status_changed_at = now(), updated_at = now() where id = $2 returning id, status, status_changed_at as "statusChangedAt"',
@@ -2112,6 +2176,20 @@ app.post("/api/enquiries", async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "We could not save your message. Please try again." });
+  }
+});
+
+app.get("/api/bookings/payment-status", async (req, res, next) => {
+  const paymentOrderId = text(req.query.orderId, 80);
+  if (!paymentOrderId) return res.status(400).json({ error: "Missing payment order." });
+  const client = await pool.connect();
+  try {
+    const status = await lookupPaymentReturnStatus(client, paymentOrderId);
+    res.json(status);
+  } catch (error) {
+    next(error);
+  } finally {
+    client.release();
   }
 });
 

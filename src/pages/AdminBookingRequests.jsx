@@ -116,6 +116,14 @@ function Icon({ name = "calendar", size = 21 }) {
 
 const Badge = ({ status }) => <span className={`booking-status status-${status}`}>{labels[status] || status}</span>;
 
+function isWebsiteBooking(row) {
+  return String(row?.source || "").toLowerCase() === "website";
+}
+
+function money(amount) {
+  return `LKR ${Number(amount || 0).toLocaleString("en-LK")}`;
+}
+
 export default function AdminBookingRequests() {
   const nav = useNavigate();
   const [navOpen, setNavOpen] = useState(false);
@@ -128,6 +136,9 @@ export default function AdminBookingRequests() {
   const [detailError, setDetailError] = useState("");
   const [detailLoading, setDetailLoading] = useState(false);
   const [statusBusy, setStatusBusy] = useState(false);
+  const [refundTarget, setRefundTarget] = useState(null);
+  const [refundBusy, setRefundBusy] = useState(false);
+  const [refundNotice, setRefundNotice] = useState("");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -206,6 +217,65 @@ export default function AdminBookingRequests() {
     }
   };
 
+  const openCancelRefund = async (row, preview) => {
+    setRefundNotice("");
+    let refundAmount = preview?.refundAmount ?? row.refundAmount;
+    if (refundAmount == null) {
+      const r = await fetch(`/api/admin/booking-requests/${row.id}`);
+      if (r.ok) {
+        const data = await r.json();
+        refundAmount = data.refundPreview?.refundAmount;
+      }
+    }
+    setRefundTarget({
+      id: row.id,
+      guestName: preview?.guestName || row.name,
+      reservationReference: preview?.reservationReference || `BR-${row.id}`,
+      arrive: preview?.checkIn || row.arrive,
+      depart: preview?.checkOut || row.depart,
+      refundAmount: refundAmount ?? 0,
+    });
+  };
+
+  const confirmCancelRefund = async () => {
+    if (!refundTarget || refundBusy) return;
+    const targetId = refundTarget.id;
+    setRefundBusy(true);
+    setRefundNotice("");
+    setDetailError("");
+    try {
+      const r = await fetch(`/api/admin/booking-requests/${targetId}/cancel-and-refund`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      });
+      const x = await r.json();
+      if (!r.ok) throw Error(x.error || "Refund could not be started.");
+      setRefundTarget(null);
+      const emailNote = x.emailSent ? "" : " Cancellation succeeded, but the guest email needs attention.";
+      setRefundNotice(
+        x.alreadyProcessed
+          ? `Refund was already recorded for ${money(x.refundAmount)}.${emailNote}`
+          : `PayHere refund initiated for ${money(x.refundAmount)}. Booking cancelled.${emailNote}`,
+      );
+      await load();
+      if (detailId === targetId) await loadDetail(targetId);
+    } catch (e) {
+      setRefundNotice(e.message || "Refund failed.");
+      setDetailError(e.message || "Refund failed.");
+    } finally {
+      setRefundBusy(false);
+    }
+  };
+
+  const filteredDrawerActions = (request, meta) => (nextActions[request.status] || []).filter(([status]) => {
+    if (meta?.canCancelAndRefund) return status === "checked_in";
+    if (isWebsiteBooking(request) && status === "confirmed") return false;
+    if (meta?.canCancelAndRefund && status === "cancelled") return false;
+    if (isWebsiteBooking(request) && status === "declined") return false;
+    return true;
+  });
+
   const request = detail?.request;
 
   return (
@@ -223,7 +293,7 @@ export default function AdminBookingRequests() {
           <AdminUserTools />
         </header>
         <div className="booking-requests-page">
-         
+          {refundNotice ? <p className="notice booking-notice" role="status">{refundNotice}</p> : null}
           <section className="booking-summary booking-reference-summary">
             <Card icon="calendar" label="Total Requests" value={data?.total ?? "—"} />
             <Card icon="mail" label="New Requests" value={total("new")} />
@@ -340,12 +410,21 @@ export default function AdminBookingRequests() {
                             <a href={`mailto:${r.email}`} title="Email guest">
                               <Icon name="mail" size={18} />
                             </a>
-                            {nextActions[r.status]?.some(([s]) => s === "confirmed") ? (
+                            {!isWebsiteBooking(r) && nextActions[r.status]?.some(([s]) => s === "confirmed") ? (
                               <button type="button" title="Confirm request" onClick={() => applyStatus(r.id, "confirmed")}>
                                 <Icon name="check" size={18} />
                               </button>
                             ) : null}
-                            {nextActions[r.status]?.some(([s]) => s === "declined") ? (
+                            {r.canCancelAndRefund ? (
+                              <button
+                                type="button"
+                                className="danger"
+                                title="Cancel and refund"
+                                onClick={() => openCancelRefund(r, { guestName: r.name, checkIn: r.arrive, checkOut: r.depart })}
+                              >
+                                <Icon name="close" size={18} />
+                              </button>
+                            ) : !isWebsiteBooking(r) && nextActions[r.status]?.some(([s]) => s === "declined") ? (
                               <button type="button" className="danger" title="Decline request" onClick={() => applyStatus(r.id, "declined")}>
                                 <Icon name="close" size={18} />
                               </button>
@@ -458,14 +537,55 @@ export default function AdminBookingRequests() {
                   </ul>
                 </section>
                 <div className="booking-drawer-actions">
-                  {(nextActions[request.status] || []).map(([status, label]) => (
-                    <button key={status} type="button" disabled={statusBusy} onClick={() => applyStatus(detailId, status)}>
+                  {detail?.canCancelAndRefund ? (
+                    <button
+                      type="button"
+                      className="danger"
+                      disabled={refundBusy || statusBusy}
+                      onClick={() => openCancelRefund(request, detail.refundPreview)}
+                    >
+                      Cancel and refund
+                    </button>
+                  ) : null}
+                  {filteredDrawerActions(request, detail).map(([status, label]) => (
+                    <button key={status} type="button" disabled={statusBusy || refundBusy} onClick={() => applyStatus(detailId, status)}>
                       {label}
                     </button>
                   ))}
                 </div>
               </>
             ) : null}
+          </aside>
+        </div>
+      ) : null}
+      {refundTarget ? (
+        <div className="booking-drawer-backdrop" role="presentation">
+          <aside className="booking-drawer" aria-labelledby="cancel-refund-title" onClick={(e) => e.stopPropagation()}>
+            <header>
+              <div style={{ display: "grid", gap: 4 }}>
+                <h2 id="cancel-refund-title">Cancel and refund</h2>
+                <Badge status="confirmed" />
+              </div>
+            </header>
+            <p className="booking-dialog-lead">
+              This starts a PayHere refund for a paid website booking. Only proceed if the property cannot honour the stay.
+            </p>
+            <dl className="booking-dialog-list">
+              <div><dt>Guest</dt><dd>{refundTarget.guestName}</dd></div>
+              <div><dt>Reference</dt><dd>{refundTarget.reservationReference}</dd></div>
+              <div><dt>Arrival</dt><dd>{date(refundTarget.arrive)}</dd></div>
+              <div><dt>Departure</dt><dd>{date(refundTarget.depart)}</dd></div>
+              <div><dt>Refund amount</dt><dd>{money(refundTarget.refundAmount)}</dd></div>
+            </dl>
+            <p className="booking-error" role="alert">
+              PayHere will refund the verified deposit to the guest’s original card. The booking stays confirmed until PayHere accepts the refund.
+            </p>
+            <div className="booking-drawer-actions">
+              <button type="button" disabled={refundBusy} onClick={() => setRefundTarget(null)}>Keep reservation</button>
+              <button type="button" className="danger" disabled={refundBusy} onClick={confirmCancelRefund}>
+                {refundBusy ? "Processing…" : "Start PayHere refund"}
+              </button>
+            </div>
           </aside>
         </div>
       ) : null}

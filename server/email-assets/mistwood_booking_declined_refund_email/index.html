@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mistwood Residence — Reservation unavailable</title>
+  </head>
+  <body style="margin:0;padding:0;background:#f2f0eb;font-family:Arial,Helvetica,sans-serif;color:#1a2822">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#f2f0eb">
+      <tr><td align="center" style="padding:18px 8px">
+        <table role="presentation" width="700" cellspacing="0" cellpadding="0" border="0" style="width:100%;max-width:700px;background:#fffaf5">
+          <tr><td style="line-height:0"><img src="../mistwood_customer_confirmation_email/assets/header.jpg" alt="Mistwood Residence, Nuwara Eliya" width="700" style="width:100%;height:auto;display:block;border:0" /></td></tr>
+          <tr><td style="padding:22px 38px 32px">
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"><tr><td align="center">
+              <div style="width:66px;height:66px;border-radius:50%;background:#f8e7e2;color:#933831;font-family:Georgia,'Times New Roman',serif;font-size:36px;line-height:63px;text-align:center">×</div>
+              <h1 style="margin:12px 0 10px;color:#103e2b;font-family:Georgia,'Times New Roman',serif;font-size:34px;font-weight:normal;line-height:1.15">We’re sorry — your reservation cannot be completed</h1>
+              <div style="width:80px;height:3px;margin:16px auto 20px;background:#a47d25"></div>
+            </td></tr></table>
+            <p style="margin:0 0 12px;font-size:16px;line-height:1.65"><strong style="font-family:Georgia,'Times New Roman',serif;color:#103e2b">Dear {{guest_name}},</strong></p>
+            <p style="margin:0 0 16px;font-size:16px;line-height:1.65">Thank you for choosing Mistwood Residence. Unfortunately, we are unable to complete your reservation for the dates below because the accommodation is no longer available.</p>
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin:0 0 18px;background:#f8eee9;border-radius:14px"><tr><td style="padding:18px 20px;font-size:14px;line-height:1.7">
+              <strong style="font-family:Georgia,'Times New Roman',serif;color:#103e2b">Reservation reference:</strong> {{reservation_reference}}<br />
+              <strong style="font-family:Georgia,'Times New Roman',serif;color:#103e2b">Arrival:</strong> {{check_in_date}}<br />
+              <strong style="font-family:Georgia,'Times New Roman',serif;color:#103e2b">Departure:</strong> {{check_out_date}}<br />
+              <strong style="font-family:Georgia,'Times New Roman',serif;color:#103e2b">Amount to be refunded:</strong> {{refund_amount}}
+            </td></tr></table>
+            <p style="margin:0 0 16px;font-size:16px;line-height:1.65">A refund of <strong>{{refund_amount}}</strong> has been initiated to the original payment method used through PayHere. Your bank or card provider may take <strong>{{refund_timeframe}}</strong> to show the amount in your account.</p>
+            <p style="margin:0 0 16px;font-size:15px;line-height:1.6">If you have any questions, please contact us at <a href="mailto:{{contact_email}}" style="color:#103e2b">{{contact_email}}</a> or <a href="tel:{{phone_e164}}" style="color:#103e2b">{{display_phone}}</a>.</p>
+            <p style="margin:0;font-size:15px;line-height:1.6">We sincerely apologise for the inconvenience.<br /><br />Warm regards,<br /><strong style="font-family:Georgia,'Times New Roman',serif;color:#103e2b">The Mistwood Residence Team</strong></p>
+          </td></tr>
+          <tr><td style="line-height:0"><img src="../mistwood_customer_confirmation_email/assets/footer.jpg" alt="Mistwood Residence" width="700" style="width:100%;height:auto;display:block;border:0" /></td></tr>
+        </table>
+      </td></tr>
+    </table>
+  </body>
+</html>

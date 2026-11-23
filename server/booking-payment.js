@@ -67,6 +67,35 @@ export async function findPendingByPaymentOrderId(client, paymentOrderId) {
   return rows[0] || null;
 }
 
+const PAID_REQUEST_STATUSES = new Set(["confirmed", "checked_in", "checked_out"]);
+
+export async function lookupPaymentReturnStatus(client, paymentOrderId) {
+  const { rows } = await client.query(
+    `select br.status as "requestStatus", br.arrive::text as arrive, br.depart::text as depart,
+            br.name as "guestName", br.guests, br.email,
+            b.id as "bookingId", b.payment_status as "paymentStatus"
+       from booking_requests br
+       left join bookings b on b.booking_request_id = br.id
+      where br.payment_order_id = $1
+      limit 1`,
+    [paymentOrderId],
+  );
+  const row = rows[0];
+  if (!row) return { found: false };
+  const paid = Boolean(row.bookingId) && PAID_REQUEST_STATUSES.has(row.requestStatus);
+  return {
+    found: true,
+    paid,
+    pending: row.requestStatus === "pending_payment",
+    requestStatus: row.requestStatus,
+    arrive: row.arrive,
+    depart: row.depart,
+    guestName: row.guestName,
+    guests: row.guests,
+    paymentStatus: row.paymentStatus,
+  };
+}
+
 export async function cancelPendingRequestsForStay(client, { email, arrive, depart }) {
   await client.query(
     `update booking_requests
